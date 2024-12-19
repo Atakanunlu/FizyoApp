@@ -2,6 +2,7 @@ package com.example.fizyoapp.ui.splashscreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.airbnb.lottie.compose.LottieAnimatable
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -46,6 +46,8 @@ fun SplashScreen(navController: NavController){
         delay(1000)
     }
 
+
+
     Box(modifier = Modifier
         .fillMaxSize()
         .background(Color.White),
@@ -58,6 +60,7 @@ fun SplashScreen(navController: NavController){
             alignment = Alignment.Center
 
         )
+
 
     }
 }
