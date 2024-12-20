@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    kotlin("plugin.serialization") version "2.0.21"
 
 }
 
@@ -120,4 +119,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     // Lottie Animation
     implementation("com.airbnb.android:lottie-compose:6.4.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0") // Serialization JSON kütüphanesini ekleyin
+
+    implementation("androidx.compose.material:material-icons-extended:1.7.6")
 }

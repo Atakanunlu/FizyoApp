@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.fizyoapp.ui.mainscreen.MainScreen
 import com.example.fizyoapp.ui.splashscreen.SplashScreen
 
 @Composable
@@ -14,6 +15,10 @@ fun AppNavigation(){
         navController=navController, startDestination = AppScreens.SplashScreen.route){
         composable(AppScreens.SplashScreen.route) {
             SplashScreen(navController = navController)
+        }
+
+        composable(AppScreens.MainScreen.route){
+            MainScreen(navController=navController)
         }
 
     }
