@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fizyoapp.navigation.AppScreens
+import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
@@ -40,7 +41,13 @@ import kotlinx.serialization.Serializer
 @Composable
 fun MainScreen(navController: NavController){
 
-    Scaffold {
+    Scaffold(
+        bottomBar = { BottomNavbarComponent(navController) }
+    )
+
+    {
+
+
 
         LazyColumn(modifier = Modifier.fillMaxSize()
             .background(Color(59 ,62 ,104))
