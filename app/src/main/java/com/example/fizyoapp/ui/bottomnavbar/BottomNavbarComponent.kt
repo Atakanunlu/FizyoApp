@@ -31,7 +31,7 @@ fun BottomNavbarComponent(navController: NavController){
                 onClick = {
                     selectedItemIndex = index
 
-                    navController.navigate(item.route)
+                   // navController.navigate(item.route)
                 },
                 label = {Text(text = item.title)},
 
