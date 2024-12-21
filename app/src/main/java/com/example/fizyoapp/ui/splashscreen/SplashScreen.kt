@@ -25,6 +25,7 @@ import com.example.fizyoapp.R
 import com.example.fizyoapp.navigation.AppScreens
 import kotlinx.coroutines.delay
 
+
 @Composable
 fun SplashScreen(navController: NavController){
 
@@ -45,7 +46,7 @@ fun SplashScreen(navController: NavController){
 
     LaunchedEffect(Unit) {
         delay(1000)
-        navController.navigate(AppScreens.MainScreen)
+        navController.navigate(AppScreens.MainScreen.route)
     }
 
 

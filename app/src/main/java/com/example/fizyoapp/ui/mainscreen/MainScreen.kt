@@ -32,9 +32,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fizyoapp.navigation.AppScreens
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -89,34 +86,34 @@ fun MainScreen(navController: NavController){
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically){
 
-                  Button(
-                      onClick = {navController.navigate(route = "main_screen")},
+                    Button(
+                        onClick = {navController.navigate(route = "main_screen")},
 
-                      modifier = Modifier.height(150.dp).weight(1f).padding(start = 5.dp, end=10.dp),
-                      shape = RoundedCornerShape(10.dp),
-                      elevation = ButtonDefaults.buttonElevation(
-                          defaultElevation = 10.dp,
-                          pressedElevation = 6.dp
-                      ),
-                       colors = ButtonDefaults.buttonColors(
-                           containerColor = Color.White,
-                           contentColor = Color.DarkGray
-                       )
+                        modifier = Modifier.height(150.dp).weight(1f).padding(start = 5.dp, end=10.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 10.dp,
+                            pressedElevation = 6.dp
+                        ),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.DarkGray
+                        )
 
 
 
-                  ) {
+                    ) {
 
-                      Text(text = "Örnek Egzersizler ",
-                          style = TextStyle(fontSize = 17.sp),
-                          fontStyle = FontStyle.Italic
-                      )
+                        Text(text = "Örnek Egzersizler ",
+                            style = TextStyle(fontSize = 17.sp),
+                            fontStyle = FontStyle.Italic
+                        )
 
-                      Icon(imageVector = Icons.Filled.AccessibilityNew,
-                          contentDescription =  null,
-                          modifier = Modifier.size(17.dp))
+                        Icon(imageVector = Icons.Filled.AccessibilityNew,
+                            contentDescription =  null,
+                            modifier = Modifier.size(17.dp))
 
-                  }
+                    }
 
                     Button(
                         onClick = {navController.navigate(AppScreens.MainScreen.route)},
@@ -176,7 +173,7 @@ fun MainScreen(navController: NavController){
                         Text(text="Rehabilitasyon Geçmişim  ",
                             fontStyle = FontStyle.Italic,
                             style = TextStyle(fontSize = 20.sp)
-                       )
+                        )
 
                         Icon(
                             imageVector = Icons.Filled.History,
