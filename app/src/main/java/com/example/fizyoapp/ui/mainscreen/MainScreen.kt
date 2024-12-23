@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.fizyoapp.navigation.AppScreens
+
 import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 
 
@@ -76,7 +78,7 @@ fun MainScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
-                        onClick = {/**/ },                        modifier = Modifier
+                        onClick = {navController.navigate(AppScreens.OrnekEgzersizler.route) },                        modifier = Modifier
                             .height(150.dp)
                             .weight(1f)
                             .padding(start = 5.dp, end = 10.dp),

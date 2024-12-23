@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.fizyoapp.ui.mainscreen.MainScreen
+import com.example.fizyoapp.ui.mainscreen.buttons.ornekegzersizler.OrnekEgzersizler
 import com.example.fizyoapp.ui.splashscreen.SplashScreen
 
 @Composable
@@ -19,6 +20,9 @@ fun AppNavigation(){
 
         composable(AppScreens.MainScreen.route){
             MainScreen(navController=navController)
+        }
+        composable(AppScreens.OrnekEgzersizler.route){
+            OrnekEgzersizler(navController=navController)
         }
 
     }

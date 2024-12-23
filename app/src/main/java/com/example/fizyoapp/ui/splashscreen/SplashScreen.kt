@@ -44,7 +44,7 @@ fun SplashScreen(navController: NavController){
     )
 
     LaunchedEffect(Unit) {
-        delay(1000)
+        delay(3000)
         navController.navigate(AppScreens.MainScreen.route)
     }
 
