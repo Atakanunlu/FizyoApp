@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.fizyoapp.navigation.AppScreens
+
 import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 
 
@@ -38,7 +40,7 @@ fun MainScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                // İlk Satır
+
                 Row(modifier = Modifier.fillMaxSize()) {
                     Button(
                         onClick = {/**/ },
@@ -68,15 +70,13 @@ fun MainScreen(navController: NavController) {
                         )
                     }
                 }
-
-                // İkinci Satır
                 Row(
                     modifier = Modifier.fillMaxSize(),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
-                        onClick = {/**/ },                        modifier = Modifier
+                        onClick = {navController.navigate(AppScreens.OrnekEgzersizler.route) },                        modifier = Modifier
                             .height(150.dp)
                             .weight(1f)
                             .padding(start = 5.dp, end = 10.dp),
@@ -131,7 +131,6 @@ fun MainScreen(navController: NavController) {
                     }
                 }
 
-                // Üçüncü Satır
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,

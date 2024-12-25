@@ -13,7 +13,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 data class BottomNavItem(
     val title :String,
     val selectedicon:ImageVector,
-    val unselectedicon:ImageVector
+    val unselectedicon:ImageVector,
+    val route:String
 )
 
 val items = listOf(
@@ -21,30 +22,35 @@ val items = listOf(
     BottomNavItem(
         title = "Home",
         selectedicon = Icons.Default.Home,
-        unselectedicon = Icons.Filled.Home
+        unselectedicon = Icons.Filled.Home,
+        route="main_screen"
     ),
 
     BottomNavItem(
         title = "Search",
         selectedicon = Icons.Default.Search,
-        unselectedicon = Icons.Filled.Search
+        unselectedicon = Icons.Filled.Search,
+        route="search_screen"
     ),
 
     BottomNavItem(
         title = "Paylaşımlar",
         selectedicon = Icons.Default.SendToMobile,
-        unselectedicon = Icons.Filled.Send
+        unselectedicon = Icons.Filled.Send,
+        route="main_screen"
     ),
 
     BottomNavItem(
         title = "Profil",
         selectedicon = Icons.Default.PersonPin,
-        unselectedicon = Icons.Filled.PersonPin
+        unselectedicon = Icons.Filled.PersonPin,
+        route="main_screen"
     ),
     BottomNavItem(
         title = "Mesajlar",
         selectedicon = Icons.Default.Message,
-        unselectedicon = Icons.Filled.Message
+        unselectedicon = Icons.Filled.Message,
+        route="main_screen"
     )
 
 
