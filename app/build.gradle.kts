@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     kotlin("plugin.serialization") version "1.6.0"
+    id("org.jetbrains.kotlin.plugin.compose")
+
 
 }
 
@@ -126,4 +128,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json) // Güncel sürümü kullanın
 
     implementation ("com.google.accompanist:accompanist-pager:0.12.0")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
+
+    implementation( "io.coil-kt:coil-compose:2.4.0")
 }

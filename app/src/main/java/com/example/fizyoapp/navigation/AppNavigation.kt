@@ -1,9 +1,11 @@
 package com.example.fizyoapp.navigation
 
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Composable import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.fizyoapp.ui.bottomnavbar.items.searchscreen.SearchScreen
+import com.example.fizyoapp.ui.bottomnavbar.items.searchscreen.data.viewmodel.FizyoterapistViewModel
 import com.example.fizyoapp.ui.mainscreen.MainScreen
 import com.example.fizyoapp.ui.mainscreen.buttons.ornekegzersizler.OrnekEgzersizler
 import com.example.fizyoapp.ui.splashscreen.SplashScreen
@@ -23,6 +25,9 @@ fun AppNavigation(){
         }
         composable(AppScreens.OrnekEgzersizler.route){
             OrnekEgzersizler(navController=navController)
+        }
+        composable(AppScreens.SearchScreen.route){
+            SearchScreen(navController=navController)
         }
 
     }

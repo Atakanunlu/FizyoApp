@@ -40,7 +40,7 @@ fun MainScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                // İlk Satır
+
                 Row(modifier = Modifier.fillMaxSize()) {
                     Button(
                         onClick = {/**/ },
@@ -70,8 +70,6 @@ fun MainScreen(navController: NavController) {
                         )
                     }
                 }
-
-                // İkinci Satır
                 Row(
                     modifier = Modifier.fillMaxSize(),
                     horizontalArrangement = Arrangement.Center,
@@ -133,7 +131,6 @@ fun MainScreen(navController: NavController) {
                     }
                 }
 
-                // Üçüncü Satır
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
