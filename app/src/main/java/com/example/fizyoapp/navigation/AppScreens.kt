@@ -5,4 +5,5 @@ sealed class AppScreens(val route:String) {
     object MainScreen:AppScreens("main_screen")
     object OrnekEgzersizler:AppScreens("ornek_egzersizler")
     object SearchScreen:AppScreens("search_screen")
+    object ProfilScreen:AppScreens("profil_screen")
 }

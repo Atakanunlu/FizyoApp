@@ -44,7 +44,7 @@ val items = listOf(
         title = "Profil",
         selectedicon = Icons.Default.PersonPin,
         unselectedicon = Icons.Filled.PersonPin,
-        route="main_screen"
+        route="profil_screen"
     ),
     BottomNavItem(
         title = "Mesajlar",
