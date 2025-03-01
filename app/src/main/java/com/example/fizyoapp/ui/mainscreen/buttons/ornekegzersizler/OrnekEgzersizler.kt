@@ -30,7 +30,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fizyoapp.R
 import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
-import com.example.fizyoapp.ui.mainscreen.buttons.ornekegzersizler.database.entity.OrnekEgzersizlerGiris
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -55,7 +54,7 @@ fun OrnekEgzersizler(navController: NavController) {
         ) {
             items(ornekEgzersizlerGiris.size) { index ->
                 val (title, imageRes) = ornekEgzersizlerGiris[index]
-                Box {
+                Box() {
                     Image(
                         painter = painterResource(id = imageRes),
                         contentDescription = title,

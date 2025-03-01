@@ -26,11 +26,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,10 +39,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 import com.example.fizyoapp.ui.bottomnavbar.items.searchscreen.data.CircleImage
-import com.example.fizyoapp.ui.bottomnavbar.items.searchscreen.data.Fizyoterapistler
 import com.example.fizyoapp.ui.bottomnavbar.items.searchscreen.data.FizyoterapistlerEntity
 import com.example.fizyoapp.ui.bottomnavbar.items.searchscreen.data.getFizyo
-import com.example.fizyoapp.ui.bottomnavbar.items.searchscreen.data.viewmodel.FizyoterapistViewModel
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -55,9 +51,7 @@ fun SearchScreen(navController: NavController ){
     //val filtered by viewModel.filteredList.collectAsState()
 
 
-    var selectedItemIndex by rememberSaveable {
-        mutableStateOf(0)
-    }
+
     var query by remember { mutableStateOf("") }
     //var filtered by remember { mutableStateOf(items) }
 
@@ -90,6 +84,7 @@ fun SearchScreen(navController: NavController ){
             }
 
         },
+
 
         bottomBar = { BottomNavbarComponent(navController) }
     ) {
