@@ -89,19 +89,6 @@ fun SearchScreen(navController: NavController ){
         bottomBar = { BottomNavbarComponent(navController) }
     ) {
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(59, 62, 104))
-                .padding(it)
-        ){
-            LazyColumn {
-
-                items(getFizyo()){ fizyoterapistlerItem ->
-                    FizyoRow(fizyoterapistlerItem =fizyoterapistlerItem)
-                }
-            }
-        }
 
 
 

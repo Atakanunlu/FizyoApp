@@ -137,5 +137,16 @@ dependencies {
     implementation("com.uploadcare.android.library:uploadcare-android:4.3.1")
 
 
+    //Gson
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    //Nav
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+
+    //LiveData
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.6")
+
+
+
 
 }
