@@ -1,4 +1,4 @@
-package com.example.fizyoapp.ui.bottomnavbar.items.searchscreen
+package com.example.fizyoapp.ui.bottomnavbar.items.profilscreen
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,7 +56,8 @@ fun ProfilScreen(navController: NavController){
                 containerColor = Color.White,
                 titleContentColor = Color.DarkGray
             ))
-        }
+        },
+        bottomBar = { BottomNavbarComponent(navController) }
     ){
         Column(modifier = Modifier.fillMaxSize().background(Color(59, 62, 104)),
             horizontalAlignment = Alignment.CenterHorizontally,

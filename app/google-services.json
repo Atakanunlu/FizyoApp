@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "632171088069",
+    "firebase_url": "https://fizyoapp-83f79-default-rtdb.firebaseio.com",
+    "project_id": "fizyoapp-83f79",
+    "storage_bucket": "fizyoapp-83f79.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:632171088069:android:4eb12a60eff11b3be688ac",
+        "android_client_info": {
+          "package_name": "com.example.fizyoapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUH_w2BEVNhUbmbbi86bTt1pQHf-c9690"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

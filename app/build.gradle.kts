@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     kotlin("plugin.serialization") version "1.6.0"
     id("org.jetbrains.kotlin.plugin.compose")
+    alias(libs.plugins.google.gms.google.services)
 
 
 }
@@ -64,6 +65,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.media3.effect)
+    implementation(libs.firebase.database.ktx)
+    implementation(libs.firebase.database)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.firestore)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -132,4 +137,21 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
 
     implementation( "io.coil-kt:coil-compose:2.4.0")
+    implementation( "androidx.compose.material:material:1.5.0")
+    implementation( "androidx.compose.foundation:foundation:1.5.0")
+    implementation("com.uploadcare.android.library:uploadcare-android:4.3.1")
+
+
+    //Gson
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    //Nav
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+
+    //LiveData
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.6")
+
+
+
+
 }

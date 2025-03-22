@@ -37,14 +37,14 @@ val items = listOf(
         title = "Paylaşımlar",
         selectedicon = Icons.Default.SendToMobile,
         unselectedicon = Icons.Filled.Send,
-        route="main_screen"
+        route="paylasimlar_screen"
     ),
 
     BottomNavItem(
         title = "Profil",
         selectedicon = Icons.Default.PersonPin,
         unselectedicon = Icons.Filled.PersonPin,
-        route="main_screen"
+        route="profil_screen"
     ),
     BottomNavItem(
         title = "Mesajlar",

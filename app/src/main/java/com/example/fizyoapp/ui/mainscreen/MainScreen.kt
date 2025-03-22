@@ -11,6 +11,8 @@ import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -103,7 +105,7 @@ fun MainScreen(navController: NavController) {
                     }
 
                     Button(
-                        onClick = {/**/ },
+                        onClick = {navController.navigate(AppScreens.HastaliklarimScreen.route) },
                         colors = ButtonDefaults.buttonColors(
                             contentColor = Color.DarkGray,
                             containerColor = Color.White
