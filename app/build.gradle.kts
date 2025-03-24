@@ -79,7 +79,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    val nav_version = "2.8.4"
+
 
     // Jetpack Compose integration
     implementation(libs.androidx.navigation.compose)
@@ -97,7 +97,7 @@ dependencies {
     // JSON serialization library, works with the Kotlin serialization plugin
     implementation(libs.kotlinx.serialization.json)
 
-    val room_version = "2.6.1"
+    
 
     implementation(libs.androidx.room.runtime)
 
