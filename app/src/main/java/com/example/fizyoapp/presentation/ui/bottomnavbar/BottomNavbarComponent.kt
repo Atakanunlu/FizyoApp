@@ -1,4 +1,4 @@
-package com.example.fizyoapp.ui.bottomnavbar
+package com.example.fizyoapp.presentation.ui.bottomnavbar
 
 
 import androidx.compose.material3.Icon
@@ -6,20 +6,20 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.vector.ImageVector
+
 import androidx.navigation.NavController
-import com.example.fizyoapp.navigation.AppScreens
+
 
 @Composable
 fun BottomNavbarComponent(navController: NavController){
 
     var selectedItemIndex by rememberSaveable {
-        mutableStateOf(0)
+        mutableIntStateOf(0)
     }
 
     NavigationBar {

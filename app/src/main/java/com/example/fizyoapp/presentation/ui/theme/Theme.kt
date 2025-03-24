@@ -1,4 +1,4 @@
-package com.example.fizyoapp.ui.theme
+package com.example.fizyoapp.presentation.ui.theme
 
 import android.app.Activity
 import android.os.Build

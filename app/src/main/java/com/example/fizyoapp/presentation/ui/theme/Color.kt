@@ -1,4 +1,4 @@
-package com.example.fizyoapp.ui.theme
+package com.example.fizyoapp.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

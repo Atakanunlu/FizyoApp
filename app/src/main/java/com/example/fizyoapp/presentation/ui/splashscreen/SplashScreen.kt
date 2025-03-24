@@ -1,8 +1,7 @@
-package com.example.fizyoapp.ui.splashscreen
+package com.example.fizyoapp.presentation.ui.splashscreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,7 +21,7 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.fizyoapp.R
-import com.example.fizyoapp.navigation.AppScreens
+import com.example.fizyoapp.presentation.navigation.AppScreens
 import kotlinx.coroutines.delay
 
 @Composable
@@ -45,7 +44,7 @@ fun SplashScreen(navController: NavController){
 
     LaunchedEffect(Unit) {
         delay(1000)
-        navController.navigate(AppScreens.MainScreen)
+        navController.navigate(AppScreens.LoginScreen.route)
     }
 
 
