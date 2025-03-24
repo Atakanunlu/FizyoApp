@@ -6,6 +6,4 @@ plugins {
     kotlin("plugin.serialization") version "1.6.0"
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
     alias(libs.plugins.google.gms.google.services) apply false
-    id("com.google.dagger.hilt.android") version "2.51.1" apply false
-
 }

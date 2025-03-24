@@ -1,57 +1,56 @@
-package com.example.fizyoapp.presentation.ui.bottomnavbar
+package com.example.fizyoapp.ui.bottomnavbar
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Message
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.automirrored.filled.SendToMobile
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.filled.Search
-
-
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.SendToMobile
+import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.vector.ImageVector
 
 data class BottomNavItem(
     val title :String,
-    val route:String,
     val selectedicon:ImageVector,
-    val unselectedicon:ImageVector
+    val unselectedicon:ImageVector,
+    val route:String
 )
 
 val items = listOf(
 
     BottomNavItem(
         title = "Home",
-        route = "user_main_screen",
         selectedicon = Icons.Default.Home,
-        unselectedicon = Icons.Filled.Home
+        unselectedicon = Icons.Filled.Home,
+        route="main_screen"
     ),
 
     BottomNavItem(
         title = "Search",
-        route = "user_main_screen",
         selectedicon = Icons.Default.Search,
-        unselectedicon = Icons.Filled.Search
+        unselectedicon = Icons.Filled.Search,
+        route="search_screen"
     ),
 
     BottomNavItem(
         title = "Paylaşımlar",
-        route="user_main_screen",
-        selectedicon = Icons.AutoMirrored.Filled.SendToMobile,
-        unselectedicon = Icons.AutoMirrored.Filled.Send
+        selectedicon = Icons.Default.SendToMobile,
+        unselectedicon = Icons.Filled.Send,
+        route="paylasimlar_screen"
     ),
 
     BottomNavItem(
         title = "Profil",
-        route = "user_main_screen",
         selectedicon = Icons.Default.PersonPin,
-        unselectedicon = Icons.Filled.PersonPin
+        unselectedicon = Icons.Filled.PersonPin,
+        route="profil_screen"
     ),
     BottomNavItem(
         title = "Mesajlar",
-        route = "user_main_screen",
-        selectedicon = Icons.AutoMirrored.Filled.Message,
-        unselectedicon = Icons.AutoMirrored.Filled.Message
+        selectedicon = Icons.Default.Message,
+        unselectedicon = Icons.Filled.Message,
+        route="main_screen"
     )
 
 
