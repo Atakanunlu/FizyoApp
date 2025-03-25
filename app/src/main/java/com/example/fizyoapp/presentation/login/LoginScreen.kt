@@ -1,0 +1,151 @@
+package com.example.fizyoapp.presentation.login
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.example.fizyoapp.domain.model.auth.UserRole
+import com.example.fizyoapp.presentation.navigation.AppScreens
+import kotlinx.coroutines.flow.collectLatest
+
+@Composable
+fun LoginScreen(
+    navController: NavController,
+    viewModel: LoginViewModel = hiltViewModel()
+) {
+    val state = viewModel.state.collectAsState().value
+
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is LoginViewModel.UiEvent.NavigateBasedOnRole -> {
+                    when (event.role) {
+                        UserRole.PHYSIOTHERAPIST -> {
+                            navController.navigate(AppScreens.PhysiotherapistMainScreen.route) {
+                                popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
+                            }
+                        }
+                        UserRole.USER -> {
+                            navController.navigate(AppScreens.UserMainScreen.route) {
+                                popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
+                            }
+                        }
+                    }
+                }
+                is LoginViewModel.UiEvent.NavigateToRegister -> {
+                    navController.navigate(AppScreens.RegisterScreen.route)
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Giriş Yap",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
+        // Rol seçimi
+        Text(text = "Rol Seçin", modifier = Modifier.padding(bottom = 8.dp))
+        Row(
+            modifier = Modifier.padding(bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(
+                selected = state.selectedRole == UserRole.USER,
+                onClick = { viewModel.onEvent(LoginEvent.RoleChanged(UserRole.USER)) }
+            )
+            Text(
+                text = "Kullanıcı",
+                modifier = Modifier.padding(start = 8.dp, end = 16.dp)
+            )
+            RadioButton(
+                selected = state.selectedRole == UserRole.PHYSIOTHERAPIST,
+                onClick = { viewModel.onEvent(LoginEvent.RoleChanged(UserRole.PHYSIOTHERAPIST)) }
+            )
+            Text(
+                text = "Fizyoterapist",
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+
+
+        OutlinedTextField(
+            value = state.email,
+            onValueChange = { viewModel.onEvent(LoginEvent.EmailChanged(it)) },
+            label = { Text("Email") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        )
+
+
+        OutlinedTextField(
+            value = state.password,
+            onValueChange = { viewModel.onEvent(LoginEvent.PasswordChanged(it)) },
+            label = { Text("Şifre") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
+        )
+
+
+        if (state.errorMessage != null) {
+            Text(
+                text = state.errorMessage,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(bottom = 8.dp)
+            )
+        }
+
+
+        Button(
+            onClick = { viewModel.onEvent(LoginEvent.SignIn) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .padding(bottom = 8.dp),
+            enabled = !state.isLoading
+        ) {
+            if (state.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.White
+                )
+            } else {
+                Text("Giriş Yap")
+            }
+        }
+
+
+        TextButton(
+            onClick = { viewModel.onEvent(LoginEvent.NavigateToRegister) },
+            modifier = Modifier.padding(top = 8.dp)
+        ) {
+            Text("Hesabınız yok mu? Kayıt Olun")
+        }
+    }
+}
