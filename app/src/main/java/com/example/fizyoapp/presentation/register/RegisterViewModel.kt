@@ -3,7 +3,7 @@ package com.example.fizyoapp.presentation.register
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
-import com.example.fizyoapp.domain.usecase.SignUpUseCase
+import com.example.fizyoapp.domain.usecase.auth.SignUpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

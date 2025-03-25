@@ -1,6 +1,6 @@
 package com.example.fizyoapp.presentation.user
 
-import com.example.fizyoapp.domain.model.User
+import com.example.fizyoapp.domain.model.auth.User
 
 data class UserState(
     val user: User? = null,

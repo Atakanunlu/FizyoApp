@@ -1,6 +1,6 @@
 package com.example.fizyoapp.presentation.register
 
-import com.example.fizyoapp.domain.model.UserRole
+import com.example.fizyoapp.domain.model.auth.UserRole
 
 sealed class RegisterEvent {
 

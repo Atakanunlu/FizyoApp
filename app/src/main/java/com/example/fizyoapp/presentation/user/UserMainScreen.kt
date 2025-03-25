@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccessibilityNew
 import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.History
@@ -34,8 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 
-import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun UserMainScreen(
@@ -73,7 +73,7 @@ fun UserMainScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Button(
-                        onClick = {},
+                        onClick = { /* Egzersizlerim sayfasına navigasyon */ },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 20.dp)
@@ -108,7 +108,7 @@ fun UserMainScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
-                        onClick = {  },
+                        onClick = { navController.navigate(AppScreens.OrnekEgzersizler.route) },
                         modifier = Modifier
                             .height(150.dp)
                             .weight(1f)
@@ -136,7 +136,7 @@ fun UserMainScreen(
                     }
 
                     Button(
-                        onClick = { },
+                        onClick = { navController.navigate(AppScreens.HastaliklarimScreen.route) },
                         colors = ButtonDefaults.buttonColors(
                             contentColor = Color.DarkGray,
                             containerColor = Color.White
@@ -171,7 +171,7 @@ fun UserMainScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
-                        onClick = { },
+                        onClick = { /* Rehabilitasyon Geçmişi sayfasına navigasyon */ },
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.White,
@@ -199,43 +199,6 @@ fun UserMainScreen(
                     }
                 }
 
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 10.dp, bottom = 20.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = { viewModel.onEvent(UserEvent.SignOut) },
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Red.copy(alpha = 0.8f),
-                            contentColor = Color.White
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 10.dp,
-                            pressedElevation = 6.dp
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(60.dp),
-                    ) {
-                        Text(
-                            text = "Çıkış Yap",
-                            fontStyle = FontStyle.Italic,
-                            style = TextStyle(fontSize = 18.sp)
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Logout,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .padding(start = 10.dp)
-                                .size(24.dp)
-                        )
-                    }
-                }
             }
 
 

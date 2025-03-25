@@ -8,9 +8,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
-    
 
-    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".FizyoApp"
@@ -23,6 +21,19 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FizyoApp"
         tools:targetApi="31">
+
+        <meta-data
+            android:name="firebase_messaging_auto_init_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+
+        <!-- PendingIntent için çözüm -->
+        <meta-data
+            android:name="android.allow_multiple_resumed_activities"
+            android:value="true" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

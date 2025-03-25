@@ -3,9 +3,9 @@ package com.example.fizyoapp.presentation.user
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
-import com.example.fizyoapp.domain.model.UserRole
-import com.example.fizyoapp.domain.usecase.GetCurrentUseCase
-import com.example.fizyoapp.domain.usecase.SignOutUseCase
+import com.example.fizyoapp.domain.model.auth.UserRole
+import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
+import com.example.fizyoapp.domain.usecase.auth.SignOutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

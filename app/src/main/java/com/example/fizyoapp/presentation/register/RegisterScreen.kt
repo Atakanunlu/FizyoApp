@@ -12,7 +12,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.fizyoapp.domain.model.UserRole
+import com.example.fizyoapp.domain.model.auth.UserRole
 import com.example.fizyoapp.presentation.navigation.AppScreens
 
 

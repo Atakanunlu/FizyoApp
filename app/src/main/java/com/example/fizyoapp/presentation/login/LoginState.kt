@@ -1,7 +1,7 @@
 package com.example.fizyoapp.presentation.login
 
-import com.example.fizyoapp.domain.model.User
-import com.example.fizyoapp.domain.model.UserRole
+import com.example.fizyoapp.domain.model.auth.User
+import com.example.fizyoapp.domain.model.auth.UserRole
 
 data class LoginState(
     val email: String = "",

@@ -1,6 +1,6 @@
 package com.example.fizyoapp.presentation.login
 
-import com.example.fizyoapp.domain.model.UserRole
+import com.example.fizyoapp.domain.model.auth.UserRole
 
 sealed class LoginEvent {
     //Kullanıcı bu inputlara veya butonabastığında tetiklenicek
