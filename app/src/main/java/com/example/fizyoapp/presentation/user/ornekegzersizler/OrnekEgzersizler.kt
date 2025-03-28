@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.user.buttons.ornekegzersizler
+package com.example.fizyoapp.presentation.user.ornekegzersizler
 
 import android.annotation.SuppressLint
 

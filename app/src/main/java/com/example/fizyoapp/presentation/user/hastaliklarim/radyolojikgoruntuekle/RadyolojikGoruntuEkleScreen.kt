@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.user.buttons.hastaliklarim.radyolojikgoruntuekle
+package com.example.fizyoapp.presentation.user.hastaliklarim.radyolojikgoruntuekle
 import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult

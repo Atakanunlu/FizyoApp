@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.user.buttons.hastaliklarim
+package com.example.fizyoapp.presentation.user.hastaliklarim
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
@@ -13,7 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
-import com.example.fizyoapp.presentation.user.buttons.hastaliklarim.radyolojikgoruntuekle.RadyolojikGoruntuEkle
+import com.example.fizyoapp.presentation.user.hastaliklarim.radyolojikgoruntuekle.RadyolojikGoruntuEkle
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable

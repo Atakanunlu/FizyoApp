@@ -40,8 +40,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fizyoapp.presentation.navigation.AppScreens
-import com.example.fizyoapp.presentation.user.UserEvent
-import com.example.fizyoapp.presentation.user.UserViewModel
+import com.example.fizyoapp.presentation.user.usermainscreen.UserEvent
+import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
 import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 import kotlinx.coroutines.flow.collectLatest
 
