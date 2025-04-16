@@ -1,9 +1,10 @@
-package com.example.fizyoapp.presentation.user.ornekegzersizler
+package com.example.fizyoapp.ui.mainscreen.buttons.ornekegzersizler
 
 import android.annotation.SuppressLint
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fizyoapp.R
+import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -54,7 +56,20 @@ fun OrnekEgzersizler(navController: NavController) {
         ) {
             items(ornekEgzersizlerGiris.size) { index ->
                 val (title, imageRes) = ornekEgzersizlerGiris[index]
-                Box() {
+                Box(
+                    Modifier.clickable {
+
+                        when(title){
+                            "Omuz Egzersizleri" -> navController.navigate(AppScreens.ShoulderExercisesScreen.route)
+                            "Boyun Egzersizleri" -> navController.navigate(AppScreens.NeckExercisesScreen.route)
+                            "Bel Egzersizleri" -> navController.navigate(AppScreens.WaistExercisesScreen.route)
+                            "Bacak Egzersizleri" -> navController.navigate(AppScreens.LegExercisesScreen.route)
+                            "Core Egzersizleri" -> navController.navigate(AppScreens.CoreExercisesScreen.route)
+                            "Kalça Egzersizleri" -> navController.navigate(AppScreens.HipExercisesScreen.route)
+                        }
+
+                    }
+                ) {
                     Image(
                         painter = painterResource(id = imageRes),
                         contentDescription = title,
