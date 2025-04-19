@@ -14,9 +14,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.FollowTheSigns
 import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.FollowTheSigns
+
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -40,8 +42,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fizyoapp.presentation.navigation.AppScreens
-import com.example.fizyoapp.presentation.user.UserEvent
-import com.example.fizyoapp.presentation.user.UserViewModel
+import com.example.fizyoapp.presentation.user.usermainscreen.UserEvent
+import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
 import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 import kotlinx.coroutines.flow.collectLatest
 
@@ -54,7 +56,7 @@ fun ProfilScreen(
 ) {
     val state = viewModel.state.collectAsState().value
 
-    // Çıkış yap işlemi sonrası login ekranına yönlendirme
+
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
@@ -63,7 +65,7 @@ fun ProfilScreen(
                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     }
                 }
-                else -> {} // Diğer olası eventleri yönet veya yoksay
+                else -> {}
             }
         }
     }
@@ -154,10 +156,10 @@ fun ProfilScreen(
                     ),
                 ) {
                     Text(text = "Takip Edilenler")
-                    Icon(Icons.Filled.FollowTheSigns, contentDescription = null)
+                    Icon(Icons.AutoMirrored.Filled.FollowTheSigns, contentDescription = null)
                 }
                 Spacer(modifier = Modifier.padding(10.dp))
-                // Çıkış Yap butonu - Çıkış yapma işlemi eklenmiştir
+
                 Button(
                     onClick = { viewModel.onEvent(UserEvent.SignOut) },
                     shape = CutCornerShape(8.dp),
@@ -173,8 +175,28 @@ fun ProfilScreen(
                 ) {
                     Text(text = "Çıkış Yap")
                     Icon(
-                        imageVector = Icons.Filled.ExitToApp,
+                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                         contentDescription = null
+                    )
+                }
+                Button(
+                    onClick = { navController.navigate(AppScreens.UserInformationScreen.route) },
+                    shape = CutCornerShape(8.dp),
+                    modifier = Modifier.size(150.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.DarkGray
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 10.dp,
+                        pressedElevation = 6.dp
+                    )
+                ) {
+                    Text(text = "Kullanıcı Bilgileri")
+                    Icon(
+                        imageVector = Icons.Filled.Person,
+                        contentDescription = null,
+                        modifier = Modifier.padding(start = 8.dp)
                     )
                 }
             }

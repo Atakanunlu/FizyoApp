@@ -109,7 +109,6 @@ class RegisterViewModel @Inject constructor(
 
     }
 
-    // Kayıt bilgilerinin doğruluğunu kontrol eder
     private fun validateInput(): Boolean {
         // Email boş mu kontrol eder
         if (_state.value.email.isBlank()) {
@@ -117,25 +116,21 @@ class RegisterViewModel @Inject constructor(
             return false
         }
 
-        // Email formatı geçerli mi kontrol eder
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(_state.value.email).matches()) {
             _state.value = _state.value.copy(errorMessage = "Geçerli bir email adresi girin")
             return false
         }
 
-        // Şifre boş mu kontrol eder
         if (_state.value.password.isBlank()) {
             _state.value = _state.value.copy(errorMessage = "Şifre boş olamaz")
             return false
         }
 
-        // Şifre uzunluğu yeterli mi kontrol eder
         if (_state.value.password.length < 6) {
             _state.value = _state.value.copy(errorMessage = "Şifre en az 6 karakter olmalıdır")
             return false
         }
 
-        // Şifreler eşleşiyor mu kontrol eder
         if (_state.value.password != _state.value.confirmPassword) {
             _state.value = _state.value.copy(
                 errorMessage = "Şifreler eşleşmiyor",
@@ -144,7 +139,6 @@ class RegisterViewModel @Inject constructor(
             return false
         }
 
-        // Tüm kontroller geçildi, true döndürür
         return true
     }
 

@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.physiotherapist
+package com.example.fizyoapp.presentation.user.usermainscreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,13 +16,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class PhysiotherapistViewModel @Inject constructor(
+class UserViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUseCase,
     private val signOutUseCase: SignOutUseCase
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(PhysiotherapistState())
-    val state: StateFlow<PhysiotherapistState> = _state.asStateFlow()
+    private val _state = MutableStateFlow(UserState())
+    val state: StateFlow<UserState> = _state.asStateFlow()
 
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
@@ -40,7 +40,7 @@ class PhysiotherapistViewModel @Inject constructor(
                     }
                     is Resource.Success -> {
                         val user = result.data
-                        if (user != null && user.role == UserRole.PHYSIOTHERAPIST) {
+                        if (user != null && user.role == UserRole.USER) {
                             _state.value = _state.value.copy(
                                 isLoading = false,
                                 user = user,
@@ -66,9 +66,9 @@ class PhysiotherapistViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: PhysiotherapistEvent) {
+    fun onEvent(event: UserEvent) {
         when (event) {
-            is PhysiotherapistEvent.SignOut -> {
+            is UserEvent.SignOut -> {
                 viewModelScope.launch {
                     signOutUseCase().collect { result ->
                         when (result) {

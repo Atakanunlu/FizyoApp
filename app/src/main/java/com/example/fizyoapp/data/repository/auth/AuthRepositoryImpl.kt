@@ -34,7 +34,7 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
         try {
             emit(Resource.Loading())
 
-            // Kullanıcı kontrolü için gerekli sorgular
+
             val result = auth.signInWithEmailAndPassword(email, password).await()
             val userId = result.user?.uid ?: throw Exception("Kullanıcı ID bulunamadı.")
 
@@ -54,7 +54,7 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
                 email = email,
                 role = role
             )
-            // Başarılı olduğunda giriş yapacak
+
             emit(Resource.Success(AuthResult.SignInResult(user)))
         } catch (e: Exception){
             Log.e("FirebaseRepository","Giriş hatası", e)
@@ -78,29 +78,32 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
                 role = role
             )
 
+            // Firestore'a kaydedilecek kullanıcı verileri
             val userData = hashMapOf(
                 "email" to email,
                 "role" to role.name,
+                "profileCompleted" to false,
                 "createdAt" to FieldValue.serverTimestamp()
             )
 
             try {
-                when(role){
+                when(role) {
                     UserRole.PHYSIOTHERAPIST -> physiotherapistCollection.document(userId).set(userData).await()
                     UserRole.USER -> userCollection.document(userId).set(userData).await()
                 }
-                //Kayıt olduktan sonra oturumu kapattım ki kullanıcı kendisi login ekrandan girsin
+
+
                 auth.signOut()
                 emit(Resource.Success(AuthResult.SignUpResult(user)))
-            } catch (e: Exception){
+            } catch (e: Exception) {
                 try {
                     auth.currentUser?.delete()?.await()
-                } catch (deleteEx: Exception){
+                } catch (deleteEx: Exception) {
                     Log.e("FirebaseRepository", "Kullanıcı silme hatası", deleteEx)
                 }
                 throw e
             }
-        } catch (e: Exception){
+        } catch (e: Exception) {
             Log.e("FirebaseRepository", "Kayıt Hatası", e)
             emit(Resource.Error(e.message ?: "Kayıt başarısız oldu", e))
         }
@@ -208,7 +211,7 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
                         trySend(Resource.Error("Kullanıcı rolü alınamadı: ${e.message}", e))
                     }
                 } else {
-                    // Kullanıcı giriş yapmamış
+
                     trySend(Resource.Success(AuthResult.CurrentUserResult(null)))
                 }
             }
