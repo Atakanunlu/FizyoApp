@@ -154,6 +154,17 @@ dependencies {
 
     implementation ("io.coil-kt:coil-compose:2.4.0")
 
+    implementation("com.google.firebase:firebase-storage:20.3.0") // En güncel sürümü kullanın
+
+
+    implementation( "com.google.android.exoplayer:exoplayer-core:2.18.7")
+    implementation("com.google.android.exoplayer:exoplayer-ui:2.18.7")
+    // build.gradle
+    dependencies {
+        implementation( "androidx.media3:media3-exoplayer:1.0.0")
+        implementation( "androidx.media3:media3-ui:1.0.0")
+        implementation( "androidx.media3:media3-common:1.0.0")
+    }
 
 }
 
