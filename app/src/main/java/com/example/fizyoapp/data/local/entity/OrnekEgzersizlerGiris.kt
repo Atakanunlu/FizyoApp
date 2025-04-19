@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.user.buttons.ornekegzersizler.database.entity
+package com.example.fizyoapp.data.local.entity
 
 import android.graphics.Bitmap
 import androidx.room.ColumnInfo

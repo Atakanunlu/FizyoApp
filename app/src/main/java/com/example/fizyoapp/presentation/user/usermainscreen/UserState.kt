@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.user
+package com.example.fizyoapp.presentation.user.usermainscreen
 
 import com.example.fizyoapp.domain.model.auth.User
 
