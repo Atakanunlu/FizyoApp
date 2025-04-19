@@ -1,20 +1,25 @@
 package com.example.fizyoapp.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.fizyoapp.presentation.login.LoginScreen
-import com.example.fizyoapp.presentation.physiotherapist.PhysiotherapistMainScreen
+import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen.PhysiotherapistMainScreen
 import com.example.fizyoapp.presentation.register.RegisterScreen
 import com.example.fizyoapp.presentation.user.usermainscreen.UserMainScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.paylasimlarscreen.PaylasimlarScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.ProfilScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.searchscreen.SearchScreen
+import com.example.fizyoapp.presentation.physiotherapistdetail.PhysiotherapistDetailScreen
+import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_profile_screen.PhysiotherapistProfileSetupScreen
+import com.example.fizyoapp.presentation.splashscreen.SplashScreen
 import com.example.fizyoapp.presentation.user.hastaliklarim.HastaliklarimScreen
-import com.example.fizyoapp.presentation.user.ornekegzersizler.OrnekEgzersizler
-import com.example.fizyoapp.ui.splashscreen.SplashScreen
 import com.example.fizyoapp.presentation.user.hastaliklarim.radyolojikgoruntuekle.RadyolojikGoruntuEkle
+import com.example.fizyoapp.presentation.user.ornekegzersizler.OrnekEgzersizler
+import com.example.fizyoapp.presentation.user.userprofile.UserProfileSetupScreen
 
 @Composable
 fun AppNavigation() {
@@ -56,5 +61,45 @@ fun AppNavigation() {
         composable(AppScreens.RadyolojikGoruntuEkleScreen.route) {
             RadyolojikGoruntuEkle(navController = navController)
         }
+
+        composable(AppScreens.UserProfileSetupScreen.route) {
+            UserProfileSetupScreen(
+                navController = navController,
+                isFirstSetup = true
+            )
+        }
+
+        composable(AppScreens.UserInformationScreen.route) {
+            UserProfileSetupScreen(
+                navController = navController,
+                isFirstSetup = false
+            )
+        }
+
+        composable(AppScreens.PhysiotherapistProfileSetupScreen.route) {
+            PhysiotherapistProfileSetupScreen(
+                navController = navController,
+                isFirstSetup = true
+            )
+        }
+
+        composable(AppScreens.PhysiotherapistProfileUpdateScreen.route) {
+            PhysiotherapistProfileSetupScreen(
+                navController = navController,
+                isFirstSetup = false
+            )
+        }
+
+
+        composable(
+            route = "${AppScreens.PhysiotherapistDetailScreen.route}/{physiotherapistId}",
+            arguments = listOf(navArgument("physiotherapistId") { type = NavType.StringType })
+        ) {
+            val physiotherapistId = it.arguments?.getString("physiotherapistId") ?: ""
+            PhysiotherapistDetailScreen(navController = navController)
+        }
+
+
+
     }
 }

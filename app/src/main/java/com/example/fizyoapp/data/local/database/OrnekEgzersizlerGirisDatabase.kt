@@ -1,12 +1,10 @@
-package com.example.fizyoapp.presentation.user.ornekegzersizler.database.database
-
+package com.example.fizyoapp.data.local.database
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.fizyoapp.presentation.user.ornekegzersizler.database.dao.OrnekEgzersizlerGirisDao
-import com.example.fizyoapp.presentation.user.ornekegzersizler.database.entity.OrnekEgzersizlerGiris
-
+import com.example.fizyoapp.data.local.dao.OrnekEgzersizlerGirisDao
+import com.example.fizyoapp.data.local.entity.OrnekEgzersizlerGiris
 
 @Database(entities = arrayOf(OrnekEgzersizlerGiris::class), version = 1)
 abstract class  OrnekEgzersizlerGirisDatabase:RoomDatabase() {

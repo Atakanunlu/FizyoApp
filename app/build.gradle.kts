@@ -86,6 +86,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)
+    implementation(libs.firebase.storage.ktx)
     kapt(libs.androidx.room.compiler)
 
     // Coroutines
@@ -123,6 +124,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage") // Profil fotoğrafları için
 
     // Diğer Bağımlılıklar
     implementation("com.google.code.gson:gson:2.11.0")
@@ -141,6 +143,20 @@ dependencies {
     testImplementation("androidx.lifecycle:lifecycle-runtime-testing:$lifecycleVersion")
 
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    implementation("androidx.compose.material3:material3:1.1.2")
+
+    // Resim yükleme
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+    // İzin yönetimi
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
+    implementation ("io.coil-kt:coil-compose:2.4.0")
+
+    implementation("com.google.firebase:firebase-storage:20.3.0") // En güncel sürümü kullanın
+
+
 
 }
 

@@ -1,5 +1,8 @@
 package com.example.fizyoapp.presentation.login
 
+import android.util.Log
+import android.widget.Toast
+import com.example.fizyoapp.domain.model.auth.UserRole
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -9,12 +12,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.fizyoapp.domain.model.auth.UserRole
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import kotlinx.coroutines.flow.collectLatest
 
@@ -24,26 +27,61 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.collectAsState().value
+    val context = LocalContext.current
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
-            when (event) {
-                is LoginViewModel.UiEvent.NavigateBasedOnRole -> {
-                    when (event.role) {
-                        UserRole.PHYSIOTHERAPIST -> {
-                            navController.navigate(AppScreens.PhysiotherapistMainScreen.route) {
-                                popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
+            try {
+                when (event) {
+                    is LoginViewModel.UiEvent.NavigateBasedOnRole -> {
+                        Log.d("LoginScreen", "Navigating based on role: ${event.role}")
+                        when (event.role) {
+                            UserRole.PHYSIOTHERAPIST -> {
+                                navController.navigate(AppScreens.PhysiotherapistMainScreen.route) {
+                                    popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
+                                }
                             }
-                        }
-                        UserRole.USER -> {
-                            navController.navigate(AppScreens.UserMainScreen.route) {
-                                popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
+                            UserRole.USER -> {
+                                navController.navigate(AppScreens.UserMainScreen.route) {
+                                    popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
+                                }
+                            }
+                            else -> {
+                                Toast.makeText(context, "Bilinmeyen rol tipi", Toast.LENGTH_SHORT).show()
+                                navController.navigate(AppScreens.LoginScreen.route)
                             }
                         }
                     }
+                    is LoginViewModel.UiEvent.NavigateToRegister -> {
+                        navController.navigate(AppScreens.RegisterScreen.route)
+                    }
+                    is LoginViewModel.UiEvent.NavigateToProfileSetup -> {
+                        navController.navigate(AppScreens.UserProfileSetupScreen.route) {
+                            popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
+                        }
+                    }
+                    is LoginViewModel.UiEvent.NavigateToPhysiotherapistProfileSetup -> {
+                        navController.navigate(AppScreens.PhysiotherapistProfileSetupScreen.route) {
+                            popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
+                        }
+                    }
                 }
-                is LoginViewModel.UiEvent.NavigateToRegister -> {
-                    navController.navigate(AppScreens.RegisterScreen.route)
+            } catch (e: Exception) {
+                Log.e("LoginScreen", "Navigation error", e)
+                Toast.makeText(
+                    context,
+                    "Navigasyon hatası: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                if (state.user?.role == UserRole.USER) {
+                    navController.navigate(AppScreens.UserMainScreen.route) {
+                        popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
+                    }
+                } else if (state.user?.role == UserRole.PHYSIOTHERAPIST) {
+                    navController.navigate(AppScreens.PhysiotherapistMainScreen.route) {
+                        popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
+                    }
                 }
             }
         }
@@ -62,7 +100,6 @@ fun LoginScreen(
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // Rol seçimi
         Text(text = "Rol Seçin", modifier = Modifier.padding(bottom = 8.dp))
         Row(
             modifier = Modifier.padding(bottom = 16.dp),
@@ -86,7 +123,6 @@ fun LoginScreen(
             )
         }
 
-
         OutlinedTextField(
             value = state.email,
             onValueChange = { viewModel.onEvent(LoginEvent.EmailChanged(it)) },
@@ -96,7 +132,6 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .padding(bottom = 8.dp)
         )
-
 
         OutlinedTextField(
             value = state.password,
@@ -109,7 +144,6 @@ fun LoginScreen(
                 .padding(bottom = 16.dp)
         )
 
-
         if (state.errorMessage != null) {
             Text(
                 text = state.errorMessage,
@@ -120,7 +154,6 @@ fun LoginScreen(
                     .padding(bottom = 8.dp)
             )
         }
-
 
         Button(
             onClick = { viewModel.onEvent(LoginEvent.SignIn) },
@@ -139,7 +172,6 @@ fun LoginScreen(
                 Text("Giriş Yap")
             }
         }
-
 
         TextButton(
             onClick = { viewModel.onEvent(LoginEvent.NavigateToRegister) },
