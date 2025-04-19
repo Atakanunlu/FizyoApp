@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.user
+package com.example.fizyoapp.presentation.user.usermainscreen
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background

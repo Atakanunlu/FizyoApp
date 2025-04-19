@@ -10,8 +10,9 @@ import javax.inject.Inject
 
 class SignUpUseCase @Inject constructor(
     private val authRepository: AuthRepository
-) {
-    operator fun invoke(email: String,password: String, role: UserRole): Flow<Resource<User>>{
+){
+
+    operator fun invoke(email: String, password:String, role: UserRole): Flow<Resource<User>>{
         return authRepository.signUp(email,password,role).map { resource ->
             when(resource){
                 is Resource.Success -> Resource.Success(resource.data.user)
@@ -20,4 +21,5 @@ class SignUpUseCase @Inject constructor(
             }
         }
     }
+
 }
