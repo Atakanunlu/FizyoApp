@@ -1,4 +1,4 @@
-package com.example.fizyoapp.data.local.entity
+package com.example.fizyoapp.data.local.entity.exercisevideos
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -1,5 +1,6 @@
 package com.example.fizyoapp.di
 
+
 import com.example.fizyoapp.data.repository.auth.AuthRepository
 import com.example.fizyoapp.data.repository.auth.AuthRepositoryImpl
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
@@ -7,9 +8,28 @@ import com.example.fizyoapp.domain.usecase.auth.GetUserRoleUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignInUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignOutUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignUpUseCase
+import android.content.Context
+import com.example.fizyoapp.data.local.dao.exercisevideos.VideoDao
+import com.example.fizyoapp.data.local.database.exercisevideos.VideoDatabase
+import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExerciseRepository
+import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExercisesRepositoryImp
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesOfExamplesViewModel
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip.HipExercisesOfExamplesViewModel
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesOfExamplesViewModel
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesOfExamplesViewModel
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesOfExamplesViewModel
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesOfExamplesViewModel
+import com.example.fizyoapp.data.local.dao.exerciseexamplesscreen.OrnekEgzersizlerGirisDao
+import com.example.fizyoapp.data.local.database.exerciseexamplesscreen.ExercisesDatabase
+import com.example.fizyoapp.data.repository.ExercisesExamplesRepositoryImpl
+import com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepository
+import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.GetExerciseCategoriesUseCase
+import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.PopulateDatabaseUseCase
+import com.example.fizyoapp.presentation.user.ornekegzersizler.ExercisesExamplesViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -51,4 +71,127 @@ object AppModule {
     fun provideSignOutUseCase(authRepository: AuthRepository): SignOutUseCase {
         return SignOutUseCase(authRepository)
     }
+
+    @Provides
+    @Singleton
+    fun providesExexrciseExamplesVideoDatabase(@ApplicationContext context: Context): VideoDatabase {
+        return VideoDatabase.getDatabase(context)
+    }
+
+    @Provides
+    @Singleton
+    fun providesExercisesExamplesVideoDao(videoDatabase: VideoDatabase): VideoDao {
+        return videoDatabase.videoDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providevideoRepository(videoDao: VideoDao): ExamplesOfExerciseRepository {
+        return ExamplesOfExercisesRepositoryImp(videoDao)
+    }
+    @Provides
+    @Singleton
+    fun provideShoulderExercisesOfExamplesViewModel(
+        repository: ExamplesOfExerciseRepository,
+        @ApplicationContext context: Context
+    ): ShoulderExercisesOfExamplesViewModel {
+        return ShoulderExercisesOfExamplesViewModel(repository, context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNeckExercisesOfExamplesViewModel(
+        repository: ExamplesOfExerciseRepository,
+        @ApplicationContext context: Context
+    ): NeckExercisesOfExamplesViewModel {
+        return NeckExercisesOfExamplesViewModel(repository, context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCoreExercisesOfExamplesViewModel(
+        repository: ExamplesOfExerciseRepository,
+        @ApplicationContext context: Context
+    ): CoreExercisesOfExamplesViewModel {
+        return CoreExercisesOfExamplesViewModel(repository, context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLowerBackExercisesOfExamplesViewModel(
+        repository: ExamplesOfExerciseRepository,
+        @ApplicationContext context: Context
+    ): LowerBackExercisesOfExamplesViewModel {
+        return LowerBackExercisesOfExamplesViewModel(repository, context)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideLegExercisesOfExamplesViewModel(
+        repository: ExamplesOfExerciseRepository,
+        @ApplicationContext context: Context
+    ): LegExercisesOfExamplesViewModel {
+        return LegExercisesOfExamplesViewModel(repository, context)
+    }
+    @Provides
+    @Singleton
+    fun provideHipExercisesOfExamplesViewModel(
+        repository: ExamplesOfExerciseRepository,
+        @ApplicationContext context: Context
+    ): HipExercisesOfExamplesViewModel {
+        return HipExercisesOfExamplesViewModel(repository, context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideExercisesDatabase(
+        @ApplicationContext context: Context
+    ): ExercisesDatabase {
+        return ExercisesDatabase.getInstance(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideExerciseCategoryDao(
+        database: ExercisesDatabase
+    ): OrnekEgzersizlerGirisDao {
+        return database.exerciseCategoryDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideExercisesExamplesRepository(
+        dao: OrnekEgzersizlerGirisDao
+    ): ExercisesExamplesRepository {
+        return ExercisesExamplesRepositoryImpl(dao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetExerciseCategoriesUseCase(
+        repository: ExercisesExamplesRepository
+    ): GetExerciseCategoriesUseCase {
+        return GetExerciseCategoriesUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun providePopulateDatabaseUseCase(
+        repository: ExercisesExamplesRepository
+    ): PopulateDatabaseUseCase {
+        return PopulateDatabaseUseCase(repository)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideExercisesExamplesViewModel(
+        getExerciseCategoriesUseCase: GetExerciseCategoriesUseCase,
+        populateDatabaseUseCase: PopulateDatabaseUseCase
+    ): ExercisesExamplesViewModel {
+        return ExercisesExamplesViewModel(getExerciseCategoriesUseCase, populateDatabaseUseCase)
+    }
+
+
 }

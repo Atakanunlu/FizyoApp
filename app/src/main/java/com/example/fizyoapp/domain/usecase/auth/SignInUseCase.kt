@@ -14,8 +14,7 @@ class SignInUseCase @Inject constructor(
     operator fun invoke(email: String,password: String, role: UserRole): Flow<Resource<User>> {
         return authRepository.signIn(email,password,role).map { resource ->
             when(resource){
-                is
-                Resource.Success -> Resource.Success(resource.data.user)
+                is Resource.Success -> Resource.Success(resource.data.user)
                 is Resource.Error -> Resource.Error(resource.message,resource.exception)
                 is Resource.Loading -> Resource.Loading()
             }

@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
-import com.example.fizyoapp.data.model.search.SearchData
+import com.example.fizyoapp.data.local.entity.search.SearchData
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.google.gson.Gson
 
@@ -52,8 +52,8 @@ import com.google.gson.Gson
 @Composable
 fun SearchScreen(navController: NavController) {
     val context = LocalContext.current
-    val viewModel: PhysiotherapistViewModel = viewModel()
-    val physiolist by viewModel.physiolist.collectAsState()
+   // val viewModel: SearchViewModel = viewModel()
+    //val physiolist by viewModel.physiolist.collectAsState()
     val isSearchState = remember { mutableStateOf(false) }
     val searchText = remember { mutableStateOf("") }
 
@@ -68,7 +68,7 @@ fun SearchScreen(navController: NavController) {
                             value = searchText.value,
                             onValueChange = {
                                 searchText.value = it
-                                viewModel.searchPhysioData(it)
+                                //viewModel.searchPhysioData(it)
                             },
                             textStyle = TextStyle(fontSize = 16.sp),
                             label = { Text(text = "Search") },
@@ -92,7 +92,7 @@ fun SearchScreen(navController: NavController) {
                             onClick = {
                                 isSearchState.value = false
                                 searchText.value = ""
-                                viewModel.getAllPhysioData()
+                                //viewModel.getAllPhysioData()
                             }
                         ) {
                             Icon(Icons.Default.Close, contentDescription = "Search Close Icon")
@@ -110,12 +110,7 @@ fun SearchScreen(navController: NavController) {
     ) { contentPadding ->
         Column(modifier = Modifier.padding(contentPadding)) {
             LazyColumn {
-                items(
-                    items = physiolist,
-                    key = { it.ptID }
-                ) {
-                    PhysioListRow(it, navController, context)
-                }
+
             }
         }
     }

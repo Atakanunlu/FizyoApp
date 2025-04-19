@@ -1,11 +1,12 @@
-package com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.data.viewmodel
+package com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip
 
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.data.model.ExamplesOfExercisesEntity
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.data.repository.ExamplesOfExerciseRepository
+import com.example.fizyoapp.data.local.entity.exercisevideos.ExamplesOfExercisesEntity
+import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExerciseRepository
+import com.example.fizyoapp.domain.model.exercisevideos.VideoResource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -156,8 +157,4 @@ class HipExercisesOfExamplesViewModel @Inject constructor(
 
     }
 
-    private data class VideoResource(
-        val name: String,
-        val description: String
-    )
 }

@@ -1,7 +1,7 @@
-package com.example.fizyoapp.presentation.user.ornekegzersizler.buttons
+package com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core
 
 import android.net.Uri
-import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -16,204 +16,245 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.data.viewmodel.NeckExercisesOfExamplesViewModel
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.ui.StyledPlayerView
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesOfExamplesViewModel
+import kotlinx.coroutines.launch
 
-
+/**
+ * CoreExercisesScreen: Core egzersiz videolarını gösteren Compose ekranı
+ *
+ * Bu ekran, karın ve bel bölgesi (core) egzersizlerini video olarak gösterir,
+ * kullanıcının videolar arasında gezinmesini sağlar ve her video için açıklamalar sunar.
+ *
+ * @param navController Ekranlar arası navigasyonu kontrol eden nesne
+ */
+@androidx.annotation.OptIn(UnstableApi::class) // Media3 API'nin deneysel olduğunu belirtir
+@OptIn(ExperimentalMaterial3Api::class) // TopAppBar için gerekli annotation
 @Composable
 fun NeckExercisesScreen(navController: NavController) {
+    // ViewModel'i Hilt kullanarak enjekte eder - videoları ve verileri yönetmek için
     val viewModel: NeckExercisesOfExamplesViewModel = hiltViewModel()
+
+    // ViewModel'den video listesini alır ve UI'da değişiklikleri gözlemlemek için state'e dönüştürür
     val videoList = viewModel.videoList.collectAsState()
+
+    // Şu anda gösterilen videonun listede kaçıncı sırada olduğunu takip eder
     var currentIndex by remember { mutableStateOf(0) }
 
-    // Başlangıçta videoları yükle
-    LaunchedEffect(Unit) {
-        viewModel.loadVideos()
-    }
+    // Asenkron işlemler (navigasyon, ExoPlayer işlemleri vb.) için coroutine scope
+    val coroutineScope = rememberCoroutineScope()
 
-    // Video listesi değiştiğinde index kontrolü
-    LaunchedEffect(videoList.value) {
-        if (videoList.value.isNotEmpty() && currentIndex >= videoList.value.size) {
-            currentIndex = 0
-        }
-    }
-
-    // Şu anki video URI'sini key olarak kullan
-    val currentVideoUri = remember(currentIndex, videoList.value) {
-        if (videoList.value.isNotEmpty()) {
-            Uri.parse(videoList.value[currentIndex].uri)
-        } else {
-            null
-        }
-    }
-
-    // Şu anki video açıklamasını hatırla
-    val currentDescription = remember(currentIndex, videoList.value) {
-        if (videoList.value.isNotEmpty()) {
-            videoList.value[currentIndex].description
-        } else {
-            ""
-        }
-    }
-
-    // Videonun değiştiğini loglayarak doğrula
-    LaunchedEffect(currentIndex) {
-        if (videoList.value.isNotEmpty()) {
-            Log.d("ShoulderExercises", "Changed to video: ${currentIndex + 1}, URI: ${videoList.value[currentIndex].uri}")
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 10.dp, vertical = 5.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        if (videoList.value.isNotEmpty() && currentVideoUri != null) {
-            // Video sayısı ve mevcut video indeksi gösterimi
-            Text(
-                text = "Video ${currentIndex + 1} / ${videoList.value.size}",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-                    .padding(10.dp)
-            ) {
-                // Her URI değişiminde yeni bir ExoPlayerView oluştur
-                key(currentVideoUri.toString()) {
-                    NeckExoPlayerView(videoUri = currentVideoUri)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = currentDescription,
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Video navigasyon kontrolleri
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                // Önceki video butonu
-                if (videoList.value.size > 1) {
-                    IconButton(
-                        onClick = {
-                            // Önceki indexe git
-                            currentIndex = if (currentIndex > 0)
-                                currentIndex - 1
-                            else
-                                videoList.value.size - 1
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Previous Video"
-                        )
-                    }
-                }
-
-                // Sonraki video butonu
-                IconButton(
-                    onClick = {
-                        // Sonraki indexe git
-                        currentIndex = (currentIndex + 1) % videoList.value.size
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowForward,
-                        contentDescription = "Next Video"
-                    )
-                }
-            }
-        } else {
-            // Videolar yüklenirken göster
-            CircularProgressIndicator()
-            Text(
-                "Videolar yükleniyor...",
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-    }
-}
-@Composable
-fun NeckExoPlayerView(videoUri: Uri) {
+    // Android bağlamını alır - ExoPlayer oluşturmak için gerekli
     val context = LocalContext.current
 
-    // Video URI'sini log'a yazdır
-    LaunchedEffect(videoUri) {
-        Log.d("ExoPlayerView", "Loading new video: $videoUri")
-    }
-
-    // Exoplayer'ı URI değişince tamamen yeniden oluştur
-    val exoPlayer = remember(videoUri.toString()) {  // toString() ile string olarak karşılaştır
-        Log.d("ExoPlayerView", "Creating new ExoPlayer for URI: $videoUri")
+    // ExoPlayer nesnesini oluşturur ve yapılandırır - video oynatma motoru
+    val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(videoUri))
-            repeatMode = com.google.android.exoplayer2.Player.REPEAT_MODE_ONE
-            prepare()
-            playWhenReady = true  // Burada otomatik oynatmayı aktif et
+            // Videoların sürekli tekrarlanmasını sağlar
+            repeatMode = Player.REPEAT_MODE_ONE
         }
     }
 
-    // Composable'dan çıkıldığında kaynakları temizle
+    // Video oynatıcının görünürlüğünü kontrol eder - navigasyon sırasında gizlemek için
+    var showPlayer by remember { mutableStateOf(true) }
+
+    // PlayerView referansını tutar - ExoPlayer'ı bağlamak ve kaynakları temizlemek için
+    var playerView by remember { mutableStateOf<PlayerView?>(null) }
+
+    // Geri navigasyon işlemini gerçekleştiren fonksiyon - temizleme ve navigasyon
+    val navigateBack = {
+        coroutineScope.launch {
+            // PlayerView'ı gizler - video görüntüsünün ekranda kalmasını önler
+            showPlayer = false
+
+            // ExoPlayer'ı durdurur - ses ve video oynatmayı bitirir
+            exoPlayer.stop()
+
+            // PlayerView'dan ExoPlayer bağlantısını kaldırır
+            playerView?.player = null
+
+            // PlayerView referansını temizler
+            playerView = null
+
+            // ExoPlayer'ın kullandığı bellek kaynaklarını serbest bırakır
+            exoPlayer.release()
+
+            // Önceki ekrana geri döner
+            navController.navigateUp()
+        }
+    }
+
+    // Sistem geri tuşuna basınca çalışacak işleyici - Android back tuşu için
+    BackHandler { navigateBack() }
+
+    // Compose bileşeni yok edildiğinde kaynakları temizler
+    // (ekrandan çıkılınca veya uygulama kapatılınca)
     DisposableEffect(Unit) {
         onDispose {
-            Log.d("ExoPlayerView", "Releasing ExoPlayer")
+            // ExoPlayer kaynaklarını serbest bırakır
+            exoPlayer.stop()
+            playerView?.player = null
             exoPlayer.release()
         }
     }
 
-    AndroidView(
-        factory = { ctx ->
-            StyledPlayerView(ctx).apply {
-                player = exoPlayer
-                useController = true
-                controllerShowTimeoutMs = 3000
+    // Ekran ilk açıldığında videoları yükler
+    LaunchedEffect(Unit) {
+        viewModel.loadVideos()
+    }
 
-                // ExoPlayer'ın durumunu dinle
-                exoPlayer.addListener(object : com.google.android.exoplayer2.Player.Listener {
-                    override fun onPlaybackStateChanged(state: Int) {
-                        when (state) {
-                            com.google.android.exoplayer2.Player.STATE_READY -> {
-                                Log.d("ExoPlayerView", "Player ready to play")
+    // Video değiştiğinde (kullanıcı ileri/geri tuşlarına bastığında) veya
+    // video listesi değiştiğinde ExoPlayer'ı günceller
+    LaunchedEffect(currentIndex, videoList.value) {
+        if (videoList.value.isNotEmpty()) {
+            // Şu anki videonun URI'sini alır
+            val videoUri = Uri.parse(videoList.value[currentIndex].uri)
+
+            // Mevcut videoyu durdurur
+            exoPlayer.stop()
+
+            // Önceki video öğelerini temizler
+            exoPlayer.clearMediaItems()
+
+            // Yeni videoyu ExoPlayer'a yükler
+            exoPlayer.setMediaItem(MediaItem.fromUri(videoUri))
+
+            // ExoPlayer'ı hazırlar (buffering başlar)
+            exoPlayer.prepare()
+
+            // Videoyu otomatik olarak başlatır
+            exoPlayer.playWhenReady = true
+        }
+    }
+
+    // Şu anki videonun açıklamasını alır
+    // currentIndex veya videoList değiştiğinde yeniden hesaplanır
+    val currentDescription = remember(currentIndex, videoList.value) {
+        // Güvenli bir şekilde video açıklamasını alır, yoksa boş string döndürür
+        videoList.value.getOrNull(currentIndex)?.description ?: ""
+    }
+
+    // Material3 Scaffold bileşeni - temel sayfa yapısını sağlar
+    Scaffold(
+        topBar = {
+            // Üst çubuk - başlık ve geri düğmesi içerir
+            TopAppBar(
+                title = { Text("Boyun Egzersizleri") },
+                navigationIcon = {
+                    // Geri düğmesi - tıklanınca navigateBack fonksiyonunu çağırır
+                    IconButton(onClick = { navigateBack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Geri Dön"
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        // Ana içerik kolonu - dikey düzende bileşenleri gösterir
+        Column(
+            modifier = Modifier
+                .fillMaxSize() // Tüm ekranı kaplar
+                .padding(paddingValues), // Scaffold padding'ini uygular
+            horizontalAlignment = Alignment.CenterHorizontally, // İçeriği yatayda ortalar
+            verticalArrangement = Arrangement.Center // İçeriği dikeyde ortalar
+        ) {
+            if (videoList.value.isNotEmpty()) {
+                // Video sayısı gösterimi - hangi videoda olduğumuzu gösterir
+                Text(
+                    text = "Video ${currentIndex + 1} / ${videoList.value.size}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                // Video oynatıcı kartı - video içeriğini çevreler
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth() // Genişliği ekran genişliğine eşit
+                        .height(300.dp) // Sabit yükseklik
+                        .padding(10.dp) // İç boşluk
+                ) {
+                    // Eğer showPlayer true ise video oynatıcıyı göster
+                    if (showPlayer) {
+                        // AndroidView - Android native view'larını Compose'da kullanmak için
+                        AndroidView(
+                            factory = { ctx ->
+                                // PlayerView oluştur - ExoPlayer'ı göstermek için
+                                PlayerView(ctx).apply {
+                                    player = exoPlayer // ExoPlayer'ı bağla
+                                    useController = true // Video kontrol arayüzünü göster
+                                    controllerShowTimeoutMs = 1000 // Kontroller ne kadar süre görünür kalacak
+                                    playerView = this // PlayerView referansını güncelle
+                                }
+                            },
+                            modifier = Modifier.fillMaxSize() // Kart içinde tüm alanı kapla
+                        )
+                    }
+                }
+
+                // Video açıklaması için boşluk
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Video açıklaması metni
+                Text(
+                    text = currentDescription, // Şu anki videonun açıklaması
+                    fontSize = 18.sp, // Metin boyutu
+                    textAlign = TextAlign.Center // Metni ortala
+                )
+
+                // Kontrol butonları için boşluk
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Video navigasyon kontrolleri satırı - ileri/geri butonları
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly // Butonları eşit aralıklarla yerleştir
+                ) {
+                    // Önceki video butonu - birden fazla video varsa gösterilir
+                    if (videoList.value.size > 1) {
+                        IconButton(
+                            onClick = {
+                                // Önceki videoya geç, ilk videodaysa sonuncuya dön (dairesel)
+                                currentIndex = if (currentIndex > 0)
+                                    currentIndex - 1
+                                else
+                                    videoList.value.size - 1
                             }
-                            com.google.android.exoplayer2.Player.STATE_ENDED -> {
-                                Log.d("ExoPlayerView", "Playback ended")
-                                // Video bitince otomatik tekrar başlat (isteğe bağlı)
-                                exoPlayer.seekTo(0)
-                                exoPlayer.play()
-                            }
-                            com.google.android.exoplayer2.Player.STATE_BUFFERING -> {
-                                Log.d("ExoPlayerView", "Buffering video")
-                            }
-                            com.google.android.exoplayer2.Player.STATE_IDLE -> {
-                                Log.d("ExoPlayerView", "Player idle")
-                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Previous Video" // Ekran okuyucular için açıklama
+                            )
                         }
                     }
-                })
+
+                    // Sonraki video butonu
+                    IconButton(
+                        onClick = {
+                            // Sonraki videoya geç, son videodaysa ilk videoya dön (dairesel)
+                            currentIndex = (currentIndex + 1) % videoList.value.size
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = "Next Video" // Ekran okuyucular için açıklama
+                        )
+                    }
+                }
+            } else {
+                // Video listesi boşsa veya yüklenmediyse loading göstergesi
+                CircularProgressIndicator() // Dönen yükleniyor animasyonu
+                Text(
+                    "Videolar yükleniyor...", // Yükleme durumu metni
+                    modifier = Modifier.padding(16.dp)
+                )
             }
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(),
-        // Anahtar değiştiğinde AndroidView'ı yeniden oluştur
-        update = { playerView ->
-            // Player yeniden oluşturulduğunda PlayerView'a atanır
-            playerView.player = exoPlayer
         }
-    )
+    }
 }

@@ -1,4 +1,4 @@
-package com.example.fizyoapp.data.model.search
+package com.example.fizyoapp.data.local.entity.search
 
 import java.util.UUID
 

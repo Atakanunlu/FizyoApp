@@ -12,4 +12,11 @@ sealed class AppScreens(val route:String) {
     object RegisterScreen: AppScreens("register_screen")
     object PhysiotherapistMainScreen: AppScreens("physiotherapist_main_screen")
     object UserMainScreen: AppScreens("user_main_screen")
+    object ShoulderExercisesScreen:AppScreens("shoulder_egzersizleri")
+    object NeckExercisesScreen:AppScreens("neck_exercises")
+    object LowerBackExercisesScreen:AppScreens("lowerback_exercises")
+    object LegExercisesScreen:AppScreens("leg_exercises")
+    object CoreExercisesScreen:AppScreens("core_exercises")
+    object HipExercisesScreen:AppScreens("hip_exercises")
+
 }

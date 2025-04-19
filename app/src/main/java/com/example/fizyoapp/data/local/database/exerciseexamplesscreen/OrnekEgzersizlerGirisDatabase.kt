@@ -1,17 +1,30 @@
-package com.example.fizyoapp.presentation.user.ornekegzersizler.database.database
+package com.example.fizyoapp.data.local.database.exerciseexamplesscreen
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.fizyoapp.presentation.user.ornekegzersizler.database.dao.OrnekEgzersizlerGirisDao
-import com.example.fizyoapp.presentation.user.ornekegzersizler.database.entity.OrnekEgzersizlerGiris
+import com.example.fizyoapp.data.local.dao.exerciseexamplesscreen.OrnekEgzersizlerGirisDao
+import com.example.fizyoapp.data.local.entity.exerciseexamplesscreen.OrnekEgzersizlerGiris
 
+@Database(entities = [OrnekEgzersizlerGiris::class], version = 1, exportSchema = false)
+abstract class ExercisesDatabase : RoomDatabase() {
+    abstract fun exerciseCategoryDao(): OrnekEgzersizlerGirisDao
 
-@Database(entities = arrayOf(OrnekEgzersizlerGiris::class), version = 1, exportSchema = false)
-abstract class  OrnekEgzersizlerGirisDatabase:RoomDatabase() {
-    abstract fun OrnekEgzersizlerGirisDao(): OrnekEgzersizlerGirisDao
+    companion object {
+        @Volatile
+        private var INSTANCE: ExercisesDatabase? = null
 
-
-
+        fun getInstance(context: Context): ExercisesDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    ExercisesDatabase::class.java,
+                    "exercises_database"
+                ).build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
 }

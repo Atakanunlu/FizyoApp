@@ -1,4 +1,4 @@
-package com.example.fizyoapp.data.model.auth
+package com.example.fizyoapp.data.local.entity.auth
 
 import com.example.fizyoapp.domain.model.auth.User
 import com.example.fizyoapp.domain.model.auth.UserRole

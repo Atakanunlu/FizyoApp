@@ -15,6 +15,12 @@ import com.example.fizyoapp.presentation.user.hastaliklarim.HastaliklarimScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.OrnekEgzersizler
 import com.example.fizyoapp.ui.splashscreen.SplashScreen
 import com.example.fizyoapp.presentation.user.hastaliklarim.radyolojikgoruntuekle.RadyolojikGoruntuEkle
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.LegExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.LowerBackExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.NeckExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.ShoulderExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip.HipExercisesScreen
 
 @Composable
 fun AppNavigation() {
@@ -56,5 +62,25 @@ fun AppNavigation() {
         composable(AppScreens.RadyolojikGoruntuEkleScreen.route) {
             RadyolojikGoruntuEkle(navController = navController)
         }
+        composable(AppScreens.ShoulderExercisesScreen.route){
+            ShoulderExercisesScreen(navController=navController)
+        }
+        composable(AppScreens.LowerBackExercisesScreen.route){
+            LowerBackExercisesScreen(navController=navController)
+        }
+        composable(AppScreens.NeckExercisesScreen.route){
+            NeckExercisesScreen(navController=navController)
+        }
+        composable(AppScreens.HipExercisesScreen.route){
+           HipExercisesScreen(navController=navController)
+        }
+        composable(AppScreens.LegExercisesScreen.route){
+            LegExercisesScreen(navController=navController)
+        }
+        composable(AppScreens.CoreExercisesScreen.route){
+            CoreExercisesScreen(navController=navController)
+        }
+
+
     }
 }

@@ -1,12 +1,23 @@
-package com.example.fizyoapp.presentation.user.ornekegzersizler.database.dao
+package com.example.fizyoapp.data.local.dao.exerciseexamplesscreen
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.example.fizyoapp.presentation.user.ornekegzersizler.database.entity.OrnekEgzersizlerGiris
+import com.example.fizyoapp.data.local.entity.exerciseexamplesscreen.OrnekEgzersizlerGiris
+import com.example.fizyoapp.data.local.entity.exercisevideos.ExamplesOfExercisesEntity
+import kotlinx.coroutines.flow.Flow
 
 
 @Dao
 interface OrnekEgzersizlerGirisDao {
-    @Query("SELECT * FROM ornekegzersizlergiris")
-    fun getAll():List<OrnekEgzersizlerGiris>
+    @Query("SELECT * FROM exercise_categories")
+    fun getAllCategories(): Flow<List<OrnekEgzersizlerGiris>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(categories: List<OrnekEgzersizlerGiris>)
+
+    @Query("SELECT COUNT(*) FROM exercise_categories")
+    suspend fun getCategoryCount(): Int
+
 }

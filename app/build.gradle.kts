@@ -86,6 +86,9 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)
+    implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
     kapt(libs.androidx.room.compiler)
 
     // Coroutines
@@ -141,6 +144,14 @@ dependencies {
     testImplementation("androidx.lifecycle:lifecycle-runtime-testing:$lifecycleVersion")
 
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation( "com.google.android.exoplayer:exoplayer-core:2.18.7")
+    implementation("com.google.android.exoplayer:exoplayer-ui:2.18.7")
+    // build.gradle
+    dependencies {
+        implementation( "androidx.media3:media3-exoplayer:1.0.0")
+        implementation( "androidx.media3:media3-ui:1.0.0")
+        implementation( "androidx.media3:media3-common:1.0.0")
+    }
 
 }
 

@@ -1,17 +1,24 @@
-package com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.data.repository
+package com.example.fizyoapp.data.repository.exercisevideos
 
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.data.model.ExamplesOfExercisesEntity
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.data.model.VideoDao
+import com.example.fizyoapp.data.local.entity.exercisevideos.ExamplesOfExercisesEntity
+import com.example.fizyoapp.data.local.dao.exercisevideos.VideoDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
-class ExamplesOfExercisesRepositoryImp(private val videoDao: VideoDao): ExamplesOfExerciseRepository {
-    override suspend fun insertVideo(video: ExamplesOfExercisesEntity) {
-        withContext(Dispatchers.IO) {
-            videoDao.insertVideo(video)
-        }
-    }
+/**
+ * ExamplesOfExercisesRepositoryImp: Video repository arayüzünün somut uygulaması
+ *
+ * Bu sınıf:
+ * 1. Repository arayüzünün sadece ihtiyaç duyulan metodlarını uygular
+ * 2. DAO ile etkileşimi Dispatcher.IO thread'inde gerçekleştirir
+ * 3. UI thread'inde veritabanı işlemlerinin yapılmasını önler
+ *
+ * @param videoDao: Video veritabanı işlemlerini gerçekleştiren DAO nesnesi
+ */
+
+class ExamplesOfExercisesRepositoryImp(private val videoDao: VideoDao):
+    ExamplesOfExerciseRepository {
 
     override suspend fun insertVideos(videos: List<ExamplesOfExercisesEntity>) {
         withContext(Dispatchers.IO) {
@@ -19,21 +26,15 @@ class ExamplesOfExercisesRepositoryImp(private val videoDao: VideoDao): Examples
         }
     }
 
-    override fun getAllVideo(): Flow<List<ExamplesOfExercisesEntity>> {
-        return videoDao.getAllVideos()
-    }
-
-    override suspend fun deleteAllVideos() {
-        withContext(Dispatchers.IO) {
-            videoDao.deleteAllVideos()
-        }
-    }
-    override suspend fun insertVideoWithCategory(video: ExamplesOfExercisesEntity, category: String) {
-        withContext(Dispatchers.IO) {
-            val videoWithCategory = video.copy(category = category)
-            videoDao.insertVideo(videoWithCategory)
-        }
-    }
+    /**
+     * Kategori bazlı video sorgulama
+     *
+     * @param category: Filtrelenecek kategori
+     * @return: Flow nesnesi olarak filtrelenmiş videolar
+     *
+     * Not: Flow, Dispatchers.IO context'inde otomatik olarak çalışır,
+     * bu nedenle withContext kullanmaya gerek yoktur.
+     */
 
     // Kategori bazlı video sorgulama
     override fun getVideosByCategory(category: String): Flow<List<ExamplesOfExercisesEntity>> {

@@ -1,3 +1,9 @@
 package com.example.fizyoapp.domain.model.exercisesexample
 
-data class ExerciseCategory()
+import androidx.annotation.DrawableRes
+
+data class ExerciseCategory(
+    val id: String,
+    val title: String?,
+    @DrawableRes val imageRes: Int
+)
