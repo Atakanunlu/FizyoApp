@@ -1,6 +1,6 @@
 package com.example.fizyoapp.data.repository.auth
 
-import com.example.fizyoapp.data.model.auth.AuthResult
+import com.example.fizyoapp.data.local.entity.auth.AuthResult
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.auth.UserRole
 
