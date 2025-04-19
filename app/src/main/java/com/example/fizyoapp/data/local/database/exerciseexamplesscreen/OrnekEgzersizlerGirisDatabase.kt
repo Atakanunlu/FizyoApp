@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.fizyoapp.data.local.dao.exerciseexamplesscreen.OrnekEgzersizlerGirisDao
 import com.example.fizyoapp.data.local.entity.exerciseexamplesscreen.OrnekEgzersizlerGiris
 
-@Database(entities = [OrnekEgzersizlerGiris::class], version = 1, exportSchema = false)
+@Database(entities = [OrnekEgzersizlerGiris::class], version = 2, exportSchema = false)
 abstract class ExercisesDatabase : RoomDatabase() {
     abstract fun exerciseCategoryDao(): OrnekEgzersizlerGirisDao
 
@@ -21,7 +21,9 @@ abstract class ExercisesDatabase : RoomDatabase() {
                     context.applicationContext,
                     ExercisesDatabase::class.java,
                     "exercises_database"
-                ).build()
+
+                ).fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

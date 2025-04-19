@@ -8,5 +8,6 @@ data class SearchData(
     var ptSurname: String? = null,
     var ptCommunication: String?= null,
     var ptAddress:String?=null,
-    var ptPhoto:String?=null
+    var ptPhoto:String?=null,
+
 )
