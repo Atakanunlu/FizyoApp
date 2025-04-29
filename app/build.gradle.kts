@@ -80,23 +80,26 @@ dependencies {
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     // Room Database
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
+
     implementation(libs.androidx.room.paging)
     implementation(libs.firebase.storage.ktx)
-    kapt(libs.androidx.room.compiler)
+
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
+    val room_version = "2.6.1" // Use the latest version
+    implementation( "androidx.room:room-runtime:$room_version")
+    implementation( "androidx.room:room-ktx:$room_version")
+    kapt( "androidx.room:room-compiler:$room_version")
+
     // Animasyon
-    implementation("com.airbnb.android:lottie-compose:6.4.1")
+    implementation(libs.lottie.compose)
 
     // Material Icons
-    implementation("androidx.compose.material:material-icons-extended:1.7.6")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
     // Lifecycle Components
     val lifecycleVersion = "2.8.7"
@@ -127,8 +130,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage") // Profil fotoğrafları için
 
     // Diğer Bağımlılıklar
-    implementation("com.google.code.gson:gson:2.11.0")
-    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation(libs.gson)
 
     // Test Bağımlılıkları
     testImplementation(libs.junit)
@@ -139,8 +141,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     androidTestImplementation(libs.androidx.navigation.testing)
-    testImplementation("androidx.arch.core:core-testing:2.2.0")
-    testImplementation("androidx.lifecycle:lifecycle-runtime-testing:$lifecycleVersion")
+    testImplementation(libs.androidx.core.testing)
+    testImplementation(libs.androidx.lifecycle.runtime.testing)
 
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
@@ -152,9 +154,6 @@ dependencies {
     // İzin yönetimi
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
-    implementation ("io.coil-kt:coil-compose:2.4.0")
-
-    implementation("com.google.firebase:firebase-storage:20.3.0") // En güncel sürümü kullanın
 
 
     implementation( "com.google.android.exoplayer:exoplayer-core:2.18.7")

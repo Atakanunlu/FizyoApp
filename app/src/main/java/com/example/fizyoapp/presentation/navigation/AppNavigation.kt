@@ -6,6 +6,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.MessagesDetailScreen
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MessagesScreen
 import com.example.fizyoapp.presentation.login.LoginScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen.PhysiotherapistMainScreen
 import com.example.fizyoapp.presentation.register.RegisterScreen
@@ -26,6 +28,7 @@ import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.Neck
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.ShoulderExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip.HipExercisesScreen
 import com.example.fizyoapp.presentation.user.userprofile.UserProfileSetupScreen
+import com.example.healthapp.presentation.settings.SettingsScreen
 
 @Composable
 fun AppNavigation() {
@@ -92,6 +95,9 @@ fun AppNavigation() {
                 isFirstSetup = true
             )
         }
+        composable(AppScreens.SettingsScreen.route){
+            SettingsScreen(navController=navController)
+        }
 
         composable(AppScreens.UserInformationScreen.route) {
             UserProfileSetupScreen(
@@ -123,6 +129,26 @@ fun AppNavigation() {
             PhysiotherapistDetailScreen(navController = navController)
         }
 
+        composable(
+            route = AppScreens.MessagesScreen.route
+        ) {
+            MessagesScreen(navController = navController)
+        }
+
+        composable(
+            route = AppScreens.MessagesDetailScreen.route,
+            arguments = listOf(
+                navArgument("userId") {
+                    type = NavType.StringType
+                }
+            )
+        ) {
+            val userId = it.arguments?.getString("userId") ?: ""
+            MessagesDetailScreen(
+                navController = navController,
+                userId = userId
+            )
+        }
 
 
     }
