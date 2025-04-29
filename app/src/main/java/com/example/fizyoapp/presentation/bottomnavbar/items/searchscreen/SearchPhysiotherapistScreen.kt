@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -30,6 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.physiotherapist_profile.PhysiotherapistProfile
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.MessagesDetailScreen
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 import kotlinx.coroutines.flow.collectLatest
@@ -71,7 +73,6 @@ fun SearchScreen(
                 .padding(top = paddingValues.calculateTopPadding())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-
             OutlinedTextField(
                 value = state.searchQuery,
                 onValueChange = { viewModel.onEvent(SearchScreenEvent.SearchQueryChanged(it)) },
@@ -148,6 +149,10 @@ fun SearchScreen(
                                         physiotherapist.userId
                                     )
                                 )
+                            },
+                            onMessageClick = {
+                                // Mesaj ekranına yönlendirme
+                                navController.navigate(AppScreens.MessagesDetailScreen.createMessageDetailRoute(physiotherapist.userId))
                             }
                         )
                     }
@@ -160,7 +165,8 @@ fun SearchScreen(
 @Composable
 fun PhysiotherapistItem(
     physiotherapist: PhysiotherapistProfile,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onMessageClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -176,6 +182,7 @@ fun PhysiotherapistItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Profil resmi
             Box(
                 modifier = Modifier
                     .size(60.dp)
@@ -202,6 +209,7 @@ fun PhysiotherapistItem(
 
             Spacer(modifier = Modifier.width(16.dp))
 
+            // Fizyoterapist bilgileri
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -210,9 +218,7 @@ fun PhysiotherapistItem(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
-
                 Spacer(modifier = Modifier.height(4.dp))
-
                 Text(
                     text = "${physiotherapist.city} / ${physiotherapist.district}",
                     fontSize = 14.sp,
@@ -220,6 +226,19 @@ fun PhysiotherapistItem(
                 )
             }
 
+            // Mesaj butonu
+            IconButton(
+                onClick = onMessageClick,
+                modifier = Modifier.padding(end = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Message,
+                    contentDescription = "Mesaj Gönder",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            // İleri butonu
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = "İlerle",

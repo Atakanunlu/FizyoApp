@@ -101,7 +101,7 @@ fun ProfilScreen(
         ) {
             Row {
                 Button(
-                    onClick = {},
+                    onClick = {navController.navigate(AppScreens.SettingsScreen.route)},
                     shape = CutCornerShape(8.dp),
                     modifier = Modifier.size(150.dp),
                     colors = ButtonDefaults.buttonColors(

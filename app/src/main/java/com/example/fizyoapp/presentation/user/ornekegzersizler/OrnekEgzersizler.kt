@@ -63,7 +63,7 @@ fun OrnekEgzersizler(
                 .background(Color(59, 62, 104))
         ) {
             when {
-                state.isLoading -> {
+                 state.isLoading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
                         color = Color.White
