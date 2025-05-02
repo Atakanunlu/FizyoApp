@@ -29,8 +29,18 @@ sealed class AppScreens(val route:String) {
             return "message_detail_screen/$userId"
         }
     }
-
     object SettingsScreen : AppScreens("settings")
 
+    // Yeni ekranlar - Ağrı Takibi
+    object PainTrackingScreen : AppScreens("pain_tracking")
+    object AddPainRecordScreen : AppScreens("add_pain_record")
 
+    // Profil Ekranı
+    object ProfileScreen : AppScreens("profile")
+
+    // Egzersizler Ekranı
+    object ExercisesScreen : AppScreens("exercises_screen")
+
+    // Rehabilitasyon Geçmişi Ekranı
+    object RehabilitationHistoryScreen : AppScreens("rehabilitation_history_screen")
 }

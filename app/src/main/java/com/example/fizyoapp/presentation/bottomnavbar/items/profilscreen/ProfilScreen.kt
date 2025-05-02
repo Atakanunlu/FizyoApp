@@ -161,7 +161,7 @@ fun ProfilScreen(
                 Spacer(modifier = Modifier.padding(10.dp))
 
                 Button(
-                    onClick = { viewModel.onEvent(UserEvent.SignOut) },
+                    onClick = { viewModel.onEvent(UserEvent.Logout) },
                     shape = CutCornerShape(8.dp),
                     modifier = Modifier.size(150.dp),
                     colors = ButtonDefaults.buttonColors(

@@ -12,6 +12,9 @@ import com.example.fizyoapp.presentation.login.LoginScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen.PhysiotherapistMainScreen
 import com.example.fizyoapp.presentation.register.RegisterScreen
 import com.example.fizyoapp.presentation.user.usermainscreen.UserMainScreen
+import com.example.fizyoapp.presentation.user.usermainscreen.PainTrackingScreen
+import com.example.fizyoapp.presentation.user.usermainscreen.AddPainRecordScreen
+
 import com.example.fizyoapp.presentation.bottomnavbar.items.paylasimlarscreen.PaylasimlarScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.ProfilScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.searchscreen.SearchScreen
@@ -88,7 +91,6 @@ fun AppNavigation() {
         composable(AppScreens.CoreExercisesScreen.route){
             CoreExercisesScreen(navController=navController)
         }
-
         composable(AppScreens.UserProfileSetupScreen.route) {
             UserProfileSetupScreen(
                 navController = navController,
@@ -98,28 +100,24 @@ fun AppNavigation() {
         composable(AppScreens.SettingsScreen.route){
             SettingsScreen(navController=navController)
         }
-
         composable(AppScreens.UserInformationScreen.route) {
             UserProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = false
             )
         }
-
         composable(AppScreens.PhysiotherapistProfileSetupScreen.route) {
             PhysiotherapistProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = true
             )
         }
-
         composable(AppScreens.PhysiotherapistProfileUpdateScreen.route) {
             PhysiotherapistProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = false
             )
         }
-
 
         composable(
             route = "${AppScreens.PhysiotherapistDetailScreen.route}/{physiotherapistId}",
@@ -128,13 +126,11 @@ fun AppNavigation() {
             val physiotherapistId = it.arguments?.getString("physiotherapistId") ?: ""
             PhysiotherapistDetailScreen(navController = navController)
         }
-
         composable(
             route = AppScreens.MessagesScreen.route
         ) {
             MessagesScreen(navController = navController)
         }
-
         composable(
             route = AppScreens.MessagesDetailScreen.route,
             arguments = listOf(
@@ -150,6 +146,16 @@ fun AppNavigation() {
             )
         }
 
+        // Yeni eklenen ekranlar
+
+        // Ağrı Takibi Ekranları
+        composable(AppScreens.PainTrackingScreen.route) {
+            PainTrackingScreen(navController = navController)
+        }
+
+        composable(AppScreens.AddPainRecordScreen.route) {
+            AddPainRecordScreen(navController = navController)
+        }
 
     }
 }
