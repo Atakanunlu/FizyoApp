@@ -101,7 +101,6 @@ fun AddNoteScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
                                 leadingIcon = { Icon(Icons.Default.Person, "Hasta") },
-                                placeholder = { Text("Örn: Ahmet Yılmaz") },
                                 shape = RoundedCornerShape(12.dp)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
