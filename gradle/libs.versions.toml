@@ -1,5 +1,7 @@
 [versions]
 agp = "8.3.0"
+core-testing = "2.2.0"
+gson = "2.11.0"
 kotlin = "2.0.0"
 core-ktx = "1.12.0"
 junit = "4.13.2"
@@ -8,14 +10,19 @@ espresso-core = "3.5.1"
 lifecycle = "2.8.7"
 activity-compose = "1.8.2"
 compose-bom = "2024.02.00"
+lottie-compose = "6.4.1"
 navigation = "2.7.7"
 room = "2.6.1"
 serialization-json = "1.6.0"
 coroutines = "1.8.0"
 firebase-storage-ktx = "21.0.1"
+room-runtime-android = "2.7.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+androidx-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "core-testing" }
+androidx-lifecycle-runtime-testing = { module = "androidx.lifecycle:lifecycle-runtime-testing", version.ref = "lifecycle" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
@@ -45,6 +52,8 @@ androidx-room-testing = { group = "androidx.room", name = "room-testing", versio
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization-json" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebase-storage-ktx" }
+androidx-room-runtime-android = { group = "androidx.room", name = "room-runtime-android", version.ref = "room-runtime-android" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie-compose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
