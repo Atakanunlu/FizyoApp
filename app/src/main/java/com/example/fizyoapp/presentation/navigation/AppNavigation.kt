@@ -1,7 +1,6 @@
 package com.example.fizyoapp.presentation.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,12 +13,7 @@ import com.example.fizyoapp.presentation.user.usermainscreen.UserMainScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.paylasimlarscreen.PaylasimlarScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.ProfilScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.searchscreen.SearchScreen
-import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.addnote.AddNoteScreen
-import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notedetail.NoteDetailScreen
-import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesEvent
-import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesScreen
-import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesViewModel
-import com.example.fizyoapp.presentation.physiotherapist.physiotherapistdetail.PhysiotherapistDetailScreen
+import com.example.fizyoapp.presentation.physiotherapistdetail.PhysiotherapistDetailScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_profile_screen.PhysiotherapistProfileSetupScreen
 import com.example.fizyoapp.presentation.splashscreen.SplashScreen
 import com.example.fizyoapp.presentation.user.hastaliklarim.HastaliklarimScreen
@@ -91,30 +85,36 @@ fun AppNavigation() {
         composable(AppScreens.CoreExercisesScreen.route){
             CoreExercisesScreen(navController=navController)
         }
+
         composable(AppScreens.UserProfileSetupScreen.route) {
             UserProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = true
             )
         }
+
         composable(AppScreens.UserInformationScreen.route) {
             UserProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = false
             )
         }
+
         composable(AppScreens.PhysiotherapistProfileSetupScreen.route) {
             PhysiotherapistProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = true
             )
         }
+
         composable(AppScreens.PhysiotherapistProfileUpdateScreen.route) {
             PhysiotherapistProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = false
             )
         }
+
+
         composable(
             route = "${AppScreens.PhysiotherapistDetailScreen.route}/{physiotherapistId}",
             arguments = listOf(navArgument("physiotherapistId") { type = NavType.StringType })
@@ -122,24 +122,8 @@ fun AppNavigation() {
             val physiotherapistId = it.arguments?.getString("physiotherapistId") ?: ""
             PhysiotherapistDetailScreen(navController = navController)
         }
-        composable(AppScreens.NotesScreen.route) {
-            NotesScreen(navController = navController)
-        }
-        composable(
-            route = AppScreens.NoteDetailScreen.route,
-            arguments = listOf(navArgument("noteId") { type = NavType.StringType })
-        ) {
-            val noteId = it.arguments?.getString("noteId") ?: ""
-            NoteDetailScreen(navController = navController, noteId = noteId)
-        }
-        composable(AppScreens.AddNoteScreen.route) {
-            val notesViewModel = hiltViewModel<NotesViewModel>()
-            AddNoteScreen(
-                navController = navController,
-                onBackWithRefresh = {
-                    notesViewModel.onEvent(NotesEvent.Refresh)
-                }
-            )
-        }
+
+
+
     }
 }

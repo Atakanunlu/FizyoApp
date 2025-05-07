@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.ui.bottomnavbar
+package com.example.fizyoapp.ui.bottomnavbar
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -22,7 +22,7 @@ val items = listOf(
         title = "Home",
         selectedicon = Icons.Default.Home,
         unselectedicon = Icons.Filled.Home,
-        route = AppScreens.UserMainScreen.route
+        route = AppScreens.UserMainScreen.route // Ana ekran route'u düzeltildi
     ),
     BottomNavItem(
         title = "Search",
@@ -46,6 +46,6 @@ val items = listOf(
         title = "Mesajlar",
         selectedicon = Icons.Default.Message,
         unselectedicon = Icons.Filled.Message,
-        route = AppScreens.UserMainScreen.route
+        route = AppScreens.UserMainScreen.route // Şimdilik ana ekrana yönlendirildi
     )
 )

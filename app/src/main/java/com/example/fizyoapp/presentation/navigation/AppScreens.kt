@@ -23,7 +23,6 @@ sealed class AppScreens(val route:String) {
     object LegExercisesScreen:AppScreens("leg_exercises")
     object CoreExercisesScreen:AppScreens("core_exercises")
     object HipExercisesScreen:AppScreens("hip_exercises")
-    object NotesScreen: AppScreens("notes_screen")
-    object NoteDetailScreen: AppScreens("note_detail_screen/{noteId}")
-    object AddNoteScreen: AppScreens("add_note_screen")
+
+
 }
