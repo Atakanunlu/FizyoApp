@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.physiotherapistdetail
+package com.example.fizyoapp.presentation.physiotherapist.physiotherapistdetail
 
 import com.example.fizyoapp.domain.model.physiotherapist_profile.PhysiotherapistProfile
 

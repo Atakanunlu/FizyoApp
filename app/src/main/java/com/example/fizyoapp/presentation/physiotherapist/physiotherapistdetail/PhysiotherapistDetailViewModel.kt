@@ -1,5 +1,5 @@
 
-package com.example.fizyoapp.presentation.physiotherapistdetail
+package com.example.fizyoapp.presentation.physiotherapist.physiotherapistdetail
 
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle

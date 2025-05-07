@@ -23,14 +23,6 @@ sealed class AppScreens(val route:String) {
     object LegExercisesScreen:AppScreens("leg_exercises")
     object CoreExercisesScreen:AppScreens("core_exercises")
     object HipExercisesScreen:AppScreens("hip_exercises")
-    object MessagesScreen : AppScreens("messages_screen")
-    object MessagesDetailScreen : AppScreens("message_detail_screen/{userId}") {
-        fun createMessageDetailRoute(userId: String): String {
-            return "message_detail_screen/$userId"
-        }
-    }
-
-    object SettingsScreen : AppScreens("settings")
 
 
 }

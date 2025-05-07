@@ -46,6 +46,6 @@ val items = listOf(
         title = "Mesajlar",
         selectedicon = Icons.Default.Message,
         unselectedicon = Icons.Filled.Message,
-        route = AppScreens.MessagesScreen.route // Şimdilik ana ekrana yönlendirildi
+        route = AppScreens.UserMainScreen.route // Şimdilik ana ekrana yönlendirildi
     )
 )
