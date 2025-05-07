@@ -1,6 +1,5 @@
 package com.example.fizyoapp.di
 
-
 import android.content.Context
 import com.example.fizyoapp.data.local.dao.exerciseexamplesscreen.OrnekEgzersizlerGirisDao
 import com.example.fizyoapp.data.local.dao.exercisevideos.VideoDao
@@ -27,12 +26,10 @@ import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.GetExerciseCa
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.PopulateDatabaseUseCase
 import com.example.fizyoapp.domain.usecase.note.AddUpdateToNoteUseCase
 import com.example.fizyoapp.domain.usecase.note.CreateNoteUseCase
-import com.example.fizyoapp.domain.usecase.note.DeleteNoteUpdateUseCase
 import com.example.fizyoapp.domain.usecase.note.DeleteNoteUseCase
 import com.example.fizyoapp.domain.usecase.note.GetNoteByIdUseCase
 import com.example.fizyoapp.domain.usecase.note.GetNotesByPhysiotherapistIdUseCase
 import com.example.fizyoapp.domain.usecase.note.UpdateNoteUpdateUseCase
-//import com.example.fizyoapp.domain.usecase.note.UpdateNoteUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.CheckPhysiotherapistProfileCompletedUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetAllPhysiotherapistsUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistByIdUseCase
@@ -60,7 +57,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
 
     @Provides
     @Singleton
@@ -169,6 +165,7 @@ object AppModule {
     fun provideGetPhysiotherapistByIdUseCase(repository: PhysiotherapistProfileRepository): GetPhysiotherapistByIdUseCase {
         return GetPhysiotherapistByIdUseCase(repository)
     }
+
     @Provides
     @Singleton
     fun providesExexrciseExamplesVideoDatabase(@ApplicationContext context: Context): VideoDatabase {
@@ -186,6 +183,7 @@ object AppModule {
     fun providevideoRepository(videoDao: VideoDao): ExamplesOfExerciseRepository {
         return ExamplesOfExercisesRepositoryImp(videoDao)
     }
+
     @Provides
     @Singleton
     fun provideShoulderExercisesOfExamplesViewModel(
@@ -222,7 +220,6 @@ object AppModule {
         return LowerBackExercisesOfExamplesViewModel(repository, context)
     }
 
-
     @Provides
     @Singleton
     fun provideLegExercisesOfExamplesViewModel(
@@ -231,6 +228,7 @@ object AppModule {
     ): LegExercisesOfExamplesViewModel {
         return LegExercisesOfExamplesViewModel(repository, context)
     }
+
     @Provides
     @Singleton
     fun provideHipExercisesOfExamplesViewModel(
@@ -279,7 +277,6 @@ object AppModule {
     ): PopulateDatabaseUseCase {
         return PopulateDatabaseUseCase(repository)
     }
-
 
     @Provides
     @Singleton
@@ -331,5 +328,4 @@ object AppModule {
     fun provideUpdateNoteUpdateUseCase(repository: NoteRepository): UpdateNoteUpdateUseCase {
         return UpdateNoteUpdateUseCase(repository)
     }
-
 }

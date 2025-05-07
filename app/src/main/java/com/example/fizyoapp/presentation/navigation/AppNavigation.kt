@@ -91,36 +91,30 @@ fun AppNavigation() {
         composable(AppScreens.CoreExercisesScreen.route){
             CoreExercisesScreen(navController=navController)
         }
-
         composable(AppScreens.UserProfileSetupScreen.route) {
             UserProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = true
             )
         }
-
         composable(AppScreens.UserInformationScreen.route) {
             UserProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = false
             )
         }
-
         composable(AppScreens.PhysiotherapistProfileSetupScreen.route) {
             PhysiotherapistProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = true
             )
         }
-
         composable(AppScreens.PhysiotherapistProfileUpdateScreen.route) {
             PhysiotherapistProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = false
             )
         }
-
-
         composable(
             route = "${AppScreens.PhysiotherapistDetailScreen.route}/{physiotherapistId}",
             arguments = listOf(navArgument("physiotherapistId") { type = NavType.StringType })
@@ -131,7 +125,6 @@ fun AppNavigation() {
         composable(AppScreens.NotesScreen.route) {
             NotesScreen(navController = navController)
         }
-
         composable(
             route = AppScreens.NoteDetailScreen.route,
             arguments = listOf(navArgument("noteId") { type = NavType.StringType })
@@ -139,7 +132,6 @@ fun AppNavigation() {
             val noteId = it.arguments?.getString("noteId") ?: ""
             NoteDetailScreen(navController = navController, noteId = noteId)
         }
-
         composable(AppScreens.AddNoteScreen.route) {
             val notesViewModel = hiltViewModel<NotesViewModel>()
             AddNoteScreen(
@@ -149,7 +141,5 @@ fun AppNavigation() {
                 }
             )
         }
-
-
     }
 }

@@ -26,6 +26,4 @@ sealed class AppScreens(val route:String) {
     object NotesScreen: AppScreens("notes_screen")
     object NoteDetailScreen: AppScreens("note_detail_screen/{noteId}")
     object AddNoteScreen: AppScreens("add_note_screen")
-
-
 }

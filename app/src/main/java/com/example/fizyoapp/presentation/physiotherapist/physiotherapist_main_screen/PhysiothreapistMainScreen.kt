@@ -3,9 +3,8 @@ package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_s
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Note
-import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -57,7 +56,6 @@ fun PhysiotherapistMainScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Profil Bilgileri Butonu
                 Button(
                     onClick = {
                         navController.navigate(AppScreens.PhysiotherapistProfileUpdateScreen.route)
@@ -96,7 +94,7 @@ fun PhysiotherapistMainScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Notes,
+                            imageVector = Icons.AutoMirrored.Filled.Notes,
                             contentDescription = "Notlarım",
                             modifier = Modifier
                                 .size(28.dp)
