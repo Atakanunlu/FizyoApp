@@ -8,6 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
+                  <option name="appId" value="com.example.fizyoapp" />
+                  <option name="mobileSdkAppId" value="1:632171088069:android:4eb12a60eff11b3be688ac" />
+                  <option name="projectId" value="fizyoapp-83f79" />
+                  <option name="projectNumber" value="632171088069" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

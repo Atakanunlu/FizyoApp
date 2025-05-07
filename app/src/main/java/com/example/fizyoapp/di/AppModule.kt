@@ -12,6 +12,8 @@ import com.example.fizyoapp.data.repository.auth.AuthRepositoryImpl
 import com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExerciseRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExercisesRepositoryImp
+import com.example.fizyoapp.data.repository.note.NoteRepository
+import com.example.fizyoapp.data.repository.note.NoteRepositoryImpl
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepository
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepositoryImpl
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepository
@@ -23,6 +25,14 @@ import com.example.fizyoapp.domain.usecase.auth.SignOutUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignUpUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.GetExerciseCategoriesUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.PopulateDatabaseUseCase
+import com.example.fizyoapp.domain.usecase.note.AddUpdateToNoteUseCase
+import com.example.fizyoapp.domain.usecase.note.CreateNoteUseCase
+import com.example.fizyoapp.domain.usecase.note.DeleteNoteUpdateUseCase
+import com.example.fizyoapp.domain.usecase.note.DeleteNoteUseCase
+import com.example.fizyoapp.domain.usecase.note.GetNoteByIdUseCase
+import com.example.fizyoapp.domain.usecase.note.GetNotesByPhysiotherapistIdUseCase
+import com.example.fizyoapp.domain.usecase.note.UpdateNoteUpdateUseCase
+//import com.example.fizyoapp.domain.usecase.note.UpdateNoteUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.CheckPhysiotherapistProfileCompletedUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetAllPhysiotherapistsUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistByIdUseCase
@@ -278,6 +288,48 @@ object AppModule {
         populateDatabaseUseCase: PopulateDatabaseUseCase
     ): ExercisesExamplesViewModel {
         return ExercisesExamplesViewModel(getExerciseCategoriesUseCase, populateDatabaseUseCase)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNoteRepository(): NoteRepository {
+        return NoteRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetNotesByPhysiotherapistIdUseCase(repository: NoteRepository): GetNotesByPhysiotherapistIdUseCase {
+        return GetNotesByPhysiotherapistIdUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetNoteByIdUseCase(repository: NoteRepository): GetNoteByIdUseCase {
+        return GetNoteByIdUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCreateNoteUseCase(repository: NoteRepository): CreateNoteUseCase {
+        return CreateNoteUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddUpdateToNoteUseCase(repository: NoteRepository): AddUpdateToNoteUseCase {
+        return AddUpdateToNoteUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteNoteUseCase(repository: NoteRepository): DeleteNoteUseCase {
+        return DeleteNoteUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateNoteUpdateUseCase(repository: NoteRepository): UpdateNoteUpdateUseCase {
+        return UpdateNoteUpdateUseCase(repository)
     }
 
 }
