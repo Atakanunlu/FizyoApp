@@ -28,7 +28,7 @@ import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.Neck
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.ShoulderExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip.HipExercisesScreen
 import com.example.fizyoapp.presentation.user.userprofile.UserProfileSetupScreen
-import com.example.healthapp.presentation.settings.SettingsScreen
+
 
 @Composable
 fun AppNavigation() {
@@ -95,9 +95,9 @@ fun AppNavigation() {
                 isFirstSetup = true
             )
         }
-        composable(AppScreens.SettingsScreen.route){
-            SettingsScreen(navController=navController)
-        }
+//        composable(AppScreens.SettingsScreen.route){
+//            SettingsScreen(navController=navController)
+//        }
 
         composable(AppScreens.UserInformationScreen.route) {
             UserProfileSetupScreen(
