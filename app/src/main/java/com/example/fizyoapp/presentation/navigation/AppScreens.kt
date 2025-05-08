@@ -23,6 +23,13 @@ sealed class AppScreens(val route:String) {
     object LegExercisesScreen:AppScreens("leg_exercises")
     object CoreExercisesScreen:AppScreens("core_exercises")
     object HipExercisesScreen:AppScreens("hip_exercises")
+
+    // Not ekranları
+    object NotesScreen: AppScreens("notes_screen")
+    object NoteDetailScreen: AppScreens("note_detail_screen/{noteId}")
+    object AddNoteScreen: AppScreens("add_note_screen")
+
+    // Mesaj ekranları (master'dan)
     object MessagesScreen : AppScreens("messages_screen")
     object MessagesDetailScreen : AppScreens("message_detail_screen/{userId}") {
         fun createMessageDetailRoute(userId: String): String {
@@ -30,7 +37,6 @@ sealed class AppScreens(val route:String) {
         }
     }
 
+    // Ayarlar ekranı (master'dan)
     object SettingsScreen : AppScreens("settings")
-
-
 }

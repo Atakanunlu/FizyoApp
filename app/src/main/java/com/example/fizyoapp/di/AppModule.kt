@@ -1,6 +1,5 @@
 package com.example.fizyoapp.di
 
-
 import android.content.Context
 import com.example.fizyoapp.data.local.dao.exerciseexamplesscreen.OrnekEgzersizlerGirisDao
 import com.example.fizyoapp.data.local.dao.exercisevideos.VideoDao
@@ -14,6 +13,8 @@ import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExerciseRep
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExercisesRepositoryImp
 import com.example.fizyoapp.data.repository.messagesscreen.MessageRepository
 import com.example.fizyoapp.data.repository.messagesscreen.MessageRepositoryImpl
+import com.example.fizyoapp.data.repository.note.NoteRepository
+import com.example.fizyoapp.data.repository.note.NoteRepositoryImpl
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepository
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepositoryImpl
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepository
@@ -29,6 +30,12 @@ import com.example.fizyoapp.domain.usecase.messagesscreen.GetChatThreadsUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.GetMessagesUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.MarkMessagesAsReadUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.SendMessageUseCase
+import com.example.fizyoapp.domain.usecase.note.AddUpdateToNoteUseCase
+import com.example.fizyoapp.domain.usecase.note.CreateNoteUseCase
+import com.example.fizyoapp.domain.usecase.note.DeleteNoteUseCase
+import com.example.fizyoapp.domain.usecase.note.GetNoteByIdUseCase
+import com.example.fizyoapp.domain.usecase.note.GetNotesByPhysiotherapistIdUseCase
+import com.example.fizyoapp.domain.usecase.note.UpdateNoteUpdateUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.CheckPhysiotherapistProfileCompletedUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetAllPhysiotherapistsUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistByIdUseCase
@@ -58,8 +65,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
-
     @Provides
     @Singleton
     fun provideAuthRepository(): AuthRepository {
@@ -167,6 +172,7 @@ object AppModule {
     fun provideGetPhysiotherapistByIdUseCase(repository: PhysiotherapistProfileRepository): GetPhysiotherapistByIdUseCase {
         return GetPhysiotherapistByIdUseCase(repository)
     }
+
     @Provides
     @Singleton
     fun providesExexrciseExamplesVideoDatabase(@ApplicationContext context: Context): VideoDatabase {
@@ -184,6 +190,7 @@ object AppModule {
     fun providevideoRepository(videoDao: VideoDao): ExamplesOfExerciseRepository {
         return ExamplesOfExercisesRepositoryImp(videoDao)
     }
+
     @Provides
     @Singleton
     fun provideShoulderExercisesOfExamplesViewModel(
@@ -220,7 +227,6 @@ object AppModule {
         return LowerBackExercisesOfExamplesViewModel(repository, context)
     }
 
-
     @Provides
     @Singleton
     fun provideLegExercisesOfExamplesViewModel(
@@ -229,6 +235,7 @@ object AppModule {
     ): LegExercisesOfExamplesViewModel {
         return LegExercisesOfExamplesViewModel(repository, context)
     }
+
     @Provides
     @Singleton
     fun provideHipExercisesOfExamplesViewModel(
@@ -278,7 +285,6 @@ object AppModule {
         return PopulateDatabaseUseCase(repository)
     }
 
-
     @Provides
     @Singleton
     fun provideExercisesExamplesViewModel(
@@ -288,13 +294,56 @@ object AppModule {
         return ExercisesExamplesViewModel(getExerciseCategoriesUseCase, populateDatabaseUseCase)
     }
 
+    // Note Repository ve Use-Case'ler
+    @Provides
+    @Singleton
+    fun provideNoteRepository(): NoteRepository {
+        return NoteRepositoryImpl()
+    }
 
     @Provides
     @Singleton
+    fun provideGetNotesByPhysiotherapistIdUseCase(repository: NoteRepository): GetNotesByPhysiotherapistIdUseCase {
+        return GetNotesByPhysiotherapistIdUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetNoteByIdUseCase(repository: NoteRepository): GetNoteByIdUseCase {
+        return GetNoteByIdUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCreateNoteUseCase(repository: NoteRepository): CreateNoteUseCase {
+        return CreateNoteUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddUpdateToNoteUseCase(repository: NoteRepository): AddUpdateToNoteUseCase {
+        return AddUpdateToNoteUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteNoteUseCase(repository: NoteRepository): DeleteNoteUseCase {
+        return DeleteNoteUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateNoteUpdateUseCase(repository: NoteRepository): UpdateNoteUpdateUseCase {
+        return UpdateNoteUpdateUseCase(repository)
+    }
+
+    // Message Repository ve Use-Case'ler (master'dan gelen)
+    @Provides
+    @Singleton
     fun provideMessagesScreenViewModel(
-        getChatThreadsUseCase: GetChatThreadsUseCase,
+        getChatThreadsUseCase: GetChatThreadsUseCase
     ): MessagesScreenViewModel {
-        return MessagesScreenViewModel(getChatThreadsUseCase, )
+        return MessagesScreenViewModel(getChatThreadsUseCase)
     }
 
     @Provides

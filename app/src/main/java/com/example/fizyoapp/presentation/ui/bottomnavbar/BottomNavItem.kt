@@ -22,7 +22,7 @@ val items = listOf(
         title = "Home",
         selectedicon = Icons.Default.Home,
         unselectedicon = Icons.Filled.Home,
-        route = AppScreens.UserMainScreen.route // Ana ekran route'u düzeltildi
+        route = AppScreens.UserMainScreen.route
     ),
     BottomNavItem(
         title = "Search",
@@ -46,6 +46,6 @@ val items = listOf(
         title = "Mesajlar",
         selectedicon = Icons.Default.Message,
         unselectedicon = Icons.Filled.Message,
-        route = AppScreens.MessagesScreen.route // Şimdilik ana ekrana yönlendirildi
+        route = AppScreens.MessagesScreen.route // Master'dan MessagesScreen yönlendirmesi
     )
 )
