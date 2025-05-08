@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.fizyoapp.ui.bottomnavbar.items
 
 @Composable
 fun BottomNavbarComponent(navController: NavController) {
@@ -21,7 +22,7 @@ fun BottomNavbarComponent(navController: NavController) {
                 onClick = {
                     if (currentRoute != item.route) {
                         navController.navigate(item.route) {
-                            // Prevent multiple copies of the same destination in the back stack
+
                             popUpTo(navController.graph.startDestinationId) {
                                 saveState = true
                             }

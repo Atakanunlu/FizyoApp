@@ -24,5 +24,19 @@ sealed class AppScreens(val route:String) {
     object CoreExercisesScreen:AppScreens("core_exercises")
     object HipExercisesScreen:AppScreens("hip_exercises")
 
+    // Not ekranları
+    object NotesScreen: AppScreens("notes_screen")
+    object NoteDetailScreen: AppScreens("note_detail_screen/{noteId}")
+    object AddNoteScreen: AppScreens("add_note_screen")
 
+    // Mesaj ekranları (master'dan)
+    object MessagesScreen : AppScreens("messages_screen")
+    object MessagesDetailScreen : AppScreens("message_detail_screen/{userId}") {
+        fun createMessageDetailRoute(userId: String): String {
+            return "message_detail_screen/$userId"
+        }
+    }
+
+    // Ayarlar ekranı (master'dan)
+    object SettingsScreen : AppScreens("settings")
 }
