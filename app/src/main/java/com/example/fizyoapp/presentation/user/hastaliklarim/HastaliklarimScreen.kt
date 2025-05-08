@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
+import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
 import com.example.fizyoapp.presentation.user.hastaliklarim.radyolojikgoruntuekle.RadyolojikGoruntuEkle
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
