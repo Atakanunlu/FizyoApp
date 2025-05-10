@@ -36,6 +36,8 @@ sealed class AppScreens(val route:String) {
             return "message_detail_screen/$userId"
         }
     }
+
+    // Ayarlar ekranı (master'dan)
     object SettingsScreen : AppScreens("settings")
     object PainTrackingScreen : AppScreens("pain_tracking")
     object AddPainRecordScreen : AppScreens("add_pain_record")

@@ -1,6 +1,5 @@
 package com.example.fizyoapp.di
 
-
 import android.content.Context
 import com.example.fizyoapp.data.local.dao.exerciseexamplesscreen.OrnekEgzersizlerGirisDao
 import com.example.fizyoapp.data.local.dao.exercisevideos.VideoDao
@@ -347,7 +346,6 @@ object AppModule {
         return PopulateDatabaseUseCase(repository)
     }
 
-
     @Provides
     @Singleton
     fun provideExercisesExamplesViewModel(
@@ -404,7 +402,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideMessagesScreenViewModel(
-        getChatThreadsUseCase: GetChatThreadsUseCase,
+        getChatThreadsUseCase: GetChatThreadsUseCase
     ): MessagesScreenViewModel {
         return MessagesScreenViewModel(getChatThreadsUseCase)
     }
