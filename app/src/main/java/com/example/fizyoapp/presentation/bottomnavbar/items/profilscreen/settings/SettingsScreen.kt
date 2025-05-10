@@ -1,4 +1,4 @@
-package com.example.healthapp.presentation.settings
+package com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,11 +14,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.fizyoapp.domain.model.auth.User
+import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController) {
+fun SettingsScreen( navController: NavController,
+                    viewModel: UserViewModel = hiltViewModel()
+) {
+
+    val state = viewModel.state.collectAsState().value
     Scaffold(
         topBar = {
             TopAppBar(
@@ -43,8 +50,8 @@ fun SettingsScreen(navController: NavController) {
                 .verticalScroll(rememberScrollState())
         ) {
             ProfileSection(
-                name = "Ahmet Yılmaz",
-                email = "ahmet.yilmaz@example.com",
+                name = "${state.userProfile?.firstName} ${state.userProfile?.lastName}",
+                email = state.email,
                 onClick = { navController.navigate("profile_settings") }
             )
 
@@ -55,7 +62,7 @@ fun SettingsScreen(navController: NavController) {
             SettingsItem(
                 icon = Icons.Filled.Person,
                 title = "Profil ve Hesap Ayarları",
-                subtitle = "Kişisel bilgiler, doğum tarihi, boy, kilo",
+                subtitle = "Kişisel bilgiler, doğum tarihi",
                 onClick = { navController.navigate("profile_settings") }
             )
 
@@ -77,18 +84,12 @@ fun SettingsScreen(navController: NavController) {
 
             SettingsSectionTitle(title = "Uygulama Ayarları")
 
-            SettingsItem(
-                icon = Icons.Filled.DataUsage,
-                title = "Sağlık Veri Ayarları",
-                subtitle = "Veri girişi, ölçü birimleri, bağlı cihazlar",
-                onClick = { navController.navigate("health_data_settings") }
-            )
 
             SettingsItem(
                 icon = Icons.Filled.Palette,
                 title = "Görünüm ve Kişiselleştirme",
-                subtitle = "Tema, yazı boyutu, ana ekran düzeni",
-                onClick = { navController.navigate("appearance_settings") },
+                subtitle = "Karanlık-Aydınlık Tema",
+                onClick = {},
                 endContent = {
                     ThemeSwitch()
                 }
@@ -101,12 +102,6 @@ fun SettingsScreen(navController: NavController) {
                 onClick = { navController.navigate("language_settings") }
             )
 
-            SettingsItem(
-                icon = Icons.Filled.Link,
-                title = "Entegrasyon ve Bağlantılar",
-                subtitle = "Sağlık hizmetleri, fitness uygulamaları",
-                onClick = { navController.navigate("integration_settings") }
-            )
 
             Divider(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
 
@@ -126,7 +121,6 @@ fun SettingsScreen(navController: NavController) {
                 onClick = { navController.navigate("about") }
             )
 
-            // Uygulamadan çıkış butonu
             Button(
                 onClick = { /* Çıkış işlemleri */ },
                 modifier = Modifier
@@ -168,7 +162,7 @@ fun ProfileSection(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Profil ikonu
+
             Icon(
                 Icons.Default.AccountCircle,
                 contentDescription = "Profil",
@@ -180,7 +174,6 @@ fun ProfileSection(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Kullanıcı bilgileri
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -196,7 +189,6 @@ fun ProfileSection(
                 )
             }
 
-            // Düzenleme ikonu
             IconButton(onClick = onClick) {
                 Icon(
                     Icons.Default.Edit,
@@ -238,7 +230,7 @@ fun SettingsItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // İkon
+
             Icon(
                 imageVector = icon,
                 contentDescription = null,
@@ -250,7 +242,7 @@ fun SettingsItem(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Başlık ve alt başlık
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -265,7 +257,6 @@ fun SettingsItem(
                 )
             }
 
-            // İsteğe bağlı içerik (örn. switch)
             endContent?.invoke() ?: Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,

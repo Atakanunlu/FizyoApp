@@ -8,3 +8,5 @@ data class PainRecord(
     val timestamp: Long = System.currentTimeMillis(),
     val note: String? = null
 )
+
+

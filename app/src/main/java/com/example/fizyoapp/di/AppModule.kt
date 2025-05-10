@@ -6,19 +6,13 @@ import com.example.fizyoapp.data.local.dao.exercisevideos.VideoDao
 import com.example.fizyoapp.data.local.database.exerciseexamplesscreen.ExercisesDatabase
 import com.example.fizyoapp.data.local.database.exercisevideos.VideoDatabase
 import com.example.fizyoapp.data.repository.ExercisesExamplesRepositoryImpl
+import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainTrackingRepositoryImpl
 import com.example.fizyoapp.data.repository.auth.AuthRepository
 import com.example.fizyoapp.data.repository.auth.AuthRepositoryImpl
 import com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExerciseRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExercisesRepositoryImp
-import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainRepository
-import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainRepositoryImpl
-import com.example.fizyoapp.data.repository.mainscreen.reminder.ReminderRepository
-import com.example.fizyoapp.data.repository.mainscreen.reminder.ReminderRepositoryImpl
-import com.example.fizyoapp.data.repository.mainscreen.stepcount.StepCountRepository
-import com.example.fizyoapp.data.repository.mainscreen.stepcount.StepCountRepositoryImpl
-import com.example.fizyoapp.data.repository.mainscreen.waterintake.WaterIntakeRepository
-import com.example.fizyoapp.data.repository.mainscreen.waterintake.WaterIntakeRepositoryImpl
+import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainTrackingRepository
 import com.example.fizyoapp.data.repository.messagesscreen.MessageRepository
 import com.example.fizyoapp.data.repository.messagesscreen.MessageRepositoryImpl
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepository
@@ -33,13 +27,10 @@ import com.example.fizyoapp.domain.usecase.auth.SignUpUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.GetExerciseCategoriesUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.PopulateDatabaseUseCase
 import com.example.fizyoapp.domain.usecase.mainscreen.AddPainRecordUseCase
-import com.example.fizyoapp.domain.usecase.mainscreen.GetActiveRemindersUseCase
+import com.example.fizyoapp.domain.usecase.mainscreen.DeletePainRecordUseCase
 import com.example.fizyoapp.domain.usecase.mainscreen.GetLatestPainRecordUseCase
-import com.example.fizyoapp.domain.usecase.mainscreen.GetPainRecordsForUserUseCase
-import com.example.fizyoapp.domain.usecase.mainscreen.GetStepCountForTodayUseCase
-import com.example.fizyoapp.domain.usecase.mainscreen.GetWaterIntakeForTodayUseCase
-import com.example.fizyoapp.domain.usecase.mainscreen.UpdateStepCountUseCase
-import com.example.fizyoapp.domain.usecase.mainscreen.UpdateWaterIntakeUseCase
+import com.example.fizyoapp.domain.usecase.mainscreen.GetPainRecordsUseCase
+import com.example.fizyoapp.domain.usecase.mainscreen.UpdatePainRecordUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.GetChatThreadsUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.GetMessagesUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.MarkMessagesAsReadUseCase
@@ -62,8 +53,6 @@ import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegEx
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesOfExamplesViewModel
-import com.example.fizyoapp.presentation.user.usermainscreen.AddPainRecordViewModel
-import com.example.fizyoapp.presentation.user.usermainscreen.PainTrackingViewModel
 import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
@@ -101,82 +90,32 @@ object AppModule {
         return PhysiotherapistProfileRepositoryImpl()
     }
 
-    // Main Screen Repository Providers
     @Provides
     @Singleton
-    fun providePainRepository(firestore: FirebaseFirestore): PainRepository {
-        return PainRepositoryImpl(firestore)
+    fun providePainRepository(firestore: FirebaseFirestore): PainTrackingRepository {
+        return PainTrackingRepositoryImpl(firestore)
     }
+
 
     @Provides
     @Singleton
-    fun provideWaterIntakeRepository(firestore: FirebaseFirestore): WaterIntakeRepository {
-        return WaterIntakeRepositoryImpl(firestore)
-    }
-
-    @Provides
-    @Singleton
-    fun provideStepCountRepository(
-        firestore: FirebaseFirestore,
-        @ApplicationContext context: Context
-    ): StepCountRepository {
-        return StepCountRepositoryImpl(firestore, context)
-    }
-
-    @Provides
-    @Singleton
-    fun provideReminderRepository(firestore: FirebaseFirestore): ReminderRepository {
-        return ReminderRepositoryImpl(firestore)
-    }
-
-    // Main Screen UseCase Providers
-    @Provides
-    @Singleton
-    fun provideGetLatestPainRecordUseCase(painRepository: PainRepository): GetLatestPainRecordUseCase {
+    fun provideGetLatestPainRecordUseCase(painRepository: PainTrackingRepository): GetLatestPainRecordUseCase {
         return GetLatestPainRecordUseCase(painRepository)
     }
 
     @Provides
     @Singleton
-    fun provideAddPainRecordUseCase(painRepository: PainRepository): AddPainRecordUseCase {
+    fun provideAddPainRecordUseCase(painRepository: PainTrackingRepository): AddPainRecordUseCase {
         return AddPainRecordUseCase(painRepository)
     }
 
     @Provides
     @Singleton
-    fun provideGetPainRecordsForUserUseCase(painRepository: PainRepository): GetPainRecordsForUserUseCase {
-        return GetPainRecordsForUserUseCase(painRepository)
+    fun provideGetPainRecordsForUserUseCase(painRepository: PainTrackingRepository): GetPainRecordsUseCase {
+        return GetPainRecordsUseCase (painRepository)
     }
 
-    @Provides
-    @Singleton
-    fun provideGetWaterIntakeForTodayUseCase(waterIntakeRepository: WaterIntakeRepository): GetWaterIntakeForTodayUseCase {
-        return GetWaterIntakeForTodayUseCase(waterIntakeRepository)
-    }
 
-    @Provides
-    @Singleton
-    fun provideUpdateWaterIntakeUseCase(waterIntakeRepository: WaterIntakeRepository): UpdateWaterIntakeUseCase {
-        return UpdateWaterIntakeUseCase(waterIntakeRepository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetStepCountForTodayUseCase(stepCountRepository: StepCountRepository): GetStepCountForTodayUseCase {
-        return GetStepCountForTodayUseCase(stepCountRepository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideUpdateStepCountUseCase(stepCountRepository: StepCountRepository): UpdateStepCountUseCase {
-        return UpdateStepCountUseCase(stepCountRepository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetActiveRemindersUseCase(reminderRepository: ReminderRepository): GetActiveRemindersUseCase {
-        return GetActiveRemindersUseCase(reminderRepository)
-    }
 
     // Main Screen ViewModels
     @Provides
@@ -186,42 +125,16 @@ object AppModule {
         signOutUseCase: SignOutUseCase,
         getUserProfileUseCase: GetUserProfileUseCase,
         getLatestPainRecordUseCase: GetLatestPainRecordUseCase,
-        getWaterIntakeForTodayUseCase: GetWaterIntakeForTodayUseCase,
-        updateWaterIntakeUseCase: UpdateWaterIntakeUseCase,
-        getStepCountForTodayUseCase: GetStepCountForTodayUseCase,
-        updateStepCountUseCase: UpdateStepCountUseCase,
-        getActiveRemindersUseCase: GetActiveRemindersUseCase
     ): UserViewModel {
         return UserViewModel(
             getCurrentUseCase,
             signOutUseCase,
             getUserProfileUseCase,
-            getLatestPainRecordUseCase,
-            getWaterIntakeForTodayUseCase,
-            updateWaterIntakeUseCase,
-            getStepCountForTodayUseCase,
-            updateStepCountUseCase,
-            getActiveRemindersUseCase
-        )
+            getLatestPainRecordUseCase)
     }
 
-    @Provides
-    @Singleton
-    fun providePainTrackingViewModel(
-        getCurrentUseCase: GetCurrentUseCase,
-        getPainRecordsForUserUseCase: GetPainRecordsForUserUseCase
-    ): PainTrackingViewModel {
-        return PainTrackingViewModel(getCurrentUseCase, getPainRecordsForUserUseCase)
-    }
 
-    @Provides
-    @Singleton
-    fun provideAddPainRecordViewModel(
-        getCurrentUseCase: GetCurrentUseCase,
-        addPainRecordUseCase: AddPainRecordUseCase
-    ): AddPainRecordViewModel {
-        return AddPainRecordViewModel(getCurrentUseCase, addPainRecordUseCase)
-    }
+
 
     @Provides
     @Singleton
@@ -483,12 +396,19 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideMarkMessagesAsReadUseCase(
-                                         messageRepository: MessageRepository,
-                                         authRepository: AuthRepository
+    fun provideMarkMessagesAsReadUseCase(messageRepository: MessageRepository, authRepository: AuthRepository
     ): MarkMessagesAsReadUseCase {
         return MarkMessagesAsReadUseCase(messageRepository, authRepository)
     }
 
 
+    @Provides
+    fun provideUpdatePainRecordUseCase(repository: PainTrackingRepository): UpdatePainRecordUseCase {
+        return UpdatePainRecordUseCase(repository)
+    }
+
+    @Provides
+    fun provideDeletePainRecordUseCase(repository: PainTrackingRepository): DeletePainRecordUseCase {
+        return DeletePainRecordUseCase(repository)
+    }
 }

@@ -1,5 +1,5 @@
 package com.example.fizyoapp.presentation.navigation
-
+import OrnekEgzersizler
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -12,26 +12,21 @@ import com.example.fizyoapp.presentation.login.LoginScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen.PhysiotherapistMainScreen
 import com.example.fizyoapp.presentation.register.RegisterScreen
 import com.example.fizyoapp.presentation.user.usermainscreen.UserMainScreen
-import com.example.fizyoapp.presentation.user.usermainscreen.PainTrackingScreen
-import com.example.fizyoapp.presentation.user.usermainscreen.AddPainRecordScreen
-
 import com.example.fizyoapp.presentation.bottomnavbar.items.paylasimlarscreen.PaylasimlarScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.ProfilScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.searchscreen.SearchScreen
+import com.example.fizyoapp.presentation.user.usermainscreen.PainTrackingScreen
 import com.example.fizyoapp.presentation.physiotherapistdetail.PhysiotherapistDetailScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_profile_screen.PhysiotherapistProfileSetupScreen
 import com.example.fizyoapp.presentation.splashscreen.SplashScreen
-import com.example.fizyoapp.presentation.user.hastaliklarim.HastaliklarimScreen
-import com.example.fizyoapp.presentation.user.hastaliklarim.radyolojikgoruntuekle.RadyolojikGoruntuEkle
-import com.example.fizyoapp.presentation.user.ornekegzersizler.OrnekEgzersizler
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesScreen
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.LegExercisesScreen
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.LowerBackExercisesScreen
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.NeckExercisesScreen
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.ShoulderExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip.HipExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesScreen
 import com.example.fizyoapp.presentation.user.userprofile.UserProfileSetupScreen
-import com.example.healthapp.presentation.settings.SettingsScreen
+import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.settings.SettingsScreen
 
 @Composable
 fun AppNavigation() {
@@ -66,12 +61,6 @@ fun AppNavigation() {
         }
         composable(AppScreens.PaylasimlarScreen.route) {
             PaylasimlarScreen(navController = navController)
-        }
-        composable(AppScreens.HastaliklarimScreen.route) {
-            HastaliklarimScreen(navController = navController)
-        }
-        composable(AppScreens.RadyolojikGoruntuEkleScreen.route) {
-            RadyolojikGoruntuEkle(navController = navController)
         }
         composable(AppScreens.ShoulderExercisesScreen.route){
             ShoulderExercisesScreen(navController=navController)
@@ -118,12 +107,10 @@ fun AppNavigation() {
                 isFirstSetup = false
             )
         }
-
         composable(
             route = "${AppScreens.PhysiotherapistDetailScreen.route}/{physiotherapistId}",
             arguments = listOf(navArgument("physiotherapistId") { type = NavType.StringType })
         ) {
-            val physiotherapistId = it.arguments?.getString("physiotherapistId") ?: ""
             PhysiotherapistDetailScreen(navController = navController)
         }
         composable(
@@ -145,17 +132,9 @@ fun AppNavigation() {
                 userId = userId
             )
         }
-
-        // Yeni eklenen ekranlar
-
-        // Ağrı Takibi Ekranları
         composable(AppScreens.PainTrackingScreen.route) {
             PainTrackingScreen(navController = navController)
         }
-
-        composable(AppScreens.AddPainRecordScreen.route) {
-            AddPainRecordScreen(navController = navController)
-        }
-
     }
 }
+
