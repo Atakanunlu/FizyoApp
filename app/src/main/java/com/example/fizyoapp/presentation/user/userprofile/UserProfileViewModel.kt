@@ -176,7 +176,6 @@ class UserProfileViewModel @Inject constructor(
         val districtError = currentState.district.isBlank()
         val phoneNumberError = currentState.phoneNumber.isBlank()
 
-        // Eğer herhangi bir hata varsa, state'i güncelle ve işlemi durdur
         if (firstNameError || lastNameError || birthDateError || genderError ||
             cityError || districtError || phoneNumberError) {
             _state.value = _state.value.copy(

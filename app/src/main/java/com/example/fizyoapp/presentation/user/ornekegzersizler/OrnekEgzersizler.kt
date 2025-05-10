@@ -1,7 +1,3 @@
-// com.example.fizyoapp.presentation.user.ornekegzersizler.OrnekEgzersizler.kt
-package com.example.fizyoapp.presentation.user.ornekegzersizler
-
-
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,19 +15,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.data.local.entity.exerciseexamplesscreen.OrnekEgzersizlerGiris
 import com.example.fizyoapp.presentation.navigation.AppScreens
-import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
-
+import com.example.fizyoapp.presentation.user.ornekegzersizler.ExercisesExamplesEvent
+import com.example.fizyoapp.presentation.user.ornekegzersizler.ExercisesExamplesViewModel
+import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -40,10 +40,9 @@ fun OrnekEgzersizler(
     viewModel: ExercisesExamplesViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    // Seçilen kategori ID'sini gözlemleme
+
     state.selectedCategoryId?.let { categoryId ->
         LaunchedEffect(categoryId) {
-            // Kategori ID'sine göre navigasyon yapma
             when (categoryId) {
                 "shoulder" -> navController.navigate(AppScreens.ShoulderExercisesScreen.route)
                 "neck" -> navController.navigate(AppScreens.NeckExercisesScreen.route)
@@ -52,32 +51,42 @@ fun OrnekEgzersizler(
                 "core" -> navController.navigate(AppScreens.CoreExercisesScreen.route)
                 "hip" -> navController.navigate(AppScreens.HipExercisesScreen.route)
             }
-            // Navigasyonun tamamlandığını ViewModel'e bildir
             viewModel.onEvent(ExercisesExamplesEvent.CategoryNavigationHandled)
         }
     }
 
-    Scaffold(bottomBar = { BottomNavbarComponent(navController) }) {
+    Scaffold(
+        topBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFF3B3E68))
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Örnek Egzersizler",
+                    style = TextStyle(
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        },
+        bottomBar = { BottomNavbarComponent(navController) }
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(59, 62, 104))
+                .background(Color(0xFF2A2D47))
         ) {
             when {
-                 state.isLoading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = Color.White
-                    )
+                state.isLoading -> {
+                    LoadingIndicator()
                 }
                 state.error != null -> {
-                    Text(
-                        text = "Hata: ${state.error}",
-                        color = Color.Red,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp)
-                    )
+                    ErrorMessage(state.error)
                 }
                 else -> {
                     CategoryList(
@@ -93,55 +102,119 @@ fun OrnekEgzersizler(
 }
 
 @Composable
-private fun CategoryList(
-    categories: List<OrnekEgzersizlerGiris>,
-    onCategoryClick: (OrnekEgzersizlerGiris) -> Unit
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+private fun LoadingIndicator() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator(
+            color = Color(0xFF6D72C3),
+            strokeWidth = 3.dp
+        )
+    }
+}
+
+@Composable
+private fun ErrorMessage(error: String?) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
     ) {
-        items(categories.size) { index ->
-            val category = categories[index]
-            CategoryItem(
-                category = category,
-                onCategoryClick = { onCategoryClick(category) }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                painter = painterResource(id = android.R.drawable.ic_dialog_alert),
+                contentDescription = "Error",
+                modifier = Modifier.size(48.dp),
+                colorFilter = ColorFilter.tint(Color.Red)
             )
-        }
-        item {
-            Spacer(modifier = Modifier.height(100.dp)) // BottomNavbarComponent için alan
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Hata: $error",
+                color = Color.Red,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
 
 @Composable
-private fun CategoryItem(
+private fun CategoryList(
+    categories: List<OrnekEgzersizlerGiris>,
+    onCategoryClick: (OrnekEgzersizlerGiris) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 72.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(categories.size) { index ->
+            val category = categories[index]
+            ModernCategoryItem(
+                category = category,
+                onCategoryClick = { onCategoryClick(category) }
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(80.dp))
+        }
+    }
+}
+
+@Composable
+private fun ModernCategoryItem(
     category: OrnekEgzersizlerGiris,
     onCategoryClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
-            .padding(vertical = 15.dp, horizontal = 30.dp)
             .fillMaxWidth()
+            .height(150.dp)
+            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onCategoryClick)
     ) {
         Image(
             painter = painterResource(id = category.imageResourceId),
             contentDescription = category.baslik,
             contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        // Dark overlay to make text more readable
+        Box(
             modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color(0x80000000)
+                        )
+                    )
+                )
+        )
+        // Category title with card
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .height(130.dp)
-        )
-        Text(
-            text = category.baslik ?: "",
-            style = TextStyle(
-                color = Color.DarkGray,
-                fontSize = 25.sp,
-                fontStyle = FontStyle.Italic
-            ),
-            modifier = Modifier.align(Alignment.Center)
-        )
+                .padding(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xDDFFFFFF))
+                    .padding(vertical = 8.dp, horizontal = 16.dp)
+                    .align(Alignment.Center)
+            ) {
+                Text(
+                    text = category.baslik ?: "",
+                    style = TextStyle(
+                        color = Color(0xFF3B3E68),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                )
+            }
+        }
     }
 }
