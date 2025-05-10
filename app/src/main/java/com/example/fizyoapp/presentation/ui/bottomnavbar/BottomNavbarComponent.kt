@@ -21,6 +21,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.fizyoapp.ui.bottomnavbar.items
 
 @Composable
 fun BottomNavbarComponent(navController: NavController) {
@@ -67,7 +68,9 @@ fun BottomNavbarComponent(navController: NavController) {
                         imageVector = if (currentRoute == item.route) item.selectedicon else item.unselectedicon,
                         contentDescription = item.title
                     )
-    Surface(
+
+
+                    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .height(70.dp)
@@ -157,11 +160,21 @@ fun BottomNavbarComponent(navController: NavController) {
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
                                     .padding(top = 32.dp)
+
+
                             )
+
                         }
+
                     }
+
                 }
+
             }
+
+        }
+    }
+                })
         }
     }
 }
