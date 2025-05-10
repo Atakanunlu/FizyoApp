@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fizyoapp.R
 import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 
+
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun PaylasimlarScreen(navController: NavController) {

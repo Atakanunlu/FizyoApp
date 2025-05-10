@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.physiotherapistdetail
+package com.example.fizyoapp.presentation.physiotherapist.physiotherapistdetail
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background

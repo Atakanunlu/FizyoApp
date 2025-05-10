@@ -1,22 +1,24 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.presentation.navigation.AppScreens
-
 import kotlinx.coroutines.flow.collectLatest
-
 
 @Composable
 fun PhysiotherapistMainScreen(
@@ -54,7 +56,6 @@ fun PhysiotherapistMainScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Profil Bilgileri Butonu
                 Button(
                     onClick = {
                         navController.navigate(AppScreens.PhysiotherapistProfileUpdateScreen.route)
@@ -71,6 +72,56 @@ fun PhysiotherapistMainScreen(
                     Text("Profil Bilgilerim")
                 }
 
+
+                ElevatedButton(
+                    onClick = {
+                        navController.navigate(AppScreens.NotesScreen.route)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.elevatedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Notes,
+                            contentDescription = "Notlarım",
+                            modifier = Modifier
+                                .size(28.dp)
+                                .padding(end = 16.dp)
+                        )
+                        Column(
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Text(
+                                text = "Hasta Notlarım",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Hastalarınıza ait tüm notları görüntüleyin ve yönetin",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    }
+                }
 
                 state.errorMessage?.let {
                     Text(
