@@ -39,33 +39,4 @@ sealed class AppScreens(val route:String) {
 
     // Ayarlar ekranı (master'dan)
     object SettingsScreen : AppScreens("settings")
-    object PainTrackingScreen : AppScreens("pain_tracking")
-    object AddPainRecordScreen : AppScreens("add_pain_record")
-    object ProfileScreen : AppScreens("profile")
-    object ExercisesScreen : AppScreens("exercises_screen")
-    object RehabilitationHistoryScreen : AppScreens("rehabilitation_history_screen")
-    object MedicalRecordsScreen: AppScreens("medical_records_screen")
-    object MedicalRecordDetailScreen: AppScreens("medical_record_detail_screen/{recordId}") {
-        fun createRoute(recordId: String): String {
-            return "medical_record_detail_screen/$recordId"
-        }
-    }
-    object EvaluationFormsScreen: AppScreens("evaluation_forms_screen")
-    object EvaluationFormDetailScreen: AppScreens("evaluation_form_detail_screen/{formId}") {
-        fun createRoute(formId: String): String {
-            return "evaluation_form_detail_screen/$formId"
-        }
-    }
-    object EvaluationFormCreateScreen: AppScreens("evaluation_form_create_screen/{formType}") {
-        fun createRoute(formType: String): String {
-            return "evaluation_form_create_screen/$formType"
-        }
-    }
-    object RadiologyImagesScreen: AppScreens("radiology_images_screen")
-    object RadiologyImageDetailScreen: AppScreens("radiology_image_detail_screen/{imageId}") {
-        fun createRoute(imageId: String): String {
-            return "radiology_image_detail_screen/$imageId"
-        }
-    }
-    object UploadMedicalRecordScreen: AppScreens("upload_medical_record_screen")
 }

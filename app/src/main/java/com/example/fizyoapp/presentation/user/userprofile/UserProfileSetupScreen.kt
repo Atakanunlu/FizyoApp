@@ -7,35 +7,31 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Camera
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,17 +51,12 @@ fun UserProfileSetupScreen(
 ) {
     val state = viewModel.state.collectAsState().value
     val context = LocalContext.current
+
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showGenderDialog by remember { mutableStateOf(false) }
     var showPhotoOptionsDialog by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
 
-    val primaryColor = Color(0xFF3B3E68)
-    val accentColor = Color(0xFF6D72C3)
-    val backgroundColor = Color(0xFFF8F9FC)
-    val cardColor = Color.White
-    val errorColor = Color(0xFFE57373)
     val dateFormatter = remember { SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()) }
 
     val photoFile = remember {
@@ -109,6 +100,7 @@ fun UserProfileSetupScreen(
                 }
                 selectedImageUri = Uri.fromFile(cacheFile)
                 viewModel.onEvent(UserProfileEvent.PhotoChanged(cacheFile.absolutePath))
+
             } catch (e: Exception) {
                 Log.e("UserProfileSetup", "Fotoğraf seçme hatası: ${e.message}", e)
                 Toast.makeText(context, "Fotoğraf işlenemedi: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -122,6 +114,7 @@ fun UserProfileSetupScreen(
         if (success && photoUri != null) {
             try {
                 selectedImageUri = photoUri
+
                 photoFile.absolutePath.let { path ->
                     viewModel.onEvent(UserProfileEvent.PhotoChanged(path))
                 }
@@ -155,94 +148,103 @@ fun UserProfileSetupScreen(
     }
 
     if (showPhotoOptionsDialog) {
-        Dialog(onDismissRequest = { showPhotoOptionsDialog = false }) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = cardColor
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 6.dp
-                )
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Profil Fotoğrafı",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = primaryColor,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-                    PhotoOptionItem(
-                        icon = Icons.Filled.Camera,
-                        text = "Kameradan Çek",
-                        iconTint = accentColor
-                    ) {
-                        if (photoUri != null) {
-                            if (ContextCompat.checkSelfPermission(
-                                    context,
-                                    Manifest.permission.CAMERA
-                                ) == PackageManager.PERMISSION_GRANTED
-                            ) {
-                                cameraLauncher.launch(photoUri)
-                            } else {
-                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        AlertDialog(
+            onDismissRequest = { showPhotoOptionsDialog = false },
+            title = { Text("Profil Fotoğrafı") },
+            text = {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                if (photoUri != null) {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.CAMERA
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        cameraLauncher.launch(photoUri)
+                                    } else {
+                                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Kamera başlatılamadı", Toast.LENGTH_SHORT).show()
+                                }
+                                showPhotoOptionsDialog = false
                             }
-                        } else {
-                            Toast.makeText(context, "Kamera başlatılamadı", Toast.LENGTH_SHORT).show()
-                        }
-                        showPhotoOptionsDialog = false
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Camera,
+                            contentDescription = "Kamera",
+                            modifier = Modifier.padding(end = 16.dp)
+                        )
+                        Text("Kameradan Çek")
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider()
 
-                    PhotoOptionItem(
-                        icon = Icons.Filled.PhotoLibrary,
-                        text = "Galeriden Seç",
-                        iconTint = accentColor
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val permission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                                    Manifest.permission.READ_MEDIA_IMAGES
+                                } else {
+                                    Manifest.permission.READ_EXTERNAL_STORAGE
+                                }
+
+                                if (ContextCompat.checkSelfPermission(context, permission) ==
+                                    PackageManager.PERMISSION_GRANTED) {
+                                    photoPickerLauncher.launch("image/*")
+                                } else {
+                                    storagePermissionLauncher.launch(permission)
+                                }
+                                showPhotoOptionsDialog = false
+                            }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val permission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                            Manifest.permission.READ_MEDIA_IMAGES
-                        } else {
-                            Manifest.permission.READ_EXTERNAL_STORAGE
-                        }
-                        if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
-                            photoPickerLauncher.launch("image/*")
-                        } else {
-                            storagePermissionLauncher.launch(permission)
-                        }
-                        showPhotoOptionsDialog = false
+                        Icon(
+                            imageVector = Icons.Default.PhotoLibrary,
+                            contentDescription = "Galeri",
+                            modifier = Modifier.padding(end = 16.dp)
+                        )
+                        Text("Galeriden Seç")
                     }
 
                     if (selectedImageUri != null || (state.profilePhotoUrl.isNotEmpty() && state.profilePhotoUrl != "null")) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        PhotoOptionItem(
-                            icon = Icons.Filled.Delete,
-                            text = "Fotoğrafı Kaldır",
-                            iconTint = errorColor
+                        HorizontalDivider()
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    selectedImageUri = null
+                                    viewModel.onEvent(UserProfileEvent.PhotoChanged(""))
+                                    showPhotoOptionsDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            selectedImageUri = null
-                            viewModel.onEvent(UserProfileEvent.PhotoChanged(""))
-                            showPhotoOptionsDialog = false
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Kaldır",
+                                modifier = Modifier.padding(end = 16.dp),
+                                tint = Color.Red
+                            )
+                            Text("Fotoğrafı Kaldır", color = Color.Red)
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { showPhotoOptionsDialog = false },
-                        modifier = Modifier.align(Alignment.End),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
-                    ) {
-                        Text("Kapat")
-                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showPhotoOptionsDialog = false }) {
+                    Text("İptal")
                 }
             }
-        }
+        )
     }
 
     if (showDatePicker) {
@@ -264,677 +266,337 @@ fun UserProfileSetupScreen(
                 TextButton(onClick = { showDatePicker = false }) {
                     Text("İptal")
                 }
-            },
-            colors = DatePickerDefaults.colors(
-                containerColor = cardColor,
-                titleContentColor = primaryColor,
-                headlineContentColor = primaryColor,
-                weekdayContentColor = accentColor,
-                subheadContentColor = Color.Gray,
-                yearContentColor = accentColor,
-                currentYearContentColor = primaryColor,
-                selectedYearContainerColor = accentColor,
-                selectedDayContainerColor = accentColor
-            )
+            }
         ) {
             DatePicker(state = datePickerState)
         }
     }
 
     if (showGenderDialog) {
-        Dialog(onDismissRequest = { showGenderDialog = false }) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = cardColor
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 6.dp
-                )
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Cinsiyet Seçin",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = primaryColor,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-                    GenderOptionItem(
-                        selected = state.gender == "Erkek",
-                        text = "Erkek",
-                        accentColor = accentColor
+        AlertDialog(
+            onDismissRequest = { showGenderDialog = false },
+            title = { Text("Cinsiyet Seçin") },
+            text = {
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.onEvent(UserProfileEvent.GenderChanged("Erkek"))
+                                showGenderDialog = false
+                            }
+                            .padding(vertical = 8.dp)
                     ) {
-                        viewModel.onEvent(UserProfileEvent.GenderChanged("Erkek"))
-                        showGenderDialog = false
+                        RadioButton(
+                            selected = state.gender == "Erkek",
+                            onClick = null
+                        )
+                        Text("Erkek", modifier = Modifier.padding(start = 8.dp))
                     }
 
-                    GenderOptionItem(
-                        selected = state.gender == "Kadın",
-                        text = "Kadın",
-                        accentColor = accentColor
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.onEvent(UserProfileEvent.GenderChanged("Kadın"))
+                                showGenderDialog = false
+                            }
+                            .padding(vertical = 8.dp)
                     ) {
-                        viewModel.onEvent(UserProfileEvent.GenderChanged("Kadın"))
-                        showGenderDialog = false
+                        RadioButton(
+                            selected = state.gender == "Kadın",
+                            onClick = null
+                        )
+                        Text("Kadın", modifier = Modifier.padding(start = 8.dp))
                     }
 
-                    GenderOptionItem(
-                        selected = state.gender == "Diğer",
-                        text = "Diğer",
-                        accentColor = accentColor
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.onEvent(UserProfileEvent.GenderChanged("Diğer"))
+                                showGenderDialog = false
+                            }
+                            .padding(vertical = 8.dp)
                     ) {
-                        viewModel.onEvent(UserProfileEvent.GenderChanged("Diğer"))
-                        showGenderDialog = false
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { showGenderDialog = false },
-                        modifier = Modifier.align(Alignment.End),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
-                    ) {
-                        Text("Kapat")
+                        RadioButton(
+                            selected = state.gender == "Diğer",
+                            onClick = null
+                        )
+                        Text("Diğer", modifier = Modifier.padding(start = 8.dp))
                     }
                 }
+            },
+            confirmButton = {
+                TextButton(onClick = { showGenderDialog = false }) {
+                    Text("İptal")
+                }
             }
-        }
+        )
     }
 
     LaunchedEffect(key1 = state.isProfileSaved) {
         if (state.isProfileSaved) {
             if (isFirstSetup) {
-
+                // İlk kurulumsa, ana ekrana yönlendir
                 navController.navigate(AppScreens.UserMainScreen.route) {
                     popUpTo(AppScreens.UserProfileSetupScreen.route) { inclusive = true }
                 }
             } else {
-
+                // Güncelleme ise, bir önceki ekrana dön
                 navController.popBackStack()
             }
         }
     }
 
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = if (isFirstSetup) "Profil Bilgilerinizi Tamamlayın" else "Profil Bilgilerini Düzenle",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = primaryColor,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                ),
-                navigationIcon = {
-                    if (!isFirstSetup) {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Geri"
-                            )
-                        }
-                    }
+                    Text(text = if (isFirstSetup) "Profil Bilgilerinizi Tamamlayın" else "Profil Bilgilerini Düzenle")
                 }
             )
-        },
-        containerColor = backgroundColor
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(scrollState),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                primaryColor,
-                                accentColor
-                            )
-                        )
-                    ),
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, Color.Gray, CircleShape)
+                    .clickable { showPhotoOptionsDialog = true },
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(140.dp)
-                            .clip(CircleShape)
-                            .shadow(10.dp, CircleShape)
-                            .background(Color.White)
-                            .border(4.dp, Color.White, CircleShape)
-                            .clickable { showPhotoOptionsDialog = true },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (selectedImageUri != null) {
-                            AsyncImage(
-                                model = selectedImageUri,
-                                contentDescription = "Profil Fotoğrafı",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
+                if (selectedImageUri != null) {
 
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.Black.copy(alpha = 0.3f))
-                                    .clip(CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Değiştir",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                            }
-                        } else if (state.profilePhotoUrl.isNotEmpty() && state.profilePhotoUrl != "null") {
-                            AsyncImage(
-                                model = state.profilePhotoUrl,
-                                contentDescription = "Profil Fotoğrafı",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop,
-                                error = rememberVectorPainter(image = Icons.Default.Person)
-                            )
-                            // Edit overlay
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.Black.copy(alpha = 0.3f))
-                                    .clip(CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Değiştir",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                            }
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        brush = Brush.radialGradient(
-                                            colors = listOf(
-                                                Color.LightGray,
-                                                Color.Gray.copy(alpha = 0.7f)
-                                            )
-                                        )
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.AddAPhoto,
-                                        contentDescription = "Fotoğraf Ekle",
-                                        modifier = Modifier.size(50.dp),
-                                        tint = Color.White
-                                    )
-                                    Text(
-                                        text = "Fotoğraf Ekle",
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(top = 4.dp)
-                                    )
-                                }
-                            }
-                        }
+                    Log.d("UserProfileSetup", "Displaying local photo: $selectedImageUri")
+                    AsyncImage(
+                        model = selectedImageUri,
+                        contentDescription = "Profil Fotoğrafı",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else if (state.profilePhotoUrl.isNotEmpty() && state.profilePhotoUrl != "null") {
+
+                    Log.d("UserProfileSetup", "Displaying Firebase photo: ${state.profilePhotoUrl}")
+                    AsyncImage(
+                        model = state.profilePhotoUrl,
+                        contentDescription = "Profil Fotoğrafı",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        error = rememberVectorPainter(image = Icons.Default.Person)
+                    )
+                } else {
+                    Log.d("UserProfileSetup", "No photo to display")
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Profil Fotoğrafı Ekle",
+                            modifier = Modifier.size(40.dp),
+                            tint = Color.Gray
+                        )
+                        Text(
+                            text = "Fotoğraf Ekle",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
                     }
                 }
             }
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = cardColor
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 4.dp  // a4 hatası düzeltildi
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedTextField(
+                value = state.firstName,
+                onValueChange = { viewModel.onEvent(UserProfileEvent.FirstNameChanged(it)) },
+                label = { Text("İsim") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = state.firstNameError
+            )
+            if (state.firstNameError) {
+                Text(
+                    text = "İsim alanı boş bırakılamaz",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(Alignment.Start)
                 )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Kişisel Bilgiler",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = primaryColor,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-
-                    ProfileTextField(
-                        value = state.firstName,
-                        onValueChange = { viewModel.onEvent(UserProfileEvent.FirstNameChanged(it)) },
-                        label = "İsim",
-                        icon = Icons.Outlined.Person,
-                        isError = state.firstNameError,
-                        errorMessage = "İsim alanı boş bırakılamaz",
-                        primaryColor = primaryColor,
-                        errorColor = errorColor
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-
-                    ProfileTextField(
-                        value = state.lastName,
-                        onValueChange = { viewModel.onEvent(UserProfileEvent.LastNameChanged(it)) },
-                        label = "Soy İsim",
-                        icon = Icons.Outlined.Person,
-                        isError = state.lastNameError,
-                        errorMessage = "Soyisim alanı boş bırakılamaz",
-                        primaryColor = primaryColor,
-                        errorColor = errorColor
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-
-                    ProfileClickableField(
-                        value = state.birthDate?.let { dateFormatter.format(it) } ?: "",
-                        onClick = { showDatePicker = true },
-                        label = "Doğum Tarihiniz",
-                        icon = Icons.Outlined.CalendarMonth,
-                        trailingIcon = Icons.Default.DateRange,
-                        isError = state.birthDateError,
-                        errorMessage = "Doğum tarihi seçilmelidir",
-                        primaryColor = primaryColor,
-                        errorColor = errorColor
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-
-                    ProfileClickableField(
-                        value = state.gender,
-                        onClick = { showGenderDialog = true },
-                        label = "Cinsiyet",
-                        icon = Icons.Outlined.Face,
-                        trailingIcon = Icons.Default.ArrowDropDown,
-                        isError = state.genderError,
-                        errorMessage = "Cinsiyet seçilmelidir",
-                        primaryColor = primaryColor,
-                        errorColor = errorColor
-                    )
-                }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Card(
+            OutlinedTextField(
+                value = state.lastName,
+                onValueChange = { viewModel.onEvent(UserProfileEvent.LastNameChanged(it)) },
+                label = { Text("Soy İsim") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = state.lastNameError
+            )
+            if (state.lastNameError) {
+                Text(
+                    text = "Soyisim alanı boş bırakılamaz",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = state.birthDate?.let { dateFormatter.format(it) } ?: "",
+                onValueChange = { },
+                label = { Text("Doğum Tarihiniz") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = cardColor
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 4.dp
+                    .clickable { showDatePicker = true },
+                readOnly = true,
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = "Takvim",
+                        modifier = Modifier.clickable { showDatePicker = true }
+                    )
+                },
+                isError = state.birthDateError
+            )
+            if (state.birthDateError) {
+                Text(
+                    text = "Doğum tarihi seçilmelidir",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(Alignment.Start)
                 )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "İletişim Bilgileri",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = primaryColor,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-
-                    ProfileTextField(
-                        value = state.city,
-                        onValueChange = { viewModel.onEvent(UserProfileEvent.CityChanged(it)) },
-                        label = "Şehir",
-                        icon = Icons.Outlined.LocationCity,
-                        isError = state.cityError,
-                        errorMessage = "Şehir alanı boş bırakılamaz",
-                        primaryColor = primaryColor,
-                        errorColor = errorColor
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-
-                    ProfileTextField(
-                        value = state.district,
-                        onValueChange = { viewModel.onEvent(UserProfileEvent.DistrictChanged(it)) },
-                        label = "İlçe",
-                        icon = Icons.Outlined.LocationOn,
-                        isError = state.districtError,
-                        errorMessage = "İlçe alanı boş bırakılamaz",
-                        primaryColor = primaryColor,
-                        errorColor = errorColor
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-
-                    ProfileTextField(
-                        value = state.phoneNumber,
-                        onValueChange = { viewModel.onEvent(UserProfileEvent.PhoneNumberChanged(it)) },
-                        label = "Telefon numarası",
-                        icon = Icons.Outlined.Phone,
-                        isError = state.phoneNumberError,
-                        errorMessage = "Telefon numarası alanı boş bırakılamaz",
-                        primaryColor = primaryColor,
-                        errorColor = errorColor,
-                        keyboardType = KeyboardType.Phone
-                    )
-                }
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = state.gender,
+                onValueChange = { },
+                label = { Text("Cinsiyet") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showGenderDialog = true },
+                readOnly = true,
+                isError = state.genderError,
+                trailingIcon = {
+                    IconButton(onClick = { showGenderDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Cinsiyet Seç"
+                        )
+                    }
+                }
+            )
+            if (state.genderError) {
+                Text(
+                    text = "Cinsiyet seçilmelidir",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = state.city,
+                onValueChange = { viewModel.onEvent(UserProfileEvent.CityChanged(it)) },
+                label = { Text("Şehir") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = state.cityError
+            )
+            if (state.cityError) {
+                Text(
+                    text = "Şehir alanı boş bırakılamaz",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = state.district,
+                onValueChange = { viewModel.onEvent(UserProfileEvent.DistrictChanged(it)) },
+                label = { Text("İlçe") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = state.districtError
+            )
+            if (state.districtError) {
+                Text(
+                    text = "İlçe alanı boş bırakılamaz",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = state.phoneNumber,
+                onValueChange = { viewModel.onEvent(UserProfileEvent.PhoneNumberChanged(it)) },
+                label = { Text("Telefon numarası") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = state.phoneNumberError,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+            )
+            if (state.phoneNumberError) {
+                Text(
+                    text = "Telefon numarası alanı boş bırakılamaz",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
 
             if (state.errorMessage != null) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = errorColor.copy(alpha = 0.1f)
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Error,
-                            contentDescription = null,
-                            tint = errorColor,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = state.errorMessage,
-                            color = errorColor,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
+                Text(
+                    text = state.errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
             }
-
 
             Button(
                 onClick = { viewModel.onEvent(UserProfileEvent.SaveProfile) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                enabled = !state.isLoading,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = primaryColor,
-                    disabledContainerColor = primaryColor.copy(alpha = 0.5f)
-                )
+                    .height(50.dp),
+                enabled = !state.isLoading
             ) {
                 if (state.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = Color.White,
-                        strokeWidth = 2.dp
+                        color = Color.White
                     )
                 } else {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Profili Kaydet",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("Kaydet")
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-        }
-    }
-}
-
-@Composable
-fun PhotoOptionItem(
-    icon: ImageVector,
-    text: String,
-    iconTint: Color,
-    onClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(8.dp),
-        color = Color.Transparent
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = text,
-                fontSize = 16.sp,
-                color = if (icon == Icons.Default.Delete) iconTint else Color.DarkGray
-            )
-        }
-    }
-}
-
-@Composable
-fun GenderOptionItem(
-    selected: Boolean,
-    text: String,
-    accentColor: Color,
-    onClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(8.dp),
-        color = if (selected) accentColor.copy(alpha = 0.1f) else Color.Transparent
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            RadioButton(
-                selected = selected,
-                onClick = null,
-                colors = RadioButtonDefaults.colors(
-                    selectedColor = accentColor
-                )
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = text,
-                fontSize = 16.sp,
-                color = if (selected) accentColor else Color.DarkGray,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
-            )
-        }
-    }
-}
-
-@Composable
-fun ProfileTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    icon: ImageVector,
-    isError: Boolean,
-    errorMessage: String,
-    primaryColor: Color,
-    errorColor: Color,
-    keyboardType: KeyboardType = KeyboardType.Text
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = { Text(label) },
-            modifier = Modifier.fillMaxWidth(),
-            isError = isError,
-            leadingIcon = {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = if (isError) errorColor else primaryColor
-                )
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = primaryColor,
-                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                focusedLabelColor = primaryColor,
-                cursorColor = primaryColor,
-                errorBorderColor = errorColor,
-                errorLeadingIconColor = errorColor,
-                errorLabelColor = errorColor
-            )
-        )
-        if (isError) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Error,
-                    contentDescription = null,
-                    tint = errorColor,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = errorMessage,
-                    color = errorColor,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ProfileClickableField(
-    value: String,
-    onClick: () -> Unit,
-    label: String,
-    icon: ImageVector,
-    trailingIcon: ImageVector,
-    isError: Boolean,
-    errorMessage: String,
-    primaryColor: Color,
-    errorColor: Color
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = {},
-            label = { Text(label) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick),
-            isError = isError,
-            readOnly = true,
-            leadingIcon = {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = if (isError) errorColor else primaryColor
-                )
-            },
-            trailingIcon = {
-                Icon(
-                    imageVector = trailingIcon,
-                    contentDescription = null,
-                    tint = if (isError) errorColor else primaryColor,
-                    modifier = Modifier.clickable(onClick = onClick)
-                )
-            },
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = primaryColor,
-                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                focusedLabelColor = primaryColor,
-                cursorColor = primaryColor,
-                errorBorderColor = errorColor,
-                errorLeadingIconColor = errorColor,
-                errorTrailingIconColor = errorColor,
-                errorLabelColor = errorColor
-            )
-        )
-        if (isError) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Error,
-                    contentDescription = null,
-                    tint = errorColor,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = errorMessage,
-                    color = errorColor,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
