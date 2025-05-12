@@ -4,4 +4,7 @@ sealed class MessageDetailScreenEvent {
     data class MessageTextChanged(val text: String) : MessageDetailScreenEvent()
     object SendMessage : MessageDetailScreenEvent()
     object RefreshMessages : MessageDetailScreenEvent()
+    object StartVideoCall : MessageDetailScreenEvent()
+    object EndVideoCall : MessageDetailScreenEvent()
+
 }

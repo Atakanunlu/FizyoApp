@@ -72,7 +72,6 @@ class MessageRepositoryImpl @Inject constructor(
                             }
                         }
                     } catch (e: Exception) {
-                        // Hata durumunda varsayılan değerleri kullan
                     }
                     val lastMessage = threadData["lastMessage"] as? String ?: ""
                     val lastMessageTimestamp = (threadData["lastMessageTimestamp"] as? com.google.firebase.Timestamp)?.toDate() ?: Date()

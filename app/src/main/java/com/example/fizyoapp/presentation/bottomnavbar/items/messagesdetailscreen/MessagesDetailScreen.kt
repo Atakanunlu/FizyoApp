@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.messagesscreen.Message
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.videocall.VideoCallScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.DateFormatter
 import kotlinx.coroutines.launch
 
@@ -41,7 +43,7 @@ fun MessagesDetailScreen(
     val scrollState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val currentUserId = state.currentUserId
-
+    val context = LocalContext.current
 
     val primaryColor = Color(0xFF3B3E68)
     val backgroundColor = Color(0xFFF8F9FC)
@@ -50,6 +52,20 @@ fun MessagesDetailScreen(
     val otherMessageColor = Color(0xFFF0F0F6)
     val textFieldColor = Color.White
 
+    // Video arama aktifse video ekranını göster
+    if (state.isVideoCallActive) {
+        val otherUserName = if (state.isPhysiotherapist) {
+            "${state.physiotherapist?.firstName ?: ""} ${state.physiotherapist?.lastName ?: ""}"
+        } else {
+            "${state.user?.firstName ?: ""} ${state.user?.lastName ?: ""}"
+        }
+        VideoCallScreen(
+            otherUserId = userId,
+            otherUserName = otherUserName.ifEmpty { "Karşı Taraf" },
+            onCallEnded = { viewModel.onEvent(MessageDetailScreenEvent.EndVideoCall) }
+        )
+        return
+    }
 
     LaunchedEffect(state.messages.size) {
         if (state.messages.isNotEmpty()) {
@@ -98,10 +114,10 @@ fun MessagesDetailScreen(
                                 )
                             }
                         }
-
                         Spacer(modifier = Modifier.width(12.dp))
-
-                        Column {
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
                             val name = if (state.isPhysiotherapist) {
                                 if (state.physiotherapist != null) {
                                     "FZT. ${state.physiotherapist!!.firstName} ${state.physiotherapist!!.lastName}"
@@ -135,14 +151,27 @@ fun MessagesDetailScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Geri"
+                            contentDescription = "Geri",
+                            tint = Color.White
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = { viewModel.onEvent(MessageDetailScreenEvent.StartVideoCall) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Videocam,
+                            contentDescription = "Görüntülü Arama",
+                            tint = Color.White
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = primaryColor,
                     titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
                 )
             )
         }
@@ -174,7 +203,6 @@ fun MessagesDetailScreen(
                             }
                         }
                     }
-
                     state.error != null && state.messages.isEmpty() -> {
                         Box(
                             modifier = Modifier.weight(1f),
@@ -214,7 +242,6 @@ fun MessagesDetailScreen(
                             }
                         }
                     }
-
                     else -> {
                         Box(
                             modifier = Modifier
@@ -239,14 +266,12 @@ fun MessagesDetailScreen(
                                     )
                                 }
                             }
-
                             val showScrollToBottom by remember {
                                 derivedStateOf {
                                     scrollState.firstVisibleItemIndex < state.messages.size - 2 &&
                                             state.messages.size > 5
                                 }
                             }
-
                             if (showScrollToBottom) {
                                 FloatingActionButton(
                                     onClick = {
@@ -272,7 +297,6 @@ fun MessagesDetailScreen(
                         }
                     }
                 }
-
                 if (state.error != null && state.messages.isNotEmpty()) {
                     Surface(
                         color = Color(0xFFFEEAEA),
@@ -299,7 +323,6 @@ fun MessagesDetailScreen(
                         }
                     }
                 }
-
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shadowElevation = 8.dp,
@@ -341,9 +364,7 @@ fun MessagesDetailScreen(
                                 )
                             )
                         }
-
                         Spacer(modifier = Modifier.width(12.dp))
-
                         FloatingActionButton(
                             onClick = { viewModel.onEvent(MessageDetailScreenEvent.SendMessage) },
                             modifier = Modifier.size(52.dp),
@@ -406,9 +427,7 @@ fun ModernMessageItem(
                 color = if (isFromCurrentUser) Color.White else Color.Black
             )
         }
-
         Spacer(modifier = Modifier.height(2.dp))
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 4.dp)
