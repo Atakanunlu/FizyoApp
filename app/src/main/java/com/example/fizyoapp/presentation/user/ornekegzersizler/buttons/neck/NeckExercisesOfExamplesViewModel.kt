@@ -1,5 +1,7 @@
 package com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck
+
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.local.entity.exercisevideos.ExamplesOfExercisesEntity
@@ -18,8 +20,9 @@ class NeckExercisesOfExamplesViewModel @Inject constructor(
 ): ViewModel() {
     private val _videoList = MutableStateFlow<List<ExamplesOfExercisesEntity>>(emptyList())
     val videoList: StateFlow<List<ExamplesOfExercisesEntity>> = _videoList
-    private val CATEGORY = "neck"
 
+    private val CATEGORY = "neck"
+    // Uygulama başladığında videoları yükle
     init {
         loadVideos()
     }
@@ -27,7 +30,10 @@ class NeckExercisesOfExamplesViewModel @Inject constructor(
     fun loadVideos() {
         viewModelScope.launch {
             try {
+                // Veritabanını temizle - artık suspend func olarak çağrılabilir
                 repository.deleteVideosByCategory(CATEGORY)
+
+                // Video listesi
                 val videoResources = listOf(
                     VideoResource("neckrotation", "Dik bir şekilde otur ya da ayakta dur.\n" +
                             "\n" +
@@ -116,12 +122,14 @@ class NeckExercisesOfExamplesViewModel @Inject constructor(
                             "Hareketi yavaşça ve kontrollü yap.\n" +
                             "\n" +
                             "\uD83D\uDD01 10 tekrar yap.")
-                )
+                    )
 
+                // Videoları hazırla
                 val videoEntities = videoResources.mapNotNull { videoResource ->
                     val resourceId = context.resources.getIdentifier(
                         videoResource.name, "raw", context.packageName
                     )
+
                     if (resourceId != 0) {
                         val uri = "android.resource://${context.packageName}/$resourceId"
                         ExamplesOfExercisesEntity(
@@ -134,17 +142,22 @@ class NeckExercisesOfExamplesViewModel @Inject constructor(
                     }
                 }
 
+                // Toplu olarak videoları ekle
                 if (videoEntities.isNotEmpty()) {
                     repository.insertVideos(videoEntities)
                 }
-
                 repository.getVideosByCategory(CATEGORY).collect { videos ->
+                    Log.d("NeckViewModel", "Loaded ${videos.size} neck videos")
                     _videoList.value = videos
                 }
+
+
             } catch (e: Exception) {
-                // Hata durumunda işlem yapılmıyor
+                Log.e("VideoViewModel", "Error loading videos: ${e.message}")
             }
         }
+
+
     }
 
     private data class VideoResource(
