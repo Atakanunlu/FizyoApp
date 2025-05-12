@@ -21,9 +21,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -34,14 +42,17 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,24 +61,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.fizyoapp.data.repository.auth.AuthRepository
-import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.messagesscreen.Message
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.videocall.VideoCallScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.DateFormatter
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+
+// Renk tanımlamaları
+private val backgroundColor = Color(0xFFF5F5F5)
+private val myMessageColor = Color(0xFF2196F3)
+private val otherMessageColor = Color(0xFFE0E0E0)
+private val accentColor = Color(0xFF2196F3)
+private val textFieldColor = Color(0xFFF5F5F5)
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessagesDetailScreen(
     navController: NavController,
-
     userId: String,
     viewModel: MessagesDetailScreenViewModel = hiltViewModel()
 ) {
@@ -76,8 +92,6 @@ fun MessagesDetailScreen(
     val coroutineScope = rememberCoroutineScope()
     val currentUserId = state.currentUserId
     val context = LocalContext.current
-
-    var currentUserId  =state.currentUserId
 
     // Video arama aktifse video ekranını göster
     if (state.isVideoCallActive) {
@@ -117,7 +131,6 @@ fun MessagesDetailScreen(
                             else{
                                 state.user?.profilePhotoUrl
                             }
-
                             if(!photoUrl.isNullOrEmpty()){
                                 AsyncImage(
                                     model = photoUrl,
@@ -132,7 +145,6 @@ fun MessagesDetailScreen(
                             }
                         }
 
-                       
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(
                             modifier = Modifier.weight(1f)
@@ -144,7 +156,6 @@ fun MessagesDetailScreen(
                                 else{
                                     "Fizyoterapist"
                                 }
-
                             }
                             else{
                                 if(state.user != null){
@@ -157,22 +168,17 @@ fun MessagesDetailScreen(
                             Text(text = name,
                                 maxLines = 1,
                                 fontWeight = FontWeight.Bold)
-
                             if(state.isPhysiotherapist && state.physiotherapist != null){
                                 Text(
                                     text = "${state.physiotherapist!!.city} / ${state.physiotherapist!!.district}",
                                     fontSize = 12.sp,
                                     color = Color.White.copy(alpha = 0.7f)
                                 )
-
                             }
                         }
-
-
                     }
                 },
                 navigationIcon = {
-
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
@@ -198,13 +204,12 @@ fun MessagesDetailScreen(
                     navigationIconContentColor = Color.White,
                     actionIconContentColor = Color.White
                 )
-
             )
         }
     ) { paddingValues ->
-
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
         ){
             Column(modifier = Modifier.fillMaxSize()) {
@@ -215,115 +220,113 @@ fun MessagesDetailScreen(
                     ){
                         CircularProgressIndicator()
                     }
-
-                    
-                    state.error != null && state.messages.isEmpty() -> {
-                        Box(
-                            modifier = Modifier.weight(1f),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                } else if(state.error != null && state.messages.isEmpty()) {
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.ErrorOutline,
+                                contentDescription = null,
+                                tint = Color.Red.copy(alpha = 0.7f),
+                                modifier = Modifier.size(70.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = state.error ?: "Bir hata oluştu",
+                                color = Color.DarkGray,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Medium,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Button(
+                                onClick = { viewModel.onEvent(MessageDetailScreenEvent.RefreshMessages) },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = accentColor
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+                            ) {
                                 Icon(
-                                    imageVector = Icons.Default.ErrorOutline,
-                                    contentDescription = null,
-                                    tint = Color.Red.copy(alpha = 0.7f),
-                                    modifier = Modifier.size(70.dp)
+                                    imageVector = Icons.Default.Refresh,
+                                    contentDescription = null
                                 )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = state.error ?: "Bir hata oluştu",
-                                    color = Color.DarkGray,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.height(24.dp))
-                                Button(
-                                    onClick = { viewModel.onEvent(MessageDetailScreenEvent.RefreshMessages) },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = accentColor
-                                    ),
-                                    shape = RoundedCornerShape(12.dp),
-                                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Refresh,
-                                        contentDescription = null
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Tekrar Dene")
-                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Tekrar Dene")
                             }
                         }
                     }
-                    else -> {
-                        Box(
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .background(backgroundColor)
+                    ) {
+                        // Mesajlar Listesi
+                        LazyColumn(
                             modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .background(backgroundColor)
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
+                            state = scrollState,
+                            contentPadding = PaddingValues(vertical = 16.dp)
                         ) {
-                            // Mesajlar Listesi
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 16.dp),
-                                state = scrollState,
-                                contentPadding = PaddingValues(vertical = 16.dp)
-                            ) {
-                                items(state.messages) { message ->
-                                    ModernMessageItem(
-                                        message = message,
-                                        isFromCurrentUser = message.senderId == currentUserId,
-                                        myMessageColor = myMessageColor,
-                                        otherMessageColor = otherMessageColor
-                                    )
-                                }
+                            items(state.messages) { message ->
+                                ModernMessageItem(
+                                    message = message,
+                                    isFromCurrentUser = message.senderId == currentUserId,
+                                    myMessageColor = myMessageColor,
+                                    otherMessageColor = otherMessageColor
+                                )
                             }
-                            val showScrollToBottom by remember {
-                                derivedStateOf {
-                                    scrollState.firstVisibleItemIndex < state.messages.size - 2 &&
-                                            state.messages.size > 5
-                                }
+                        }
+
+                        val showScrollToBottom by remember {
+                            derivedStateOf {
+                                scrollState.firstVisibleItemIndex < state.messages.size - 2 &&
+                                        state.messages.size > 5
                             }
-                            if (showScrollToBottom) {
-                                FloatingActionButton(
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            if (state.messages.isNotEmpty()) {
-                                                scrollState.animateScrollToItem(state.messages.size - 1)
-                                            }
+                        }
+                        if (showScrollToBottom) {
+                            FloatingActionButton(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        if (state.messages.isNotEmpty()) {
+                                            scrollState.animateScrollToItem(state.messages.size - 1)
                                         }
-                                    },
-                                    containerColor = accentColor,
-                                    contentColor = Color.White,
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(end = 16.dp, bottom = 16.dp)
-                                        .size(46.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.KeyboardArrowDown,
-                                        contentDescription = "En aşağı kaydır"
-                                    )
-                                }
+                                    }
+                                },
+                                containerColor = accentColor,
+                                contentColor = Color.White,
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(end = 16.dp, bottom = 16.dp)
+                                    .size(46.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = "En aşağı kaydır"
+                                )
                             }
                         }
                     }
                 }
+
                 if (state.error != null && state.messages.isNotEmpty()) {
                     Surface(
                         color = Color(0xFFFEEAEA),
                         shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
                     ) {
-                        items(state.messages){ message ->
-                            MessageItem(
-                                message =message,
-                                isFromCurrentUser = message.senderId == currentUserId
-                            )
-                        }
+                        Text(
+                            text = state.error ?: "Bağlantı hatası",
+                            modifier = Modifier.padding(8.dp),
+                            color = Color.Red
+                        )
                     }
                 }
+
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shadowElevation = 8.dp,
@@ -372,35 +375,25 @@ fun MessagesDetailScreen(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = Color.White,
                         ) {
-                             if(state.isSending){
-                                 CircularProgressIndicator(
-                                     color = Color.White,
-                                     modifier = Modifier.size(24.dp),
-                                     strokeWidth = 2.dp
-                                 )
-                             }
+                            if(state.isSending){
+                                CircularProgressIndicator(
+                                    color = Color.White,
+                                    modifier = Modifier.size(24.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            }
                             else{
-
                                 Icon(
                                     imageVector = Icons.Default.Send,
                                     contentDescription = "Gönder"
                                 )
-                             }
-
+                            }
                         }
-
                     }
-
-
                 }
             }
-
-
         }
-
-
     }
-
 }
 
 @Composable
@@ -460,23 +453,8 @@ fun ModernMessageItem(
                     text = DateFormatter.formatMessageTime(message.timestamp),
                     fontSize = 12.sp,
                     color = Color.Gray
-
                 )
-            ).background(
-                if (isFromCurrentUser) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.surfaceVariant
-            ).padding(12.dp)
-        ){
-
-            Text(text=message.content,
-            color=if (isFromCurrentUser) Color.White else Color.Black)
+            }
         }
-        Spacer(modifier = Modifier.height(2.dp))
-
-        Text(text = DateFormatter.formatMessageTime(message.timestamp),
-            fontSize = 12.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(horizontal = 4.dp))
-
     }
 }
