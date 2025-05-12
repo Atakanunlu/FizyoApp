@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen
-
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -31,10 +30,10 @@ class MessagesDetailScreenViewModel @Inject constructor(
     val state:StateFlow<MessageDetailScreenState> =_state.asStateFlow()
 
     private val userId:String = savedStateHandle.get<String>("userId") ?:""
+
     init {
         viewModelScope.launch {
             try {
-                // first() yerine collect() kullanın ve akışı doğru şekilde işleyin
                 authRepository.getCurrentUser().collect { result ->
                     when (result) {
                         is Resource.Success -> {
@@ -54,7 +53,7 @@ class MessagesDetailScreenViewModel @Inject constructor(
                             _state.update { it.copy(error = result.message ?: "Oturum bilgisi alınamadı") }
                         }
                         is Resource.Loading -> {
-                            // Loading durumunu işleme (isteğe bağlı)
+
                         }
                     }
                 }
@@ -64,19 +63,22 @@ class MessagesDetailScreenViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: MessageDetailScreenEvent) {
-        when (event) {
-            is MessageDetailScreenEvent.MessageTextChanged -> {
+    fun onEvent(event: MessageDetailScreenEvent){
+        when(event){
+            is MessageDetailScreenEvent.MessageTextChanged ->{
                 _state.update { it.copy(messageText = event.text) }
-
             }
-            is MessageDetailScreenEvent.SendMessage -> {
+            is MessageDetailScreenEvent.SendMessage ->{
                 sendMessage()
-
             }
-            is MessageDetailScreenEvent.RefreshMessages -> {
+            is MessageDetailScreenEvent.RefreshMessages ->{
                 loadMessages()
-
+            }
+            is MessageDetailScreenEvent.StartVideoCall -> {
+                _state.update { it.copy(isVideoCallActive = true) }
+            }
+            is MessageDetailScreenEvent.EndVideoCall -> {
+                _state.update { it.copy(isVideoCallActive = false) }
             }
         }
     }
@@ -87,12 +89,7 @@ class MessagesDetailScreenViewModel @Inject constructor(
                     _state.update { it.copy(currentUserId = result.data.user.id) }
                 }
             }
-            is MessageDetailScreenEvent.StartVideoCall -> {
-                _state.update { it.copy(isVideoCallActive = true) }
-            }
-            is MessageDetailScreenEvent.EndVideoCall -> {
-                _state.update { it.copy(isVideoCallActive = false) }
-            }
+
         }
     }
 
@@ -103,9 +100,7 @@ class MessagesDetailScreenViewModel @Inject constructor(
                     is Resource.Loading -> {
                         _state.update { it.copy(isLoading = true, error = null) }
                     }
-
                     is Resource.Success -> {
-
                         _state.update {
                             it.copy(
                                 messages = result.data ?: emptyList(),
@@ -115,7 +110,6 @@ class MessagesDetailScreenViewModel @Inject constructor(
                         }
                         markMessagesAsRead()
                     }
-
                     is Resource.Error -> {
                         _state.update {
                             it.copy(
@@ -130,7 +124,6 @@ class MessagesDetailScreenViewModel @Inject constructor(
     }
 
     private fun loadUserDetails(){
-
         viewModelScope.launch {
             physiotherapistProfileRepository.getPhysiotherapistProfile(userId).collectLatest { result ->
                 if(result is Resource.Success && result.data != null){
@@ -151,34 +144,27 @@ class MessagesDetailScreenViewModel @Inject constructor(
                         }
                     }
                 }
-
             }
-
         }
     }
 
     private fun sendMessage(){
         val messageText=state.value.messageText.trim()
         if (messageText.isEmpty()) return
-
         _state.update { it.copy(isSending = true) }
-
         viewModelScope.launch {
             sendMessageUseCase(messageText,userId).collectLatest { result ->
                 when(result){
                     is Resource.Loading ->{
-
                     }
                     is Resource.Success ->{
                         _state.update { it.copy(
-                             messageText = "",
+                            messageText = "",
                             isSending =false,
                             error = null
                         ) }
-
                         loadMessages()
                     }
-
                     is Resource.Error ->{
                         _state.update { it.copy(
                             isSending = false,
@@ -186,16 +172,13 @@ class MessagesDetailScreenViewModel @Inject constructor(
                         ) }
                     }
                 }
-
             }
         }
     }
 
-
     private fun markMessagesAsRead() {
         viewModelScope.launch {
-            markMessagesAsReadUseCase(userId).collectLatest { /* Sonucu göz ardı et */ }
+            markMessagesAsReadUseCase(userId).collectLatest {  }
         }
     }
-
 }
