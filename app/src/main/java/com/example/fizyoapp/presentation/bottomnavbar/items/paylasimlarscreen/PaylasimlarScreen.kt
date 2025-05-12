@@ -34,7 +34,7 @@ fun PaylasimlarScreen(navController: NavController) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp)
+                        .padding(21.dp)
                 ) {
                     Row {
 
