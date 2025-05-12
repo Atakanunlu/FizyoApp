@@ -125,15 +125,6 @@ fun ProfilScreen(
                     .fillMaxSize()
                     .padding(bottom = paddingValues.calculateBottomPadding())
             ) {
-                ProfileHeader(
-                    userName = "${state.userProfile?.firstName} ${state.userProfile?.lastName}",
-                    profilePhotoUrl = state.userProfile?.profilePhotoUrl,
-                    onEditProfileClick = {
-                        navController.navigate(AppScreens.UserInformationScreen.route)
-                    },
-                    primaryColor = primaryColor,
-                    accentColor = accentColor
-                )
 
                 ProfileMenuSection(
                     navController = navController,
