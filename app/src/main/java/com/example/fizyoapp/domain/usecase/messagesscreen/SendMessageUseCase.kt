@@ -24,6 +24,7 @@ class SendMessageUseCase @Inject constructor(
             if (authResult is Resource.Success && authResult.data?.user != null) {
                 val currentUserId = authResult.data.user.id
 
+                // Tutarlı bir threadId oluştur
                 val threadId = createChatId(currentUserId, receiverId)
 
                 val message = Message(
@@ -42,6 +43,7 @@ class SendMessageUseCase @Inject constructor(
         }
     }
 
+    // Yardımcı fonksiyon
     private fun createChatId(userId1: String, userId2: String): String {
         return if (userId1 < userId2) {
             "${userId1}_${userId2}"

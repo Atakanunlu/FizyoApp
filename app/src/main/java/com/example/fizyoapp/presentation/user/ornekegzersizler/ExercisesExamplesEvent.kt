@@ -8,6 +8,6 @@ sealed class ExercisesExamplesEvent {
 
     data class CategorySelected(val category:OrnekEgzersizlerGiris):ExercisesExamplesEvent()
     object LoadCategories:ExercisesExamplesEvent()
-    object CategoryNavigationHandled : ExercisesExamplesEvent()
+    object CategoryNavigationHandled : ExercisesExamplesEvent() // Navigasyon tamamlandığını bildir
 
 }

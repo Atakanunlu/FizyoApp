@@ -13,5 +13,7 @@ data class MessageDetailScreenState(
     val isLoading: Boolean = false,
     val isSending: Boolean = false,
     val error: String? = null,
-    val currentUserId: String = ""
+    val currentUserId: String = "",
+    val isVideoCallActive: Boolean = false
+
 )

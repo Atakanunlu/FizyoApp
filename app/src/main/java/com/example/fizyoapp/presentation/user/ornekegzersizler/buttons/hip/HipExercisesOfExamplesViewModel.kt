@@ -1,5 +1,7 @@
 package com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip
+
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.local.entity.exercisevideos.ExamplesOfExercisesEntity
@@ -19,8 +21,9 @@ class HipExercisesOfExamplesViewModel @Inject constructor(
 ): ViewModel() {
     private val _videoList = MutableStateFlow<List<ExamplesOfExercisesEntity>>(emptyList())
     val videoList: StateFlow<List<ExamplesOfExercisesEntity>> = _videoList
-    private val CATEGORY="hip"
 
+    private val CATEGORY="hip"
+    // Uygulama başladığında videoları yükle
     init {
         loadVideos()
     }
@@ -28,7 +31,10 @@ class HipExercisesOfExamplesViewModel @Inject constructor(
     fun loadVideos() {
         viewModelScope.launch {
             try {
+                // Veritabanını temizle - artık suspend func olarak çağrılabilir
                 repository.deleteVideosByCategory(CATEGORY)
+
+                // Video listesi
                 val videoResources = listOf(
                     VideoResource("hipmobility", "Ayakta ya da yere oturarak, dizlerinizi bükün ve bacaklarınızı birbirine yakın tutun.\n" +
                             "\n" +
@@ -113,12 +119,15 @@ class HipExercisesOfExamplesViewModel @Inject constructor(
                             "\n" +
                             "\uD83D\uDD01 2 tekrar yapın.\n" +
                             "\n"),
-                )
 
+                    )
+
+                // Videoları hazırla
                 val videoEntities = videoResources.mapNotNull { videoResource ->
                     val resourceId = context.resources.getIdentifier(
                         videoResource.name, "raw", context.packageName
                     )
+
                     if (resourceId != 0) {
                         val uri = "android.resource://${context.packageName}/$resourceId"
                         ExamplesOfExercisesEntity(
@@ -131,16 +140,21 @@ class HipExercisesOfExamplesViewModel @Inject constructor(
                     }
                 }
 
+                // Toplu olarak videoları ekle
                 if (videoEntities.isNotEmpty()) {
                     repository.insertVideos(videoEntities)
                 }
-
                 repository.getVideosByCategory(CATEGORY).collect { videos ->
                     _videoList.value = videos
                 }
+
+
             } catch (e: Exception) {
-                // Hata durumunda işlem yapılmıyor
+                Log.e("VideoViewModel", "Error loading videos: ${e.message}")
             }
         }
+
+
     }
+
 }
