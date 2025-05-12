@@ -1,4 +1,5 @@
 package com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen
+
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,10 +10,10 @@ import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.usecase.messagesscreen.GetMessagesUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.MarkMessagesAsReadUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.SendMessageUseCase
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,13 +26,34 @@ class MessagesDetailScreenViewModel @Inject constructor(
     private val userProfileRepository: UserProfileRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(MessageDetailScreenState())
-    val state:StateFlow<MessageDetailScreenState> =_state.asStateFlow()
+    val state: StateFlow<MessageDetailScreenState> = _state.asStateFlow()
+    private val userId: String = savedStateHandle.get<String>("userId") ?: ""
 
-    private val userId:String = savedStateHandle.get<String>("userId") ?:""
+    // Hata kontrolü için yardımcı fonksiyon
+    private fun shouldShowError(errorMessage: String?): Boolean {
+        if (errorMessage == null) return false
+
+        // "Oturum açmanız gerekiyor" veya benzer hataları gizle
+        val ignoredErrors = listOf(
+            "oturum açmanız gerekiyor",
+            "oturum açman",
+            "giriş yapmanız gerekiyor",
+            "giriş yapman",
+            "authentication",
+            "yetkilendirme",
+            "yetkili değilsiniz",
+            "yetki",
+            "auth"
+        )
+
+        val lowerCaseError = errorMessage.lowercase()
+        return !ignoredErrors.any { lowerCaseError.contains(it) }
+    }
 
     init {
+        _state.update { it.copy(isInitialLoading = true, error = null) }
+
         viewModelScope.launch {
             try {
                 authRepository.getCurrentUser().collect { result ->
@@ -40,38 +62,49 @@ class MessagesDetailScreenViewModel @Inject constructor(
                             if (result.data?.user != null) {
                                 val currentUserId = result.data.user.id
                                 _state.update { it.copy(currentUserId = currentUserId) }
-
                                 if (userId.isNotEmpty()) {
                                     loadMessages()
                                     loadUserDetails()
                                 } else {
-                                    _state.update { it.copy(error = "Geçersiz kullanıcı bilgisi") }
+                                    _state.update { it.copy(
+                                        isInitialLoading = false,
+                                        error = if (shouldShowError("Geçersiz kullanıcı bilgisi"))
+                                            "Geçersiz kullanıcı bilgisi" else null
+                                    ) }
                                 }
                             }
                         }
                         is Resource.Error -> {
-                            _state.update { it.copy(error = result.message ?: "Oturum bilgisi alınamadı") }
+                            val errorMsg = result.message ?: "Oturum bilgisi alınamadı"
+                            _state.update { it.copy(
+                                isInitialLoading = false,
+                                error = if (shouldShowError(errorMsg)) errorMsg else null
+                            ) }
                         }
                         is Resource.Loading -> {
-
+                            // Loading durumunda hata mesajını temizle
                         }
                     }
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(error = "Bir hata oluştu: ${e.message}") }
+                val errorMsg = "Bir hata oluştu: ${e.message}"
+                _state.update { it.copy(
+                    isInitialLoading = false,
+                    error = if (shouldShowError(errorMsg)) errorMsg else null
+                ) }
             }
         }
     }
 
-    fun onEvent(event: MessageDetailScreenEvent){
-        when(event){
-            is MessageDetailScreenEvent.MessageTextChanged ->{
+    fun onEvent(event: MessageDetailScreenEvent) {
+        when (event) {
+            is MessageDetailScreenEvent.MessageTextChanged -> {
                 _state.update { it.copy(messageText = event.text) }
             }
-            is MessageDetailScreenEvent.SendMessage ->{
+            is MessageDetailScreenEvent.SendMessage -> {
                 sendMessage()
             }
-            is MessageDetailScreenEvent.RefreshMessages ->{
+            is MessageDetailScreenEvent.RefreshMessages -> {
                 loadMessages()
             }
             is MessageDetailScreenEvent.StartVideoCall -> {
@@ -80,23 +113,23 @@ class MessagesDetailScreenViewModel @Inject constructor(
             is MessageDetailScreenEvent.EndVideoCall -> {
                 _state.update { it.copy(isVideoCallActive = false) }
             }
-        }
-    }
-    private fun getCurrentUserId() {
-        viewModelScope.launch {
-            authRepository.getCurrentUser().collectLatest { result ->
-                if (result is Resource.Success && result.data?.user != null) {
-                    _state.update { it.copy(currentUserId = result.data.user.id) }
-                }
+            is MessageDetailScreenEvent.DismissError -> {
+                _state.update { it.copy(error = null) }
             }
-
         }
     }
 
-    private fun loadMessages(){
+    private fun loadMessages() {
+        // Oturum durumunu kontrol et
+        if (FirebaseAuth.getInstance().currentUser == null) {
+            // Oturum yoksa sessizce çık
+            _state.update { it.copy(isInitialLoading = false, isLoading = false) }
+            return
+        }
+
         viewModelScope.launch {
-            getMessagesUseCase(userId).collectLatest {result ->
-                when(result){
+            getMessagesUseCase(userId).collectLatest { result ->
+                when (result) {
                     is Resource.Loading -> {
                         _state.update { it.copy(isLoading = true, error = null) }
                     }
@@ -105,16 +138,19 @@ class MessagesDetailScreenViewModel @Inject constructor(
                             it.copy(
                                 messages = result.data ?: emptyList(),
                                 isLoading = false,
+                                isInitialLoading = false,
                                 error = null
                             )
                         }
                         markMessagesAsRead()
                     }
                     is Resource.Error -> {
+                        val errorMsg = result.message
                         _state.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message
+                                isInitialLoading = false,
+                                error = if (shouldShowError(errorMsg)) errorMsg else null
                             )
                         }
                     }
@@ -123,52 +159,93 @@ class MessagesDetailScreenViewModel @Inject constructor(
         }
     }
 
-    private fun loadUserDetails(){
+    private fun loadUserDetails() {
+        // Oturum durumunu kontrol et
+        if (FirebaseAuth.getInstance().currentUser == null) {
+            // Oturum yoksa sessizce çık
+            _state.update { it.copy(isInitialLoading = false) }
+            return
+        }
+
         viewModelScope.launch {
-            physiotherapistProfileRepository.getPhysiotherapistProfile(userId).collectLatest { result ->
-                if(result is Resource.Success && result.data != null){
-                    _state.update {
-                        it.copy(
-                            physiotherapist = result.data,
-                            isPhysiotherapist = true
-                        )
-                    }
-                }
-                else{
-                    userProfileRepository.getUserProfile(userId).collectLatest { userresult->
-                        if (userresult is Resource.Success && userresult.data != null){
-                            _state.update { it.copy(
-                                user = userresult.data,
-                                isPhysiotherapist = false
-                            ) }
+            try {
+                physiotherapistProfileRepository.getPhysiotherapistProfile(userId).collectLatest { result ->
+                    if (result is Resource.Success && result.data != null) {
+                        _state.update {
+                            it.copy(
+                                physiotherapist = result.data,
+                                isPhysiotherapist = true,
+                                isInitialLoading = false
+                            )
+                        }
+                    } else {
+                        userProfileRepository.getUserProfile(userId).collectLatest { userresult ->
+                            if (userresult is Resource.Success && userresult.data != null) {
+                                _state.update {
+                                    it.copy(
+                                        user = userresult.data,
+                                        isPhysiotherapist = false,
+                                        isInitialLoading = false
+                                    )
+                                }
+                            } else if (userresult is Resource.Error) {
+                                val errorMsg = userresult.message
+                                if (shouldShowError(errorMsg)) {
+                                    _state.update { it.copy(
+                                        isInitialLoading = false,
+                                        error = errorMsg
+                                    ) }
+                                } else {
+                                    _state.update { it.copy(isInitialLoading = false) }
+                                }
+                            }
                         }
                     }
+                }
+            } catch (e: Exception) {
+                val errorMsg = "Kullanıcı bilgileri yüklenemedi: ${e.message}"
+                if (shouldShowError(errorMsg)) {
+                    _state.update { it.copy(
+                        isInitialLoading = false,
+                        error = errorMsg
+                    ) }
+                } else {
+                    _state.update { it.copy(isInitialLoading = false) }
                 }
             }
         }
     }
 
-    private fun sendMessage(){
-        val messageText=state.value.messageText.trim()
+    private fun sendMessage() {
+        val messageText = state.value.messageText.trim()
         if (messageText.isEmpty()) return
+
+        // Oturum durumunu kontrol et
+        if (FirebaseAuth.getInstance().currentUser == null) {
+            // Oturum yoksa sessizce çık, hata gösterme
+            return
+        }
+
         _state.update { it.copy(isSending = true) }
         viewModelScope.launch {
-            sendMessageUseCase(messageText,userId).collectLatest { result ->
-                when(result){
-                    is Resource.Loading ->{
+            sendMessageUseCase(messageText, userId).collectLatest { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        // Loading durumunda işlem yok
                     }
-                    is Resource.Success ->{
+                    is Resource.Success -> {
                         _state.update { it.copy(
                             messageText = "",
-                            isSending =false,
+                            isSending = false,
                             error = null
                         ) }
                         loadMessages()
                     }
-                    is Resource.Error ->{
+                    is Resource.Error -> {
+                        val errorMsg = result.message ?: "Mesaj gönderilirken bir hata oluştu"
                         _state.update { it.copy(
                             isSending = false,
-                            error = result.message ?: "Mesaj gönderilirken bir hata oluştu"
+                            error = if (shouldShowError(errorMsg)) errorMsg else null
                         ) }
                     }
                 }
@@ -177,8 +254,14 @@ class MessagesDetailScreenViewModel @Inject constructor(
     }
 
     private fun markMessagesAsRead() {
+        // Oturum durumunu kontrol et
+        if (FirebaseAuth.getInstance().currentUser == null) {
+            // Oturum yoksa sessizce çık
+            return
+        }
+
         viewModelScope.launch {
-            markMessagesAsReadUseCase(userId).collectLatest {  }
+            markMessagesAsReadUseCase(userId).collectLatest { }
         }
     }
 }

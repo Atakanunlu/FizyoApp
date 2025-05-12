@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.usecase.messagesscreen.GetChatThreadsUseCase
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,19 +18,40 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MessagesScreenViewModel@Inject constructor(
+class MessagesScreenViewModel @Inject constructor(
     private val getChatThreadsUseCase: GetChatThreadsUseCase
 ) : ViewModel() {
-
-    private val _state = MutableStateFlow(MessagesScreenState())
+    private val _state = MutableStateFlow(MessagesScreenState(isInitialLoading = true))
     val state: StateFlow<MessagesScreenState> = _state.asStateFlow()
 
     private val _uiEvent = MutableSharedFlow<MessagesScreenUiEvent>()
     val uiEvent: SharedFlow<MessagesScreenUiEvent> = _uiEvent.asSharedFlow()
 
+    // Hata kontrolü için yardımcı fonksiyon
+    private fun shouldShowError(errorMessage: String?): Boolean {
+        if (errorMessage == null) return false
+
+        // "Oturum açmanız gerekiyor" veya benzer hataları gizle
+        val ignoredErrors = listOf(
+            "oturum açmanız gerekiyor",
+            "oturum açman",
+            "giriş yapmanız gerekiyor",
+            "giriş yapman",
+            "authentication",
+            "yetkilendirme",
+            "yetkili değilsiniz",
+            "yetki",
+            "auth"
+        )
+
+        val lowerCaseError = errorMessage.lowercase()
+        return !ignoredErrors.any { lowerCaseError.contains(it) }
+    }
+
     init {
         loadChatThreads()
     }
+
     fun onEvent(event: MessagesScreenEvent) {
         when (event) {
             is MessagesScreenEvent.NavigateToMessageDetail -> {
@@ -40,9 +62,20 @@ class MessagesScreenViewModel@Inject constructor(
             is MessagesScreenEvent.RefreshChatThreads -> {
                 loadChatThreads()
             }
+            is MessagesScreenEvent.DismissError -> {
+                _state.update { it.copy(error = null) }
+            }
         }
     }
+
     private fun loadChatThreads() {
+        // Oturum kontrolü
+        if (FirebaseAuth.getInstance().currentUser == null) {
+            // Oturum yoksa sessizce çık
+            _state.update { it.copy(isLoading = false, isInitialLoading = false) }
+            return
+        }
+
         viewModelScope.launch {
             getChatThreadsUseCase().collectLatest { result ->
                 when (result) {
@@ -54,15 +87,18 @@ class MessagesScreenViewModel@Inject constructor(
                             it.copy(
                                 chatThreads = result.data ?: emptyList(),
                                 isLoading = false,
+                                isInitialLoading = false,
                                 error = null
                             )
                         }
                     }
                     is Resource.Error -> {
+                        val errorMsg = result.message ?: "Mesaj listesi yüklenirken bir hata oluştu"
                         _state.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Mesaj listesi yüklenirken bir hata oluştu"
+                                isInitialLoading = false,
+                                error = if (shouldShowError(errorMsg)) errorMsg else null
                             )
                         }
                     }
@@ -70,6 +106,4 @@ class MessagesScreenViewModel@Inject constructor(
             }
         }
     }
-
-
 }

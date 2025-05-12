@@ -1,10 +1,14 @@
 package com.example.fizyoapp.presentation.user.usermainscreen
 
-import com.example.fizyoapp.domain.model.auth.User
 import com.example.fizyoapp.domain.model.user_profile.UserProfile
+import com.example.fizyoapp.domain.model.usermainscreen.PainRecord
+
 
 data class UserState(
-    val user: User? = null,
+    val userName: String? = null,
+    val userProfile: UserProfile? = null,
+    val latestPainRecord: PainRecord? = null,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val error: String? = null,
+    val email: String = ""
 )

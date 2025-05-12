@@ -33,7 +33,7 @@ import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.physiotherapist_profile.PhysiotherapistProfile
 
 import com.example.fizyoapp.presentation.navigation.AppScreens
-import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
+import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 
 import kotlinx.coroutines.flow.collectLatest
 

@@ -6,5 +6,5 @@ sealed class MessageDetailScreenEvent {
     object RefreshMessages : MessageDetailScreenEvent()
     object StartVideoCall : MessageDetailScreenEvent()
     object EndVideoCall : MessageDetailScreenEvent()
-
+    object DismissError : MessageDetailScreenEvent() // Yeni eklenen event
 }

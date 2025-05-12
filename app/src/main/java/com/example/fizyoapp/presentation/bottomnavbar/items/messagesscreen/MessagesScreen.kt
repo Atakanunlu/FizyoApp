@@ -30,7 +30,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.messagesscreen.ChatThread
 import com.example.fizyoapp.presentation.navigation.AppScreens
-import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
+import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 
 import java.util.*
 
@@ -43,6 +43,14 @@ fun MessagesScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
+    // Hata mesajlarını otomatik temizle (özellikle oturum hatalarını)
+    LaunchedEffect(state.error) {
+        if (state.error?.lowercase()?.contains("oturum") == true ||
+            state.error?.lowercase()?.contains("auth") == true) {
+            viewModel.onEvent(MessagesScreenEvent.DismissError)
+        }
+    }
+
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
             when (event) {
@@ -52,6 +60,7 @@ fun MessagesScreen(
             }
         }
     }
+
     LaunchedEffect(key1 = navController.currentBackStackEntry) {
         // Ekrana her girişte mesajları yenile
         viewModel.onEvent(MessagesScreenEvent.RefreshChatThreads)
@@ -74,24 +83,33 @@ fun MessagesScreen(
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
-            if (state.isLoading) {
+            // İlk yükleme durumunda sadece yükleme göstergesini göster
+            if (state.isInitialLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            } else if (state.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else if (state.error != null) {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = state.error ?: "Bir hata oluştu",
-                        color = MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { viewModel.onEvent(MessagesScreenEvent.RefreshChatThreads) }) {
-                        Text("Tekrar Dene")
+                // Oturum hatalarını gösterme
+                if (!state.error!!.lowercase().contains("oturum") &&
+                    !state.error!!.lowercase().contains("auth")) {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = state.error ?: "Bir hata oluştu",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = { viewModel.onEvent(MessagesScreenEvent.RefreshChatThreads) }) {
+                            Text("Tekrar Dene")
+                        }
                     }
                 }
             } else if (state.chatThreads.isEmpty()) {
@@ -118,7 +136,6 @@ fun MessagesScreen(
                                     // Sohbette iki kişi varsa (normal durum)
                                     val firstId = chatThread.participantIds[0]
                                     val secondId = chatThread.participantIds[1]
-
                                     // Mevcut kullanıcı ID'sini kontrol et
                                     val otherUserId = if (state.currentUserId.isNotEmpty()) {
                                         // Eğer mevcut kullanıcı ID'si biliniyorsa, diğer ID'yi bul
@@ -128,7 +145,6 @@ fun MessagesScreen(
                                         // Bu bir tahmin ama birçok durumda çalışabilir
                                         secondId
                                     }
-
                                     navController.navigate(AppScreens.MessagesDetailScreen.createMessageDetailRoute(otherUserId))
                                 } else if (chatThread.participantIds.isNotEmpty()) {
                                     // Listede sadece bir ID varsa onu kullan
