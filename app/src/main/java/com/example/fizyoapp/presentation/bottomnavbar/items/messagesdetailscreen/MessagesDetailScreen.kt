@@ -68,8 +68,8 @@ fun MessagesDetailScreen(
     }
 
     LaunchedEffect(state.messages.size) {
-        if (state.messages.isNotEmpty()) {
-            scrollState.animateScrollToItem(state.messages.size - 1)
+        if(state.messages.isNotEmpty()){
+            scrollState.animateScrollToItem(state.messages.size-1)
         }
     }
 
@@ -143,11 +143,15 @@ fun MessagesDetailScreen(
                                     fontSize = 12.sp,
                                     color = Color.White.copy(alpha = 0.8f)
                                 )
+
                             }
                         }
+
+
                     }
                 },
                 navigationIcon = {
+
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
@@ -203,6 +207,8 @@ fun MessagesDetailScreen(
                             }
                         }
                     }
+
+                    
                     state.error != null && state.messages.isEmpty() -> {
                         Box(
                             modifier = Modifier.weight(1f),
@@ -386,11 +392,19 @@ fun MessagesDetailScreen(
                                 )
                             }
                         }
+
                     }
+
+
                 }
             }
+
+
         }
+
+
     }
+
 }
 
 @Composable

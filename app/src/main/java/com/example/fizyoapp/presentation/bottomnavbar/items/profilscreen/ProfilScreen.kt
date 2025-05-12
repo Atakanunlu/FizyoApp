@@ -34,7 +34,6 @@ import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.user.usermainscreen.UserEvent
 import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
 import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
-
 import kotlinx.coroutines.flow.collectLatest
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
