@@ -164,6 +164,11 @@ dependencies {
         implementation( "androidx.media3:media3-ui:1.0.0")
         implementation( "androidx.media3:media3-common:1.0.0")
     }
+    // Agora RTC SDK
+    implementation("io.agora.rtc:full-sdk:4.2.2")
+
+    // Permissions handling
+    implementation( "com.google.accompanist:accompanist-permissions:0.32.0")
 
 }
 

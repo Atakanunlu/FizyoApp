@@ -34,7 +34,6 @@ class MessagesDetailScreenViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             try {
-                // first() yerine collect() kullanın ve akışı doğru şekilde işleyin
                 authRepository.getCurrentUser().collect { result ->
                     when (result) {
                         is Resource.Success -> {
@@ -54,7 +53,7 @@ class MessagesDetailScreenViewModel @Inject constructor(
                             _state.update { it.copy(error = result.message ?: "Oturum bilgisi alınamadı") }
                         }
                         is Resource.Loading -> {
-                            // Loading durumunu işleme (isteğe bağlı)
+
                         }
                     }
                 }
