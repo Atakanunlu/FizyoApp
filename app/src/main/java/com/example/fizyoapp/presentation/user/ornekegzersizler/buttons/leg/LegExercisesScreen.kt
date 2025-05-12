@@ -1,23 +1,16 @@
-package com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg
+package com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core
+
 import android.net.Uri
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,304 +22,238 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesOfExamplesViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
-@androidx.annotation.OptIn(UnstableApi::class)
+/**
+ * CoreExercisesScreen: Core egzersiz videolarını gösteren Compose ekranı
+ *
+ * Bu ekran, karın ve bel bölgesi (core) egzersizlerini video olarak gösterir,
+ * kullanıcının videolar arasında gezinmesini sağlar ve her video için açıklamalar sunar.
+ *
+ * @param navController Ekranlar arası navigasyonu kontrol eden nesne
+ */
+@androidx.annotation.OptIn(UnstableApi::class) // Media3 API'nin deneysel olduğunu belirtir
+@OptIn(ExperimentalMaterial3Api::class) // TopAppBar için gerekli annotation
 @Composable
 fun LegExercisesScreen(navController: NavController) {
+    // ViewModel'i Hilt kullanarak enjekte eder - videoları ve verileri yönetmek için
     val viewModel: LegExercisesOfExamplesViewModel = hiltViewModel()
+
+    // ViewModel'den video listesini alır ve UI'da değişiklikleri gözlemlemek için state'e dönüştürür
     val videoList = viewModel.videoList.collectAsState()
+
+    // Şu anda gösterilen videonun listede kaçıncı sırada olduğunu takip eder
     var currentIndex by remember { mutableStateOf(0) }
 
-    val context = LocalContext.current
+    // Asenkron işlemler (navigasyon, ExoPlayer işlemleri vb.) için coroutine scope
     val coroutineScope = rememberCoroutineScope()
 
-    val primaryColor = Color(0xFF3B3E68)
-    val backgroundColor = Color(0xFF2A2D47)
-    val accentColor = Color(0xFF6D72C3)
-    val secondaryAccent = Color(0xFFE86CA6)
-    val textColor = Color.White
-    val cardColor = Color(0xFF343860)
+    // Android bağlamını alır - ExoPlayer oluşturmak için gerekli
+    val context = LocalContext.current
 
+    // ExoPlayer nesnesini oluşturur ve yapılandırır - video oynatma motoru
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
+            // Videoların sürekli tekrarlanmasını sağlar
             repeatMode = Player.REPEAT_MODE_ONE
         }
     }
 
-    var playerView by remember { mutableStateOf<PlayerView?>(null) }
+    // Video oynatıcının görünürlüğünü kontrol eder - navigasyon sırasında gizlemek için
     var showPlayer by remember { mutableStateOf(true) }
-    var isPlaying by remember { mutableStateOf(true) }
 
+    // PlayerView referansını tutar - ExoPlayer'ı bağlamak ve kaynakları temizlemek için
+    var playerView by remember { mutableStateOf<PlayerView?>(null) }
+
+    // Geri navigasyon işlemini gerçekleştiren fonksiyon - temizleme ve navigasyon
     val navigateBack = {
         coroutineScope.launch {
+            // PlayerView'ı gizler - video görüntüsünün ekranda kalmasını önler
             showPlayer = false
+
+            // ExoPlayer'ı durdurur - ses ve video oynatmayı bitirir
             exoPlayer.stop()
+
+            // PlayerView'dan ExoPlayer bağlantısını kaldırır
             playerView?.player = null
+
+            // PlayerView referansını temizler
             playerView = null
+
+            // ExoPlayer'ın kullandığı bellek kaynaklarını serbest bırakır
             exoPlayer.release()
+
+            // Önceki ekrana geri döner
             navController.navigateUp()
         }
     }
 
+    // Sistem geri tuşuna basınca çalışacak işleyici - Android back tuşu için
     BackHandler { navigateBack() }
 
+    // Compose bileşeni yok edildiğinde kaynakları temizler
+    // (ekrandan çıkılınca veya uygulama kapatılınca)
     DisposableEffect(Unit) {
         onDispose {
+            // ExoPlayer kaynaklarını serbest bırakır
             exoPlayer.stop()
             playerView?.player = null
             exoPlayer.release()
         }
     }
 
+    // Ekran ilk açıldığında videoları yükler
     LaunchedEffect(Unit) {
         viewModel.loadVideos()
     }
 
+    // Video değiştiğinde (kullanıcı ileri/geri tuşlarına bastığında) veya
+    // video listesi değiştiğinde ExoPlayer'ı günceller
     LaunchedEffect(currentIndex, videoList.value) {
         if (videoList.value.isNotEmpty()) {
+            // Şu anki videonun URI'sini alır
             val videoUri = Uri.parse(videoList.value[currentIndex].uri)
+
+            // Mevcut videoyu durdurur
             exoPlayer.stop()
+
+            // Önceki video öğelerini temizler
             exoPlayer.clearMediaItems()
+
+            // Yeni videoyu ExoPlayer'a yükler
             exoPlayer.setMediaItem(MediaItem.fromUri(videoUri))
+
+            // ExoPlayer'ı hazırlar (buffering başlar)
             exoPlayer.prepare()
-            exoPlayer.playWhenReady = isPlaying
+
+            // Videoyu otomatik olarak başlatır
+            exoPlayer.playWhenReady = true
         }
     }
 
+    // Şu anki videonun açıklamasını alır
+    // currentIndex veya videoList değiştiğinde yeniden hesaplanır
     val currentDescription = remember(currentIndex, videoList.value) {
+        // Güvenli bir şekilde video açıklamasını alır, yoksa boş string döndürür
         videoList.value.getOrNull(currentIndex)?.description ?: ""
     }
 
+    // Material3 Scaffold bileşeni - temel sayfa yapısını sağlar
     Scaffold(
-        containerColor = backgroundColor,
         topBar = {
+            // Üst çubuk - başlık ve geri düğmesi içerir
             TopAppBar(
-                title = {
-                    Text(
-                        "Bacak Egzersizleri",
-                        color = textColor,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
+                title = { Text("Bacak Egzersizleri") },
                 navigationIcon = {
+                    // Geri düğmesi - tıklanınca navigateBack fonksiyonunu çağırır
                     IconButton(onClick = { navigateBack() }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Geri Dön",
-                            tint = textColor
+                            contentDescription = "Geri Dön"
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = primaryColor
-                )
+                }
             )
         }
     ) { paddingValues ->
-        Box(
+        // Ana içerik kolonu - dikey düzende bileşenleri gösterir
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(backgroundColor)
+                .fillMaxSize() // Tüm ekranı kaplar
+                .padding(paddingValues), // Scaffold padding'ini uygular
+            horizontalAlignment = Alignment.CenterHorizontally, // İçeriği yatayda ortalar
+            verticalArrangement = Arrangement.Center // İçeriği dikeyde ortalar
         ) {
-            if (videoList.value.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+            if (videoList.value.isNotEmpty()) {
+                // Video sayısı gösterimi - hangi videoda olduğumuzu gösterir
+                Text(
+                    text = "Video ${currentIndex + 1} / ${videoList.value.size}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                // Video oynatıcı kartı - video içeriğini çevreler
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth() // Genişliği ekran genişliğine eşit
+                        .height(300.dp) // Sabit yükseklik
+                        .padding(10.dp) // İç boşluk
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        CircularProgressIndicator(
-                            color = accentColor,
-                            modifier = Modifier.size(60.dp),
-                            strokeWidth = 5.dp
+                    // Eğer showPlayer true ise video oynatıcıyı göster
+                    if (showPlayer) {
+                        // AndroidView - Android native view'larını Compose'da kullanmak için
+                        AndroidView(
+                            factory = { ctx ->
+                                // PlayerView oluştur - ExoPlayer'ı göstermek için
+                                PlayerView(ctx).apply {
+                                    player = exoPlayer // ExoPlayer'ı bağla
+                                    useController = true // Video kontrol arayüzünü göster
+                                    controllerShowTimeoutMs = 1000 // Kontroller ne kadar süre görünür kalacak
+                                    playerView = this // PlayerView referansını güncelle
+                                }
+                            },
+                            modifier = Modifier.fillMaxSize() // Kart içinde tüm alanı kapla
                         )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text(
-                            "Videolar yükleniyor...",
-                            color = textColor,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Medium
+                    }
+                }
+
+                // Video açıklaması için boşluk
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Video açıklaması metni
+                Text(
+                    text = currentDescription, // Şu anki videonun açıklaması
+                    fontSize = 18.sp, // Metin boyutu
+                    textAlign = TextAlign.Center // Metni ortala
+                )
+
+                // Kontrol butonları için boşluk
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Video navigasyon kontrolleri satırı - ileri/geri butonları
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly // Butonları eşit aralıklarla yerleştir
+                ) {
+                    // Önceki video butonu - birden fazla video varsa gösterilir
+                    if (videoList.value.size > 1) {
+                        IconButton(
+                            onClick = {
+                                // Önceki videoya geç, ilk videodaysa sonuncuya dön (dairesel)
+                                currentIndex = if (currentIndex > 0)
+                                    currentIndex - 1
+                                else
+                                    videoList.value.size - 1
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Previous Video" // Ekran okuyucular için açıklama
+                            )
+                        }
+                    }
+
+                    // Sonraki video butonu
+                    IconButton(
+                        onClick = {
+                            // Sonraki videoya geç, son videodaysa ilk videoya dön (dairesel)
+                            currentIndex = (currentIndex + 1) % videoList.value.size
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = "Next Video" // Ekran okuyucular için açıklama
                         )
                     }
                 }
             } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    ) {
-                        Text(
-                            text = "Video ${currentIndex + 1} / ${videoList.value.size}",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = textColor,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            for (i in videoList.value.indices) {
-                                Box(
-                                    modifier = Modifier
-                                        .padding(horizontal = 4.dp)
-                                        .size(
-                                            width = if (i == currentIndex) 24.dp else 10.dp,
-                                            height = 10.dp
-                                        )
-                                        .clip(RoundedCornerShape(5.dp))
-                                        .background(
-                                            if (i == currentIndex) accentColor
-                                            else accentColor.copy(alpha = 0.3f)
-                                        )
-                                )
-                            }
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(240.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(accentColor, secondaryAccent)
-                                )
-                            )
-                            .padding(3.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(cardColor)
-                        ) {
-                            if (showPlayer) {
-                                AndroidView(
-                                    factory = { ctx ->
-                                        PlayerView(ctx).apply {
-                                            player = exoPlayer
-                                            useController = true
-                                            controllerShowTimeoutMs = 1500
-                                            setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
-                                            playerView = this
-                                        }
-                                    },
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                        }
-                    }
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = cardColor
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 4.dp
-                        )
-                    ) {
-                        Text(
-                            text = currentDescription,
-                            modifier = Modifier.padding(16.dp),
-                            color = textColor,
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center,
-                            lineHeight = 24.sp
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        AnimatedVisibility(
-                            visible = videoList.value.size > 1,
-                            enter = fadeIn() + scaleIn(),
-                            exit = fadeOut() + scaleOut()
-                        ) {
-                            FloatingActionButton(
-                                onClick = {
-                                    currentIndex = if (currentIndex > 0)
-                                        currentIndex - 1
-                                    else
-                                        videoList.value.size - 1
-                                },
-                                containerColor = cardColor,
-                                contentColor = textColor,
-                                shape = CircleShape,
-                                modifier = Modifier.size(56.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.SkipPrevious,
-                                    contentDescription = "Önceki Video",
-                                    modifier = Modifier.size(32.dp)
-                                )
-                            }
-                        }
-
-                        FloatingActionButton(
-                            onClick = {
-                                isPlaying = !isPlaying
-                                exoPlayer.playWhenReady = isPlaying
-                            },
-                            containerColor = accentColor,
-                            contentColor = Color.White,
-                            shape = CircleShape,
-                            modifier = Modifier.size(72.dp),
-                            elevation = FloatingActionButtonDefaults.elevation(
-                                defaultElevation = 6.dp,
-                                pressedElevation = 8.dp
-                            )
-                        ) {
-                            AnimatedContent(targetState = isPlaying) { playing ->
-                                Icon(
-                                    imageVector = if (playing)
-                                        Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                                    contentDescription = if (playing) "Duraklat" else "Oynat",
-                                    modifier = Modifier.size(40.dp)
-                                )
-                            }
-                        }
-
-                        FloatingActionButton(
-                            onClick = {
-                                currentIndex = (currentIndex + 1) % videoList.value.size
-                            },
-                            containerColor = cardColor,
-                            contentColor = textColor,
-                            shape = CircleShape,
-                            modifier = Modifier.size(56.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.SkipNext,
-                                contentDescription = "Sonraki Video",
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
+                // Video listesi boşsa veya yüklenmediyse loading göstergesi
+                CircularProgressIndicator() // Dönen yükleniyor animasyonu
+                Text(
+                    "Videolar yükleniyor...", // Yükleme durumu metni
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
     }
