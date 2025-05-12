@@ -25,19 +25,23 @@ class MessagesDetailScreenViewModel @Inject constructor(
     private val userProfileRepository: UserProfileRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
     private val _state = MutableStateFlow(MessageDetailScreenState())
     val state:StateFlow<MessageDetailScreenState> =_state.asStateFlow()
+
     private val userId:String = savedStateHandle.get<String>("userId") ?:""
 
     init {
         viewModelScope.launch {
             try {
+                // first() yerine collect() kullanın ve akışı doğru şekilde işleyin
                 authRepository.getCurrentUser().collect { result ->
                     when (result) {
                         is Resource.Success -> {
                             if (result.data?.user != null) {
                                 val currentUserId = result.data.user.id
                                 _state.update { it.copy(currentUserId = currentUserId) }
+
                                 if (userId.isNotEmpty()) {
                                     loadMessages()
                                     loadUserDetails()
@@ -50,7 +54,7 @@ class MessagesDetailScreenViewModel @Inject constructor(
                             _state.update { it.copy(error = result.message ?: "Oturum bilgisi alınamadı") }
                         }
                         is Resource.Loading -> {
-
+                            // Loading durumunu işleme (isteğe bağlı)
                         }
                     }
                 }
@@ -71,6 +75,22 @@ class MessagesDetailScreenViewModel @Inject constructor(
             is MessageDetailScreenEvent.RefreshMessages ->{
                 loadMessages()
             }
+            is MessageDetailScreenEvent.StartVideoCall -> {
+                _state.update { it.copy(isVideoCallActive = true) }
+            }
+            is MessageDetailScreenEvent.EndVideoCall -> {
+                _state.update { it.copy(isVideoCallActive = false) }
+            }
+        }
+    }
+    private fun getCurrentUserId() {
+        viewModelScope.launch {
+            authRepository.getCurrentUser().collectLatest { result ->
+                if (result is Resource.Success && result.data?.user != null) {
+                    _state.update { it.copy(currentUserId = result.data.user.id) }
+                }
+            }
+
         }
     }
 

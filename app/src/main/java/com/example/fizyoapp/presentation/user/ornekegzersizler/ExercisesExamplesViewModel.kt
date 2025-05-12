@@ -1,8 +1,12 @@
+
 package com.example.fizyoapp.presentation.user.ornekegzersizler
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.GetExerciseCategoriesUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.PopulateDatabaseUseCase
+import com.example.fizyoapp.presentation.user.ornekegzersizler.ExercisesExamplesEvent
+import com.example.fizyoapp.presentation.user.ornekegzersizler.ExercisesExamplesState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,11 +24,16 @@ class ExercisesExamplesViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = MutableStateFlow(ExercisesExamplesState())
     val state: StateFlow<ExercisesExamplesState> = _state.asStateFlow()
+
+    // Flow'u takip etmek için bir Job
     private var categoriesJob: Job? = null
 
     init {
         viewModelScope.launch {
+            // Veritabanı hazırlama - bir kerelik işlem
             populateDatabaseUseCase()
+
+            // Kategorileri yükle
             startCollectingCategories()
         }
     }
@@ -35,6 +44,7 @@ class ExercisesExamplesViewModel @Inject constructor(
                 _state.update { it.copy(selectedCategoryId = event.category.id) }
             }
             is ExercisesExamplesEvent.LoadCategories -> {
+                // Yeniden yükleme gerekirse mevcut akışı durdur ve yenisini başlat
                 startCollectingCategories()
             }
             is ExercisesExamplesEvent.CategoryNavigationHandled -> {
@@ -44,10 +54,15 @@ class ExercisesExamplesViewModel @Inject constructor(
     }
 
     private fun startCollectingCategories() {
+        // Önce mevcut Flow'u iptal et
         categoriesJob?.cancel()
+
+        // Yeni bir Flow dinlemeye başla
         categoriesJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
+
             getExerciseCategoriesUseCase()
+                // Flow'da oluşabilecek hataları yakala
                 .catch { e ->
                     _state.update {
                         it.copy(
@@ -56,6 +71,7 @@ class ExercisesExamplesViewModel @Inject constructor(
                         )
                     }
                 }
+                // Flow'u topla
                 .collect { categories ->
                     _state.update {
                         it.copy(
@@ -69,6 +85,7 @@ class ExercisesExamplesViewModel @Inject constructor(
     }
 
     override fun onCleared() {
+        // ViewModel temizlendiğinde Flow'u iptal et
         categoriesJob?.cancel()
         super.onCleared()
     }

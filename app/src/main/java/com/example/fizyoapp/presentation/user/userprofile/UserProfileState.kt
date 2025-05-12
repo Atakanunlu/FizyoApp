@@ -12,7 +12,6 @@ data class UserProfileState(
     val phoneNumber: String = "",
     val profilePhotoUrl: String = "",
 
-
     val firstNameError: Boolean = false,
     val lastNameError: Boolean = false,
     val birthDateError: Boolean = false,

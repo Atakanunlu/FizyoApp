@@ -18,14 +18,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-
-
-    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
-
-
-    <!-- Android 13+ için medya izinleri -->
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-
     <application
         android:name=".FizyoApp"
         android:allowBackup="true"
