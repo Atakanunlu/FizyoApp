@@ -48,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,6 +58,7 @@ import coil.compose.AsyncImage
 import com.example.fizyoapp.data.repository.auth.AuthRepository
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.messagesscreen.Message
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.videocall.VideoCallScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.DateFormatter
 import kotlinx.coroutines.flow.first
 
@@ -65,15 +67,32 @@ import kotlinx.coroutines.flow.first
 @Composable
 fun MessagesDetailScreen(
     navController: NavController,
-    userId:String,
-    viewModel: MessagesDetailScreenViewModel= hiltViewModel(),
 
-){
+    userId: String,
+    viewModel: MessagesDetailScreenViewModel = hiltViewModel()
+) {
     val state by viewModel.state.collectAsState()
-    val scrollState =  rememberLazyListState()
+    val scrollState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+    val currentUserId = state.currentUserId
+    val context = LocalContext.current
 
     var currentUserId  =state.currentUserId
 
+    // Video arama aktifse video ekranını göster
+    if (state.isVideoCallActive) {
+        val otherUserName = if (state.isPhysiotherapist) {
+            "${state.physiotherapist?.firstName ?: ""} ${state.physiotherapist?.lastName ?: ""}"
+        } else {
+            "${state.user?.firstName ?: ""} ${state.user?.lastName ?: ""}"
+        }
+        VideoCallScreen(
+            otherUserId = userId,
+            otherUserName = otherUserName.ifEmpty { "Karşı Taraf" },
+            onCallEnded = { viewModel.onEvent(MessageDetailScreenEvent.EndVideoCall) }
+        )
+        return
+    }
 
     LaunchedEffect(state.messages.size) {
         if(state.messages.isNotEmpty()){
@@ -112,9 +131,14 @@ fun MessagesDetailScreen(
                                     tint = Color.White)
                             }
                         }
-                        Column {
-                            val name = if(state.isPhysiotherapist){
-                                if(state.physiotherapist != null){
+
+                       
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            val name = if (state.isPhysiotherapist) {
+                                if (state.physiotherapist != null) {
                                     "FZT. ${state.physiotherapist!!.firstName} ${state.physiotherapist!!.lastName}"
                                 }
                                 else{
@@ -148,15 +172,31 @@ fun MessagesDetailScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = {navController.popBackStack()}) {
-                        Icon(imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Geri")
+
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Geri",
+                            tint = Color.White
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = { viewModel.onEvent(MessageDetailScreenEvent.StartVideoCall) }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Videocam,
+                            contentDescription = "Görüntülü Arama",
+                            tint = Color.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
                 )
 
             )
@@ -175,34 +215,106 @@ fun MessagesDetailScreen(
                     ){
                         CircularProgressIndicator()
                     }
-                }
-                else if(state.error != null && state.messages.isEmpty()){
-                    Box(
-                        modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.Center
-                    ){
-                        Column (horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = state.error!!,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Button(onClick = { viewModel.onEvent(MessageDetailScreenEvent.RefreshMessages) }) {
-                                Text("Tekrar Dene")
+
+                    
+                    state.error != null && state.messages.isEmpty() -> {
+                        Box(
+                            modifier = Modifier.weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(
+                                    imageVector = Icons.Default.ErrorOutline,
+                                    contentDescription = null,
+                                    tint = Color.Red.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(70.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = state.error ?: "Bir hata oluştu",
+                                    color = Color.DarkGray,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Button(
+                                    onClick = { viewModel.onEvent(MessageDetailScreenEvent.RefreshMessages) },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = accentColor
+                                    ),
+                                    shape = RoundedCornerShape(12.dp),
+                                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Refresh,
+                                        contentDescription = null
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Tekrar Dene")
+                                }
+                            }
+                        }
+                    }
+                    else -> {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .background(backgroundColor)
+                        ) {
+                            // Mesajlar Listesi
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 16.dp),
+                                state = scrollState,
+                                contentPadding = PaddingValues(vertical = 16.dp)
+                            ) {
+                                items(state.messages) { message ->
+                                    ModernMessageItem(
+                                        message = message,
+                                        isFromCurrentUser = message.senderId == currentUserId,
+                                        myMessageColor = myMessageColor,
+                                        otherMessageColor = otherMessageColor
+                                    )
+                                }
+                            }
+                            val showScrollToBottom by remember {
+                                derivedStateOf {
+                                    scrollState.firstVisibleItemIndex < state.messages.size - 2 &&
+                                            state.messages.size > 5
+                                }
+                            }
+                            if (showScrollToBottom) {
+                                FloatingActionButton(
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            if (state.messages.isNotEmpty()) {
+                                                scrollState.animateScrollToItem(state.messages.size - 1)
+                                            }
+                                        }
+                                    },
+                                    containerColor = accentColor,
+                                    contentColor = Color.White,
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(end = 16.dp, bottom = 16.dp)
+                                        .size(46.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.KeyboardArrowDown,
+                                        contentDescription = "En aşağı kaydır"
+                                    )
+                                }
                             }
                         }
                     }
                 }
-                else{
-                    //Mesajlar burada
-
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        state = scrollState,
-                        contentPadding = PaddingValues(vertical = 16.dp)
+                if (state.error != null && state.messages.isNotEmpty()) {
+                    Surface(
+                        color = Color(0xFFFEEAEA),
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
                     ) {
                         items(state.messages){ message ->
                             MessageItem(
@@ -212,36 +324,48 @@ fun MessagesDetailScreen(
                         }
                     }
                 }
-
-                if(state.error != null && state.messages.isNotEmpty()){
-                    Text(text = state.error!!,
-                        color = MaterialTheme.colorScheme.error,
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shadowElevation = 8.dp,
+                    color = Color.White
+                ) {
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp))
-                }
-//mesaj giriş alanı
-                Surface( modifier = Modifier.fillMaxWidth(),
-                    shadowElevation = 8.dp,
-                    color = MaterialTheme.colorScheme.surface) {
-
-                    Row (modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically){
-
-
-                        OutlinedTextField(
-                            value = state.messageText,
-                            onValueChange = {viewModel.onEvent(MessageDetailScreenEvent.MessageTextChanged(it))},
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text("Mesajınızı yazın...") },
-                            maxLines = 4,
-                            shape = RoundedCornerShape(24.dp)
-                        )
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Card(
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = textFieldColor
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            OutlinedTextField(
+                                value = state.messageText,
+                                onValueChange = { viewModel.onEvent(MessageDetailScreenEvent.MessageTextChanged(it)) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 4.dp),
+                                placeholder = {
+                                    Text(
+                                        "Mesajınızı yazın...",
+                                        color = Color.Gray
+                                    )
+                                },
+                                maxLines = 4,
+                                shape = RoundedCornerShape(24.dp),
+                                colors = TextFieldDefaults.outlinedTextFieldColors(
+                                    focusedBorderColor = Color.Transparent,
+                                    unfocusedBorderColor = Color.Transparent,
+                                    cursorColor = accentColor,
+                                    containerColor = textFieldColor
+                                )
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
                         FloatingActionButton(
                             onClick = {viewModel.onEvent(MessageDetailScreenEvent.SendMessage)},
                             modifier = Modifier.size(48.dp),
@@ -280,21 +404,63 @@ fun MessagesDetailScreen(
 }
 
 @Composable
-fun MessageItem(message: Message, isFromCurrentUser: Boolean) {
-    Column( modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 4.dp),
-        horizontalAlignment = if (isFromCurrentUser) Alignment.End else Alignment.Start) {
+fun ModernMessageItem(
+    message: Message,
+    isFromCurrentUser: Boolean,
+    myMessageColor: Color,
+    otherMessageColor: Color
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalAlignment = if (isFromCurrentUser) Alignment.End else Alignment.Start
+    ) {
+        Box(
+            modifier = Modifier
+                .widthIn(max = 280.dp)
+                .clip(
+                    RoundedCornerShape(
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
+                        bottomStart = if (isFromCurrentUser) 16.dp else 4.dp,
+                        bottomEnd = if (isFromCurrentUser) 4.dp else 16.dp
+                    )
+                )
+                .background(
+                    if (isFromCurrentUser) myMessageColor else otherMessageColor
+                )
+                .padding(12.dp)
+        ) {
+            Text(
+                text = message.content,
+                color = if (isFromCurrentUser) Color.White else Color.Black
+            )
+        }
+        Spacer(modifier = Modifier.height(2.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 4.dp)
+        ) {
+            if (isFromCurrentUser) {
+                Text(
+                    text = DateFormatter.formatMessageTime(message.timestamp),
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                    imageVector = Icons.Default.Done,
+                    contentDescription = null,
+                    tint = Color.Gray,
+                    modifier = Modifier.size(12.dp)
+                )
+            } else {
+                Text(
+                    text = DateFormatter.formatMessageTime(message.timestamp),
+                    fontSize = 12.sp,
+                    color = Color.Gray
 
-
-        Box( modifier = Modifier
-            .widthIn(max = 280.dp)
-            .clip(
-                RoundedCornerShape(
-                    topStart = 16.dp,
-                    topEnd = 16.dp,
-                    bottomStart = if (isFromCurrentUser) 16.dp else 4.dp,
-                    bottomEnd = if (isFromCurrentUser) 4.dp else 16.dp
                 )
             ).background(
                 if (isFromCurrentUser) MaterialTheme.colorScheme.primary

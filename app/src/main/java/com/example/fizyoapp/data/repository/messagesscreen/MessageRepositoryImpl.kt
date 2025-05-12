@@ -92,7 +92,8 @@ class MessageRepositoryImpl @Inject constructor(
                             }
                         }
                     } catch (e: Exception) {
-                        Log.e("MessageRepo", "Kullanıcı bilgileri alınırken hata: ${e.message}", e)
+
+                      
                     }
 
                     val lastMessage = threadData["lastMessage"] as? String ?: ""

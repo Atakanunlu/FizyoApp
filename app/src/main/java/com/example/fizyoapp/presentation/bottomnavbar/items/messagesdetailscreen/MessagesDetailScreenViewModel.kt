@@ -64,17 +64,17 @@ class MessagesDetailScreenViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: MessageDetailScreenEvent){
-        when(event){
-            is MessageDetailScreenEvent.MessageTextChanged ->{
+    fun onEvent(event: MessageDetailScreenEvent) {
+        when (event) {
+            is MessageDetailScreenEvent.MessageTextChanged -> {
                 _state.update { it.copy(messageText = event.text) }
 
             }
-            is MessageDetailScreenEvent.SendMessage ->{
+            is MessageDetailScreenEvent.SendMessage -> {
                 sendMessage()
 
             }
-            is MessageDetailScreenEvent.RefreshMessages ->{
+            is MessageDetailScreenEvent.RefreshMessages -> {
                 loadMessages()
 
             }
@@ -86,6 +86,12 @@ class MessagesDetailScreenViewModel @Inject constructor(
                 if (result is Resource.Success && result.data?.user != null) {
                     _state.update { it.copy(currentUserId = result.data.user.id) }
                 }
+            }
+            is MessageDetailScreenEvent.StartVideoCall -> {
+                _state.update { it.copy(isVideoCallActive = true) }
+            }
+            is MessageDetailScreenEvent.EndVideoCall -> {
+                _state.update { it.copy(isVideoCallActive = false) }
             }
         }
     }
