@@ -34,7 +34,6 @@ import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
 import com.example.fizyoapp.presentation.user.usermainscreen.UserEvent
 import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
-
 import kotlinx.coroutines.flow.collectLatest
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -74,7 +73,7 @@ fun ProfilScreen(
             confirmButton = {
                 Button(
                     onClick = {
-
+                        viewModel.onEvent(UserEvent.SignOut)
                         showLogoutDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -126,6 +125,15 @@ fun ProfilScreen(
                     .fillMaxSize()
                     .padding(bottom = paddingValues.calculateBottomPadding())
             ) {
+                ProfileHeader(
+                    userName = "${state.userProfile?.firstName} ${state.userProfile?.lastName}",
+                    profilePhotoUrl = state.userProfile?.profilePhotoUrl,
+                    onEditProfileClick = {
+                        navController.navigate(AppScreens.UserInformationScreen.route)
+                    },
+                    primaryColor = primaryColor,
+                    accentColor = accentColor
+                )
 
                 ProfileMenuSection(
                     navController = navController,
