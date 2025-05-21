@@ -68,4 +68,17 @@ sealed class AppScreens(val route:String) {
         }
     }
     object UploadMedicalRecordScreen: AppScreens("upload_medical_record_screen")
+
+    object SocialMediaScreen : AppScreens("social_media_screen")
+    object CreatePostScreen : AppScreens("create_post_screen")
+    object PostDetailScreen : AppScreens("post_detail_screen/{postId}") {
+        fun createRoute(postId: String): String {
+            return "post_detail_screen/$postId"
+        }
+    }
+    object EditPostScreen : AppScreens("edit_post_screen/{postId}") {
+        fun createRoute(postId: String): String {
+            return "edit_post_screen/$postId"
+        }
+    }
 }

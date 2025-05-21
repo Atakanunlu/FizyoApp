@@ -1,5 +1,6 @@
 package com.example.fizyoapp.di
 
+import android.content.ContentResolver
 import android.content.Context
 import com.example.fizyoapp.data.local.dao.exerciseexamplesscreen.OrnekEgzersizlerGirisDao
 import com.example.fizyoapp.data.local.dao.exercisevideos.VideoDao
@@ -19,6 +20,8 @@ import com.example.fizyoapp.data.repository.note.NoteRepository
 import com.example.fizyoapp.data.repository.note.NoteRepositoryImpl
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepository
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepositoryImpl
+import com.example.fizyoapp.data.repository.socialmedia.SocialMediaRepository
+import com.example.fizyoapp.data.repository.socialmedia.SocialMediaRepositoryImpl
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepository
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepositoryImpl
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
@@ -49,6 +52,16 @@ import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiother
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistProfileUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.UpdatePhysiotherapistProfileUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.UploadPhysiotherapistProfilePhotoUseCase
+import com.example.fizyoapp.domain.usecase.socialmedia.AddCommentUseCase
+import com.example.fizyoapp.domain.usecase.socialmedia.CreatePostUseCase
+import com.example.fizyoapp.domain.usecase.socialmedia.DeleteCommentUseCase
+import com.example.fizyoapp.domain.usecase.socialmedia.DeletePostUseCase
+import com.example.fizyoapp.domain.usecase.socialmedia.GetAllPostsUseCase
+import com.example.fizyoapp.domain.usecase.socialmedia.GetCommentsByPostIdUseCase
+import com.example.fizyoapp.domain.usecase.socialmedia.GetPostByIdUseCase
+import com.example.fizyoapp.domain.usecase.socialmedia.LikePostUseCase
+import com.example.fizyoapp.domain.usecase.socialmedia.UnlikePostUseCase
+import com.example.fizyoapp.domain.usecase.socialmedia.UpdatePostUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.CheckProfileCompletedUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.GetUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UpdateUserProfileUseCase
@@ -436,5 +449,77 @@ object AppModule {
     @Provides
     fun provideDeletePainRecordUseCase(repository: PainTrackingRepository): DeletePainRecordUseCase {
         return DeletePainRecordUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideContentResolver(@ApplicationContext context: Context): ContentResolver {
+        return context.contentResolver
+    }
+
+    @Provides
+    @Singleton
+    fun provideSocialMediaRepository(contentResolver: ContentResolver): SocialMediaRepository {
+        return SocialMediaRepositoryImpl(contentResolver)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetAllPostsUseCase(repository: SocialMediaRepository): GetAllPostsUseCase {
+        return GetAllPostsUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCreatePostUseCase(repository: SocialMediaRepository): CreatePostUseCase {
+        return CreatePostUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetPostByIdUseCase(repository: SocialMediaRepository): GetPostByIdUseCase {
+        return GetPostByIdUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLikePostUseCase(repository: SocialMediaRepository): LikePostUseCase {
+        return LikePostUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUnlikePostUseCase(repository: SocialMediaRepository): UnlikePostUseCase {
+        return UnlikePostUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetCommentsByPostIdUseCase(repository: SocialMediaRepository): GetCommentsByPostIdUseCase {
+        return GetCommentsByPostIdUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddCommentUseCase(repository: SocialMediaRepository): AddCommentUseCase {
+        return AddCommentUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeletePostUseCase(repository: SocialMediaRepository): DeletePostUseCase {
+        return DeletePostUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteCommentUseCase(repository: SocialMediaRepository): DeleteCommentUseCase {
+        return DeleteCommentUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdatePostUseCase(repository: SocialMediaRepository): UpdatePostUseCase {
+        return UpdatePostUseCase(repository)
     }
 }

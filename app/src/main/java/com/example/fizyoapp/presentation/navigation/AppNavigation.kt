@@ -29,6 +29,10 @@ import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_sc
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesViewModel
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapistdetail.PhysiotherapistDetailScreen
+import com.example.fizyoapp.presentation.socialmedia.CreatePostScreen
+import com.example.fizyoapp.presentation.socialmedia.EditPostScreen
+import com.example.fizyoapp.presentation.socialmedia.PostDetailScreen
+import com.example.fizyoapp.presentation.socialmedia.SocialMediaScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesScreen
@@ -177,6 +181,31 @@ fun AppNavigation() {
         }
         composable(AppScreens.PainTrackingScreen.route) {
             PainTrackingScreen(navController = navController)
+        }
+
+        // Sosyal Medya ekranları
+        composable(AppScreens.SocialMediaScreen.route) {
+            SocialMediaScreen(navController = navController)
+        }
+
+        composable(AppScreens.CreatePostScreen.route) {
+            CreatePostScreen(navController = navController)
+        }
+
+        composable(
+            route = AppScreens.PostDetailScreen.route,
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) {
+            val postId = it.arguments?.getString("postId") ?: ""
+            PostDetailScreen(navController = navController)
+        }
+
+        composable(
+            route = AppScreens.EditPostScreen.route,
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) {
+            val postId = it.arguments?.getString("postId") ?: ""
+            EditPostScreen(navController = navController)
         }
     }
 }
