@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen
-
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,7 +9,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,9 +22,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,9 +36,10 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.messagesscreen.ChatThread
 import com.example.fizyoapp.presentation.navigation.AppScreens
-import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
-
-import java.util.*
+import com.google.firebase.auth.FirebaseAuth
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,14 +49,10 @@ fun MessagesScreen(
     viewModel: MessagesScreenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-
-    // Hata mesajlarını otomatik temizle (özellikle oturum hatalarını)
-    LaunchedEffect(state.error) {
-        if (state.error?.lowercase()?.contains("oturum") == true ||
-            state.error?.lowercase()?.contains("auth") == true) {
-            viewModel.onEvent(MessagesScreenEvent.DismissError)
-        }
-    }
+    val primaryColor = Color(0xFF3B3E68)
+    val backgroundColor = Color(0xFFF8F9FC)
+    val accentColor = Color(0xFF6D72C3)
+    val cardColor = Color.White
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
@@ -62,99 +65,172 @@ fun MessagesScreen(
     }
 
     LaunchedEffect(key1 = navController.currentBackStackEntry) {
-        // Ekrana her girişte mesajları yenile
         viewModel.onEvent(MessagesScreenEvent.RefreshChatThreads)
     }
 
     Scaffold(
+        containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Mesajlar") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Chat,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(26.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            "Mesajlar",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
+                    containerColor = primaryColor,
                     titleContentColor = Color.White
-                )
+                ),
+                actions = {
+                    IconButton(onClick = {
+                        viewModel.onEvent(MessagesScreenEvent.RefreshChatThreads)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Yenile",
+                            tint = Color.White
+                        )
+                    }
+                }
             )
         },
-        bottomBar = { BottomNavbarComponent(navController) }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
+                .background(backgroundColor)
         ) {
-            // İlk yükleme durumunda sadece yükleme göstergesini göster
-            if (state.isInitialLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else if (state.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else if (state.error != null) {
-                // Oturum hatalarını gösterme
-                if (!state.error!!.lowercase().contains("oturum") &&
-                    !state.error!!.lowercase().contains("auth")) {
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = state.error ?: "Bir hata oluştu",
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = { viewModel.onEvent(MessagesScreenEvent.RefreshChatThreads) }) {
-                            Text("Tekrar Dene")
+            when {
+                state.isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(
+                                color = accentColor,
+                                strokeWidth = 4.dp,
+                                modifier = Modifier.size(50.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Mesajlar yükleniyor...",
+                                fontSize = 16.sp,
+                                color = Color.Gray
+                            )
                         }
                     }
                 }
-            } else if (state.chatThreads.isEmpty()) {
-                Text(
-                    text = "Henüz bir mesaj konuşmanız bulunmamaktadır.",
-                    color = Color.Gray,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp)
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .padding(bottom = 60.dp)
-                ) {
-                    items(state.chatThreads) { chatThread ->
-                        ChatThreadItem(
-                            chatThread = chatThread,
-                            onClick = {
-                                // participantIds listesinin boyutunu kontrol et
-                                if (chatThread.participantIds.size == 2) {
-                                    // Sohbette iki kişi varsa (normal durum)
-                                    val firstId = chatThread.participantIds[0]
-                                    val secondId = chatThread.participantIds[1]
-                                    // Mevcut kullanıcı ID'sini kontrol et
-                                    val otherUserId = if (state.currentUserId.isNotEmpty()) {
-                                        // Eğer mevcut kullanıcı ID'si biliniyorsa, diğer ID'yi bul
-                                        if (firstId == state.currentUserId) secondId else firstId
-                                    } else {
-                                        // Mevcut kullanıcı ID'si bilinmiyorsa, ikinci ID'yi kullan
-                                        // Bu bir tahmin ama birçok durumda çalışabilir
-                                        secondId
-                                    }
-                                    navController.navigate(AppScreens.MessagesDetailScreen.createMessageDetailRoute(otherUserId))
-                                } else if (chatThread.participantIds.isNotEmpty()) {
-                                    // Listede sadece bir ID varsa onu kullan
-                                    navController.navigate(AppScreens.MessagesDetailScreen.createMessageDetailRoute(chatThread.participantIds[0]))
-                                } else {
-                                    // Hiçbir ID bulunamadı - hata durumu
-                                    android.util.Log.e("IDDebug", "Geçerli katılımcı ID'si bulunamadı!")
-                                }
+                state.error != null -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ErrorOutline,
+                                contentDescription = null,
+                                tint = Color.Red.copy(alpha = 0.7f),
+                                modifier = Modifier.size(70.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = state.error ?: "Bir hata oluştu",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Medium,
+                                textAlign = TextAlign.Center,
+                                color = Color.DarkGray
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Button(
+                                onClick = { viewModel.onEvent(MessagesScreenEvent.RefreshChatThreads) },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = accentColor
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Refresh,
+                                    contentDescription = null
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Tekrar Dene")
                             }
-                        )
+                        }
+                    }
+                }
+                state.chatThreads.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ChatBubbleOutline,
+                                contentDescription = null,
+                                tint = Color.Gray.copy(alpha = 0.7f),
+                                modifier = Modifier.size(80.dp)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Henüz bir mesaj konuşmanız bulunmamaktadır",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Medium,
+                                textAlign = TextAlign.Center,
+                                color = Color.DarkGray
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Fizyoterapistlerle iletişime geçerek yeni konuşmalar başlatabilirsiniz",
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Center,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                            .padding(bottom = 60.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(state.chatThreads) { chatThread ->
+                            ModernChatThreadItem(
+                                chatThread = chatThread,
+                                onClick = {
+                                    if (chatThread.participantIds.size == 2) {
+                                        val currentAuthId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                                        val firstId = chatThread.participantIds[0]
+                                        val secondId = chatThread.participantIds[1]
+                                        val otherUserId = if (currentAuthId.isNotEmpty()) {
+                                            if (firstId == currentAuthId) secondId else firstId
+                                        } else if (state.currentUserId.isNotEmpty()) {
+                                            if (firstId == state.currentUserId) secondId else firstId
+                                        } else {
+                                            secondId
+                                        }
+                                        navController.navigate(AppScreens.MessagesDetailScreen.createMessageDetailRoute(otherUserId))
+                                    } else if (chatThread.participantIds.isNotEmpty()) {
+                                        navController.navigate(AppScreens.MessagesDetailScreen.createMessageDetailRoute(chatThread.participantIds[0]))
+                                    } else {
+                                        android.util.Log.e("IDDebug", "Geçerli katılımcı ID'si bulunamadı!")
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -163,18 +239,20 @@ fun MessagesScreen(
 }
 
 @Composable
-fun ChatThreadItem(
+fun ModernChatThreadItem(
     chatThread: ChatThread,
     onClick: () -> Unit
 ) {
+    val accentColor = Color(0xFF6D72C3)
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
     ) {
         Row(
             modifier = Modifier
@@ -182,14 +260,20 @@ fun ChatThreadItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Profil Resmi
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(60.dp)
+                    .shadow(4.dp, CircleShape)
                     .clip(CircleShape)
-                    .background(Color.LightGray),
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                Color(0xFF3B3E68),
+                                Color(0xFF6D72C3)
+                            )
+                        )
+                    ),
                 contentAlignment = Alignment.Center
-
             ) {
                 if (chatThread.otherParticipantPhotoUrl.isNotEmpty()) {
                     AsyncImage(
@@ -207,10 +291,7 @@ fun ChatThreadItem(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.width(16.dp))
-
-            // Mesaj içeriği
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -221,21 +302,29 @@ fun ChatThreadItem(
                 ) {
                     Text(
                         text = chatThread.otherParticipantName,
-                        fontSize = 16.sp,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
+                        color = Color(0xFF3B3E68),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
-
-                    Text(
-                        text = DateFormatter.formatDate(chatThread.lastMessageTimestamp),
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = Color(0xFFF0F0F6),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = DateFormatter.formatDate(chatThread.lastMessageTimestamp),
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
+                Spacer(modifier = Modifier.height(6.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -248,14 +337,13 @@ fun ChatThreadItem(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
-
                     if (chatThread.unreadCount > 0) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Box(
                             modifier = Modifier
-                                .size(24.dp)
+                                .size(26.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary),
+                                .background(accentColor),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -279,16 +367,13 @@ object DateFormatter {
         return when {
             now.get(Calendar.YEAR) == messageTime.get(Calendar.YEAR) &&
                     now.get(Calendar.DAY_OF_YEAR) == messageTime.get(Calendar.DAY_OF_YEAR) -> {
-                // Bugün, sadece saati göster
                 SimpleDateFormat("HH:mm", Locale.getDefault()).format(date)
             }
             now.get(Calendar.YEAR) == messageTime.get(Calendar.YEAR) &&
                     now.get(Calendar.DAY_OF_YEAR) == messageTime.get(Calendar.DAY_OF_YEAR) + 1 -> {
-                // Dün
                 "Dün"
             }
             else -> {
-                // Diğer günler, tarihi göster
                 SimpleDateFormat("dd MMM", Locale.getDefault()).format(date)
             }
         }

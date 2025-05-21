@@ -47,7 +47,7 @@ class UserViewModel @Inject constructor(
 
     fun onEvent(event: UserEvent) {
         when (event) {
-            is UserEvent.Logout -> {
+            is UserEvent.SignOut -> {
                 logout()
             }
             is UserEvent.DismissError -> {

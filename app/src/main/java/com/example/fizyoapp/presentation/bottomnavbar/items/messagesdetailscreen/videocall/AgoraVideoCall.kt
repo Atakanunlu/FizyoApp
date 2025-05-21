@@ -121,7 +121,7 @@ class AgoraVideoCall(
 
     fun leaveChannel() {
         rtcEngine?.leaveChannel()
-        _callState.value = VideoCallState() // Reset state
+        _callState.value = VideoCallState()
     }
 
     fun toggleMute(): Boolean {

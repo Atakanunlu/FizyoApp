@@ -1,7 +1,7 @@
 package com.example.fizyoapp.domain.usecase.messagesscreen
 
 import com.example.fizyoapp.data.repository.auth.AuthRepository
-import com.example.fizyoapp.data.repository.messagesscreen.MessageRepository
+import com.example.fizyoapp.data.repository.messagesscreen.MessagesRepository
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.messagesscreen.Message
 import kotlinx.coroutines.flow.Flow
@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class GetMessagesUseCase @Inject constructor(
-    private val messageRepository: MessageRepository,
+    private val messageRepository: MessagesRepository,
     private val authRepository: AuthRepository
 ) {
     operator fun invoke(otherUserId:String):Flow<Resource<List<Message>>> = flow {
