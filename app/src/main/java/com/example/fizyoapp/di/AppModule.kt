@@ -17,8 +17,6 @@ import com.example.fizyoapp.data.repository.note.NoteRepository
 import com.example.fizyoapp.data.repository.note.NoteRepositoryImpl
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepository
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepositoryImpl
-import com.example.fizyoapp.data.repository.social.SocialRepository
-import com.example.fizyoapp.data.repository.social.SocialRepositoryImpl
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepository
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepositoryImpl
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
@@ -44,19 +42,6 @@ import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiother
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistProfileUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.UpdatePhysiotherapistProfileUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.UploadPhysiotherapistProfilePhotoUseCase
-import com.example.fizyoapp.domain.usecase.social.AddCommentUseCase
-import com.example.fizyoapp.domain.usecase.social.CreatePostUseCase
-import com.example.fizyoapp.domain.usecase.social.FollowUserUseCase
-import com.example.fizyoapp.domain.usecase.social.GetCommentsUseCase
-import com.example.fizyoapp.domain.usecase.social.GetFollowersUseCase
-import com.example.fizyoapp.domain.usecase.social.GetFollowingPostsUseCase
-import com.example.fizyoapp.domain.usecase.social.GetFollowingUseCase
-import com.example.fizyoapp.domain.usecase.social.GetGeneralPostsUseCase
-import com.example.fizyoapp.domain.usecase.social.GetSocialProfileUseCase
-import com.example.fizyoapp.domain.usecase.social.GetUserPostsUseCase
-import com.example.fizyoapp.domain.usecase.social.LikePostUseCase
-import com.example.fizyoapp.domain.usecase.social.UnfollowUserUseCase
-import com.example.fizyoapp.domain.usecase.social.UnlikePostUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.CheckProfileCompletedUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.GetUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UpdateUserProfileUseCase
@@ -69,7 +54,6 @@ import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegEx
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesOfExamplesViewModel
-import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -309,7 +293,6 @@ object AppModule {
         return ExercisesExamplesViewModel(getExerciseCategoriesUseCase, populateDatabaseUseCase)
     }
 
-    // Note Repository ve Use-Case'ler
     @Provides
     @Singleton
     fun provideNoteRepository(): NoteRepository {
@@ -352,7 +335,6 @@ object AppModule {
         return UpdateNoteUpdateUseCase(repository)
     }
 
-    // Message Repository ve Use-Case'ler (master'dan gelen)
     @Provides
     @Singleton
     fun provideMessagesScreenViewModel(
@@ -407,98 +389,5 @@ object AppModule {
         authRepository: AuthRepository
     ): MarkMessagesAsReadUseCase {
         return MarkMessagesAsReadUseCase(messageRepository, authRepository)
-    }
-
-    // Sosyal Medya Repository ve Use-Case'ler
-    @Provides
-    @Singleton
-    fun provideSocialRepository(
-        authRepository: AuthRepository,
-        physiotherapistProfileRepository: PhysiotherapistProfileRepository,
-        userProfileRepository: UserProfileRepository
-    ): SocialRepository {
-        return SocialRepositoryImpl(
-            authRepository,
-            physiotherapistProfileRepository,
-            userProfileRepository
-        )
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetGeneralPostsUseCase(repository: SocialRepository): GetGeneralPostsUseCase {
-        return GetGeneralPostsUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetFollowingPostsUseCase(repository: SocialRepository): GetFollowingPostsUseCase {
-        return GetFollowingPostsUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetUserPostsUseCase(repository: SocialRepository): GetUserPostsUseCase {
-        return GetUserPostsUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideCreatePostUseCase(repository: SocialRepository): CreatePostUseCase {
-        return CreatePostUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideLikePostUseCase(repository: SocialRepository): LikePostUseCase {
-        return LikePostUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideUnlikePostUseCase(repository: SocialRepository): UnlikePostUseCase {
-        return UnlikePostUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetCommentsUseCase(repository: SocialRepository): GetCommentsUseCase {
-        return GetCommentsUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideAddCommentUseCase(repository: SocialRepository): AddCommentUseCase {
-        return AddCommentUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetSocialProfileUseCase(repository: SocialRepository): GetSocialProfileUseCase {
-        return GetSocialProfileUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideFollowUserUseCase(repository: SocialRepository): FollowUserUseCase {
-        return FollowUserUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideUnfollowUserUseCase(repository: SocialRepository): UnfollowUserUseCase {
-        return UnfollowUserUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetFollowersUseCase(repository: SocialRepository): GetFollowersUseCase {
-        return GetFollowersUseCase(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetFollowingUseCase(repository: SocialRepository): GetFollowingUseCase {
-        return GetFollowingUseCase(repository)
     }
 }

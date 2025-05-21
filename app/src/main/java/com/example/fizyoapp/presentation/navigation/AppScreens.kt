@@ -24,12 +24,10 @@ sealed class AppScreens(val route:String) {
     object CoreExercisesScreen:AppScreens("core_exercises")
     object HipExercisesScreen:AppScreens("hip_exercises")
 
-    // Not ekranları
     object NotesScreen: AppScreens("notes_screen")
     object NoteDetailScreen: AppScreens("note_detail_screen/{noteId}")
     object AddNoteScreen: AppScreens("add_note_screen")
 
-    // Mesaj ekranları (master'dan)
     object MessagesScreen : AppScreens("messages_screen")
     object MessagesDetailScreen : AppScreens("message_detail_screen/{userId}") {
         fun createMessageDetailRoute(userId: String): String {
@@ -37,12 +35,4 @@ sealed class AppScreens(val route:String) {
         }
     }
 
-    object SocialFeedScreen : AppScreens("social_feed")
-    object SocialProfileScreen : AppScreens("social_profile/{userId}") {
-        fun createRoute(userId: String): String = "social_profile/$userId"
-    }
-    object CreatePostScreen : AppScreens("create_post")
-    object CommentsScreen : AppScreens("comments/{postId}") {
-        fun createRoute(postId: String): String = "comments/$postId"
-    }
 }
