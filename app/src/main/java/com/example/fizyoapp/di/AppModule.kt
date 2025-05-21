@@ -11,6 +11,8 @@ import com.example.fizyoapp.data.repository.auth.AuthRepositoryImpl
 import com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExerciseRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExercisesRepositoryImp
+import com.example.fizyoapp.data.repository.illnessrecordscreen.medicalrecord.MedicalReportRepository
+import com.example.fizyoapp.data.repository.illnessrecordscreen.medicalreport.MedicalReportRepositoryImpl
 import com.example.fizyoapp.data.repository.illnessrecordscreen.radiologicalimagesscreen.RadyolojikGoruntuRepository
 import com.example.fizyoapp.data.repository.illnessrecordscreen.radiologicalimagesscreen.RadyolojikGoruntuRepositoryImpl
 import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainTrackingRepository
@@ -63,6 +65,7 @@ import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
@@ -86,13 +89,6 @@ object AppModule {
     @Singleton
     fun provideAuthRepository(): AuthRepository {
         return AuthRepositoryImpl()
-    }
-    @Provides
-    @Singleton
-    fun provideMessagesRepository(   userProfileRepository: UserProfileRepository,
-                                     authRepository: AuthRepository,
-                                     physiotherapistProfileRepository: PhysiotherapistProfileRepository): MessagesRepository {
-        return MessageRepositoryImpl(userProfileRepository,authRepository,physiotherapistProfileRepository)
     }
 
     @Provides
@@ -455,5 +451,21 @@ object AppModule {
         val storage = FirebaseStorage.getInstance()
         // İsteğe bağlı diğer yapılandırmalar
         return storage
+    }
+    @Provides
+    @Singleton
+    fun provideMedicalReportRepository(
+        storage: FirebaseStorage
+    ): MedicalReportRepository {
+        return MedicalReportRepositoryImpl(storage)
+    }
+    @Provides
+    @Singleton
+    fun provideMessagesRepository(
+        userProfileRepository: UserProfileRepository,
+        auth: AuthRepository,
+        physiotherapistProfileRepository: PhysiotherapistProfileRepository
+    ): MessagesRepository {
+        return MessageRepositoryImpl(userProfileRepository,auth,physiotherapistProfileRepository)
     }
 }

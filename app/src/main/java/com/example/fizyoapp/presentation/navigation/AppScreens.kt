@@ -67,5 +67,6 @@ sealed class AppScreens(val route:String) {
             return "radiology_image_detail_screen/$imageId"
         }
     }
+    object MedicalReportScreen : AppScreens("medical_report_screen")
 
 }

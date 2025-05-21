@@ -30,6 +30,7 @@ import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_sc
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesViewModel
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapistdetail.PhysiotherapistDetailScreen
 import com.example.fizyoapp.presentation.user.illnessrecord.HastaliklarimScreen
+import com.example.fizyoapp.presentation.user.illnessrecord.medicalrecord.MedicalReportScreen
 import com.example.fizyoapp.presentation.user.illnessrecord.radyologicalimagesadd.RadyolojikGoruntulerScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesScreen
@@ -107,7 +108,11 @@ fun AppNavigation() {
         composable(AppScreens.RadyolojikGoruntulerScreen.route){
             RadyolojikGoruntulerScreen(navController=navController)
         }
-
+        composable(
+            route = AppScreens.MedicalReportScreen.route
+        ) {
+            MedicalReportScreen(navController = navController)
+        }
 
 
         composable(AppScreens.UserInformationScreen.route) {

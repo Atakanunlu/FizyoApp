@@ -99,20 +99,20 @@ fun HastaliklarimScreen(
                 )
 
                 HealthDocumentButton(
-                    title = "Değerlendirme Formları",
-                    description = "Fizyoterapi değerlendirme formları ve ölçümleriniz",
-                    icon = Icons.Outlined.Description,
-                    onClick = { /* Değerlendirme formları ekranına git */ }
+                    title = "Tıbbi Raporlar",
+                    description = "Teşhis, tedavi ve konsültasyon raporlarınız",
+                    icon = Icons.Outlined.CloudUpload,
+                    onClick = { navController.navigate(AppScreens.MedicalReportScreen.route) }
                 )
 
                 HealthDocumentButton(
-                    title = "Tıbbi Raporlar",
-                    description = "Teşhis, tedavi ve konsültasyon raporlarınız",
+                    title = "Değerlendirme Formları",
+                    description = "",
                     icon = Icons.Outlined.CloudUpload,
                     onClick = { /* Raporlar ekranına git */ }
                 )
 
-                // Alt bilgi mesajı
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -150,7 +150,6 @@ fun HastaliklarimScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HealthDocumentButton(
     title: String,
