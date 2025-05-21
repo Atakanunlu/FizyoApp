@@ -1,3 +1,4 @@
+// presentation/navigation/AppScreens.kt
 package com.example.fizyoapp.presentation.navigation
 
 sealed class AppScreens(val route:String) {
@@ -23,21 +24,18 @@ sealed class AppScreens(val route:String) {
     object LegExercisesScreen:AppScreens("leg_exercises")
     object CoreExercisesScreen:AppScreens("core_exercises")
     object HipExercisesScreen:AppScreens("hip_exercises")
-
     // Not ekranları
     object NotesScreen: AppScreens("notes_screen")
     object NoteDetailScreen: AppScreens("note_detail_screen/{noteId}")
     object AddNoteScreen: AppScreens("add_note_screen")
-
-    // Mesaj ekranları (master'dan)
+    // Mesaj ekranları
     object MessagesScreen : AppScreens("messages_screen")
     object MessagesDetailScreen : AppScreens("message_detail_screen/{userId}") {
         fun createMessageDetailRoute(userId: String): String {
             return "message_detail_screen/$userId"
         }
     }
-
-    // Ayarlar ekranı (master'dan)
+    // Ayarlar ekranı
     object SettingsScreen : AppScreens("settings")
     object PainTrackingScreen : AppScreens("pain_tracking")
     object AddPainRecordScreen : AppScreens("add_pain_record")
@@ -68,8 +66,8 @@ sealed class AppScreens(val route:String) {
         }
     }
     object UploadMedicalRecordScreen: AppScreens("upload_medical_record_screen")
-
     object SocialMediaScreen : AppScreens("social_media_screen")
+    object SocialMediaSearchScreen : AppScreens("social_media_search_screen")
     object CreatePostScreen : AppScreens("create_post_screen")
     object PostDetailScreen : AppScreens("post_detail_screen/{postId}") {
         fun createRoute(postId: String): String {
@@ -79,6 +77,11 @@ sealed class AppScreens(val route:String) {
     object EditPostScreen : AppScreens("edit_post_screen/{postId}") {
         fun createRoute(postId: String): String {
             return "edit_post_screen/$postId"
+        }
+    }
+    object PhysiotherapistSocialProfile : AppScreens("physiotherapist_social_profile") {
+        fun createRoute(physiotherapistId: String): String {
+            return "physiotherapist_social_profile/$physiotherapistId"
         }
     }
 }

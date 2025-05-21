@@ -66,6 +66,9 @@ import com.example.fizyoapp.domain.usecase.user_profile.CheckProfileCompletedUse
 import com.example.fizyoapp.domain.usecase.user_profile.GetUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UpdateUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UploadProfilePhotoUseCase
+import com.example.fizyoapp.presentation.socialmedia.PhysiotherapistSocialProfileViewModel
+import com.example.fizyoapp.presentation.socialmedia.SocialMediaSearchViewModel
+import com.example.fizyoapp.presentation.socialmedia.SocialMediaViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.ExercisesExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip.HipExercisesOfExamplesViewModel
@@ -522,4 +525,6 @@ object AppModule {
     fun provideUpdatePostUseCase(repository: SocialMediaRepository): UpdatePostUseCase {
         return UpdatePostUseCase(repository)
     }
+
+
 }
