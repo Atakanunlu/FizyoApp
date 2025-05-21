@@ -28,6 +28,9 @@ import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.messagesscreen.Message
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.videocall.VideoCallScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.DateFormatter
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.RadiologicalImageDetailDialog
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.RadiologicalImageMessageBubble
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.isRadiologicalImageMessage
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -63,6 +66,8 @@ fun MessagesDetailScreen(
         )
         return
     }
+    var selectedRadiologicalMessage by remember { mutableStateOf<Message?>(null) }
+
 
     LaunchedEffect(state.messages.size) {
         if(state.messages.isNotEmpty()){
@@ -258,9 +263,21 @@ fun MessagesDetailScreen(
                                         message = message,
                                         isFromCurrentUser = message.senderId == currentUserId,
                                         myMessageColor = myMessageColor,
-                                        otherMessageColor = otherMessageColor
+                                        otherMessageColor = otherMessageColor,
+                                        onMessageClick = { clickedMessage ->
+                                            // Eğer radyolojik görüntü mesajı ise, detay dialogunu göster
+                                            if (isRadiologicalImageMessage(clickedMessage)) {
+                                                selectedRadiologicalMessage = clickedMessage
+                                            }
+                                        }
                                     )
                                 }
+                            }
+                            selectedRadiologicalMessage?.let { message ->
+                                RadiologicalImageDetailDialog(
+                                    message = message,
+                                    onDismiss = { selectedRadiologicalMessage = null }
+                                )
                             }
                             val showScrollToBottom by remember {
                                 derivedStateOf {
@@ -388,13 +405,13 @@ fun MessagesDetailScreen(
         }
     }
 }
-
 @Composable
 fun ModernMessageItem(
     message: Message,
     isFromCurrentUser: Boolean,
     myMessageColor: Color,
-    otherMessageColor: Color
+    otherMessageColor: Color,
+    onMessageClick: (Message) -> Unit = {} // Yeni parametre ekledik
 ) {
     Column(
         modifier = Modifier
@@ -402,51 +419,63 @@ fun ModernMessageItem(
             .padding(vertical = 4.dp),
         horizontalAlignment = if (isFromCurrentUser) Alignment.End else Alignment.Start
     ) {
-        Box(
-            modifier = Modifier
-                .widthIn(max = 280.dp)
-                .clip(
-                    RoundedCornerShape(
-                        topStart = 16.dp,
-                        topEnd = 16.dp,
-                        bottomStart = if (isFromCurrentUser) 16.dp else 4.dp,
-                        bottomEnd = if (isFromCurrentUser) 4.dp else 16.dp
-                    )
-                )
-                .background(
-                    if (isFromCurrentUser) myMessageColor else otherMessageColor
-                )
-                .padding(12.dp)
-        ) {
-            Text(
-                text = message.content,
-                color = if (isFromCurrentUser) Color.White else Color.Black
+        // Mesaj içeriğini kontrol et
+        if (isRadiologicalImageMessage(message)) {
+            // Radyolojik görüntü mesajı
+            RadiologicalImageMessageBubble(
+                message = message,
+                isCurrentUser = isFromCurrentUser,
+                onClick = { onMessageClick(message) }
             )
-        }
-        Spacer(modifier = Modifier.height(2.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 4.dp)
-        ) {
-            if (isFromCurrentUser) {
+        } else {
+            // Normal metin mesajı
+            Box(
+                modifier = Modifier
+                    .widthIn(max = 280.dp)
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = 16.dp,
+                            topEnd = 16.dp,
+                            bottomStart = if (isFromCurrentUser) 16.dp else 4.dp,
+                            bottomEnd = if (isFromCurrentUser) 4.dp else 16.dp
+                        )
+                    )
+                    .background(
+                        if (isFromCurrentUser) myMessageColor else otherMessageColor
+                    )
+                    .padding(12.dp)
+            ) {
                 Text(
-                    text = DateFormatter.formatMessageTime(message.timestamp),
-                    fontSize = 12.sp,
-                    color = Color.Gray
+                    text = message.content,
+                    color = if (isFromCurrentUser) Color.White else Color.Black
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.Default.Done,
-                    contentDescription = null,
-                    tint = Color.Gray,
-                    modifier = Modifier.size(12.dp)
-                )
-            } else {
-                Text(
-                    text = DateFormatter.formatMessageTime(message.timestamp),
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
+            }
+
+            Spacer(modifier = Modifier.height(2.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            ) {
+                if (isFromCurrentUser) {
+                    Text(
+                        text = DateFormatter.formatMessageTime(message.timestamp),
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.Done,
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(12.dp)
+                    )
+                } else {
+                    Text(
+                        text = DateFormatter.formatMessageTime(message.timestamp),
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
             }
         }
     }

@@ -11,6 +11,8 @@ import com.example.fizyoapp.data.repository.auth.AuthRepositoryImpl
 import com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExerciseRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExercisesRepositoryImp
+import com.example.fizyoapp.data.repository.illnessrecordscreen.radiologicalimagesscreen.RadyolojikGoruntuRepository
+import com.example.fizyoapp.data.repository.illnessrecordscreen.radiologicalimagesscreen.RadyolojikGoruntuRepositoryImpl
 import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainTrackingRepository
 import com.example.fizyoapp.data.repository.mainscreen.PainTrackingRepositoryImpl
 import com.example.fizyoapp.data.repository.messagesscreen.MessageRepositoryImpl
@@ -62,6 +64,7 @@ import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.Neck
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -436,5 +439,21 @@ object AppModule {
     @Provides
     fun provideDeletePainRecordUseCase(repository: PainTrackingRepository): DeletePainRecordUseCase {
         return DeletePainRecordUseCase(repository)
+    }
+    @Provides
+    @Singleton
+    fun provideRadyolojikGoruntuRepository(
+
+        storage: FirebaseStorage
+    ): RadyolojikGoruntuRepository {
+        return RadyolojikGoruntuRepositoryImpl(storage)
+    }
+    @Provides
+    @Singleton
+    fun provideFirebaseStorage(): FirebaseStorage {
+        // Özel yapılandırma
+        val storage = FirebaseStorage.getInstance()
+        // İsteğe bağlı diğer yapılandırmalar
+        return storage
     }
 }

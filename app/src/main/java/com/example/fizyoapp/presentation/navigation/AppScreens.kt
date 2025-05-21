@@ -61,11 +61,11 @@ sealed class AppScreens(val route:String) {
             return "evaluation_form_create_screen/$formType"
         }
     }
-    object RadiologyImagesScreen: AppScreens("radiology_images_screen")
+    object RadyolojikGoruntulerScreen: AppScreens("radiology_images_screen")
     object RadiologyImageDetailScreen: AppScreens("radiology_image_detail_screen/{imageId}") {
         fun createRoute(imageId: String): String {
             return "radiology_image_detail_screen/$imageId"
         }
     }
-    object UploadMedicalRecordScreen: AppScreens("upload_medical_record_screen")
+
 }

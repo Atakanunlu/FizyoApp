@@ -29,6 +29,8 @@ import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_sc
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesViewModel
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapistdetail.PhysiotherapistDetailScreen
+import com.example.fizyoapp.presentation.user.illnessrecord.HastaliklarimScreen
+import com.example.fizyoapp.presentation.user.illnessrecord.radyologicalimagesadd.RadyolojikGoruntulerScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesScreen
@@ -89,6 +91,10 @@ fun AppNavigation() {
             CoreExercisesScreen(navController=navController)
         }
 
+        composable(AppScreens.HastaliklarimScreen.route){
+            HastaliklarimScreen(navController=navController)
+        }
+
         composable(AppScreens.UserProfileSetupScreen.route) {
             UserProfileSetupScreen(
                 navController = navController,
@@ -97,6 +103,9 @@ fun AppNavigation() {
         }
         composable(AppScreens.SettingsScreen.route){
             SettingsScreen(navController=navController)
+        }
+        composable(AppScreens.RadyolojikGoruntulerScreen.route){
+            RadyolojikGoruntulerScreen(navController=navController)
         }
 
 
