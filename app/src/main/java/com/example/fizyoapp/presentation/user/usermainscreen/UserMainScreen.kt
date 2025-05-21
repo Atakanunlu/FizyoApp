@@ -28,7 +28,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.fizyoapp.domain.model.usermainscreen.PainRecord
 import com.example.fizyoapp.presentation.navigation.AppScreens
-import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
+import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
+
 import java.text.SimpleDateFormat
 import java.util.*
 
