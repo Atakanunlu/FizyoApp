@@ -1,7 +1,7 @@
 package com.example.fizyoapp.domain.usecase.messagesscreen
 
 import com.example.fizyoapp.data.repository.auth.AuthRepository
-import com.example.fizyoapp.data.repository.messagesscreen.MessageRepository
+import com.example.fizyoapp.data.repository.messagesscreen.MessagesRepository
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.messagesscreen.Message
 import kotlinx.coroutines.flow.Flow
@@ -10,7 +10,7 @@ import java.util.Date
 import javax.inject.Inject
 
 class SendMessageUseCase @Inject constructor(
-    private val messageRepository: MessageRepository,
+    private val messageRepository: MessagesRepository,
     private val authRepository: AuthRepository
 ){
 
@@ -24,7 +24,6 @@ class SendMessageUseCase @Inject constructor(
             if (authResult is Resource.Success && authResult.data?.user != null) {
                 val currentUserId = authResult.data.user.id
 
-                // Tutarlı bir threadId oluştur
                 val threadId = createChatId(currentUserId, receiverId)
 
                 val message = Message(
@@ -43,7 +42,6 @@ class SendMessageUseCase @Inject constructor(
         }
     }
 
-    // Yardımcı fonksiyon
     private fun createChatId(userId1: String, userId2: String): String {
         return if (userId1 < userId2) {
             "${userId1}_${userId2}"

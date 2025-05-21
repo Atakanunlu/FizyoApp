@@ -79,7 +79,7 @@ fun ProfilScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.onEvent(UserEvent.Logout)
+                        viewModel.onEvent(UserEvent.SignOut)
                         showLogoutDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(

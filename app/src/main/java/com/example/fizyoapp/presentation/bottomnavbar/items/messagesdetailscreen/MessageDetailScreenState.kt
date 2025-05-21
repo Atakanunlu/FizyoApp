@@ -13,7 +13,7 @@ data class MessageDetailScreenState(
     val physiotherapist: PhysiotherapistProfile? = null,
     val user: UserProfile? = null,
     val isVideoCallActive: Boolean = false,
-    val isInitialLoading: Boolean = true, // Yeni eklenen alan
+    val isInitialLoading: Boolean = true,
     val isLoading: Boolean = false,
     val error: String? = null
 )

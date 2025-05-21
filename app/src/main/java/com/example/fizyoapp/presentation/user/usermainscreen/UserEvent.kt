@@ -1,7 +1,7 @@
 package com.example.fizyoapp.presentation.user.usermainscreen
 
 sealed class UserEvent {
-    object Logout : UserEvent()
+    object SignOut : UserEvent()
     object DismissError : UserEvent()
     object LoadUserProfile : UserEvent()
 }

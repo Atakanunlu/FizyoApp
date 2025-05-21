@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
@@ -12,7 +11,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,11 +25,8 @@ class MessagesScreenViewModel @Inject constructor(
     private val _uiEvent = MutableSharedFlow<MessagesScreenUiEvent>()
     val uiEvent: SharedFlow<MessagesScreenUiEvent> = _uiEvent.asSharedFlow()
 
-    // Hata kontrolü için yardımcı fonksiyon
     private fun shouldShowError(errorMessage: String?): Boolean {
         if (errorMessage == null) return false
-
-        // "Oturum açmanız gerekiyor" veya benzer hataları gizle
         val ignoredErrors = listOf(
             "oturum açmanız gerekiyor",
             "oturum açman",
@@ -43,7 +38,6 @@ class MessagesScreenViewModel @Inject constructor(
             "yetki",
             "auth"
         )
-
         val lowerCaseError = errorMessage.lowercase()
         return !ignoredErrors.any { lowerCaseError.contains(it) }
     }
@@ -69,15 +63,17 @@ class MessagesScreenViewModel @Inject constructor(
     }
 
     private fun loadChatThreads() {
-        // Oturum kontrolü
         if (FirebaseAuth.getInstance().currentUser == null) {
-            // Oturum yoksa sessizce çık
             _state.update { it.copy(isLoading = false, isInitialLoading = false) }
             return
         }
 
         viewModelScope.launch {
-            getChatThreadsUseCase().collectLatest { result ->
+            _state.update { it.copy(isLoading = true, error = null) }
+            val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+            _state.update { it.copy(currentUserId = currentUid) }
+
+            getChatThreadsUseCase().collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _state.update { it.copy(isLoading = true, error = null) }

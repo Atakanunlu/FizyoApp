@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen
-
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,7 +36,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.messagesscreen.ChatThread
 import com.example.fizyoapp.presentation.navigation.AppScreens
-import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
+import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -106,7 +105,6 @@ fun MessagesScreen(
                 }
             )
         },
-        bottomBar = { BottomNavbarComponent(navController) }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -132,7 +130,6 @@ fun MessagesScreen(
                         }
                     }
                 }
-
                 state.error != null -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(
@@ -172,7 +169,6 @@ fun MessagesScreen(
                         }
                     }
                 }
-
                 state.chatThreads.isEmpty() -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(
@@ -203,7 +199,6 @@ fun MessagesScreen(
                         }
                     }
                 }
-
                 else -> {
                     LazyColumn(
                         modifier = Modifier
@@ -217,9 +212,12 @@ fun MessagesScreen(
                                 chatThread = chatThread,
                                 onClick = {
                                     if (chatThread.participantIds.size == 2) {
+                                        val currentAuthId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
                                         val firstId = chatThread.participantIds[0]
                                         val secondId = chatThread.participantIds[1]
-                                        val otherUserId = if (state.currentUserId.isNotEmpty()) {
+                                        val otherUserId = if (currentAuthId.isNotEmpty()) {
+                                            if (firstId == currentAuthId) secondId else firstId
+                                        } else if (state.currentUserId.isNotEmpty()) {
                                             if (firstId == state.currentUserId) secondId else firstId
                                         } else {
                                             secondId
@@ -246,7 +244,6 @@ fun ModernChatThreadItem(
     onClick: () -> Unit
 ) {
     val accentColor = Color(0xFF6D72C3)
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -263,7 +260,6 @@ fun ModernChatThreadItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Profil Resmi - geliştirilmiş
             Box(
                 modifier = Modifier
                     .size(60.dp)
@@ -295,9 +291,7 @@ fun ModernChatThreadItem(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.width(16.dp))
-
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -315,7 +309,6 @@ fun ModernChatThreadItem(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
-
                     Box(
                         modifier = Modifier
                             .background(
@@ -331,9 +324,7 @@ fun ModernChatThreadItem(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(6.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -346,7 +337,6 @@ fun ModernChatThreadItem(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
-
                     if (chatThread.unreadCount > 0) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Box(
@@ -377,16 +367,13 @@ object DateFormatter {
         return when {
             now.get(Calendar.YEAR) == messageTime.get(Calendar.YEAR) &&
                     now.get(Calendar.DAY_OF_YEAR) == messageTime.get(Calendar.DAY_OF_YEAR) -> {
-                // Bugün, sadece saati göster
                 SimpleDateFormat("HH:mm", Locale.getDefault()).format(date)
             }
             now.get(Calendar.YEAR) == messageTime.get(Calendar.YEAR) &&
                     now.get(Calendar.DAY_OF_YEAR) == messageTime.get(Calendar.DAY_OF_YEAR) + 1 -> {
-                // Dün
                 "Dün"
             }
             else -> {
-                // Diğer günler, tarihi göster
                 SimpleDateFormat("dd MMM", Locale.getDefault()).format(date)
             }
         }

@@ -9,7 +9,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.MessagesDetailScreen
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MessagesScreen
 import com.example.fizyoapp.presentation.login.LoginScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen.PhysiotherapistMainScreen
 import com.example.fizyoapp.presentation.register.RegisterScreen
@@ -18,6 +17,7 @@ import com.example.fizyoapp.presentation.bottomnavbar.items.paylasimlarscreen.Pa
 import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.ProfilScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.SettingsScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.searchscreen.SearchScreen
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MessagesScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_profile_screen.PhysiotherapistProfileSetupScreen
 import com.example.fizyoapp.presentation.splashscreen.SplashScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesScreen
@@ -160,14 +160,16 @@ fun AppNavigation() {
         }
 
         composable(
+            route = AppScreens.MessagesScreen.route,
+        ) { MessagesScreen(navController) }
+
+        composable(
             route = AppScreens.MessagesDetailScreen.route,
             arguments = listOf(
-                navArgument("userId") {
-                    type = NavType.StringType
-                }
+                navArgument("userId") { type = NavType.StringType }
             )
-        ) {
-            val userId = it.arguments?.getString("userId") ?: ""
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
             MessagesDetailScreen(
                 navController = navController,
                 userId = userId

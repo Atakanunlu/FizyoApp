@@ -1,9 +1,9 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -26,7 +26,6 @@ fun PhysiotherapistMainScreen(
     viewModel: PhysiotherapistViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.collectAsState().value
-
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
@@ -38,7 +37,6 @@ fun PhysiotherapistMainScreen(
             }
         }
     }
-
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -55,7 +53,6 @@ fun PhysiotherapistMainScreen(
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-
                 Button(
                     onClick = {
                         navController.navigate(AppScreens.PhysiotherapistProfileUpdateScreen.route)
@@ -71,7 +68,6 @@ fun PhysiotherapistMainScreen(
                     )
                     Text("Profil Bilgilerim")
                 }
-
 
                 ElevatedButton(
                     onClick = {
@@ -123,6 +119,57 @@ fun PhysiotherapistMainScreen(
                     }
                 }
 
+                // Mesajlarım Butonu
+                ElevatedButton(
+                    onClick = {
+                        navController.navigate(AppScreens.MessagesScreen.route)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.elevatedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Chat,
+                            contentDescription = "Mesajlarım",
+                            modifier = Modifier
+                                .size(28.dp)
+                                .padding(end = 16.dp)
+                        )
+                        Column(
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Text(
+                                text = "Mesajlarım",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Hastalarınızla olan tüm mesajlaşmalarınızı görüntüleyin",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    }
+                }
+
                 state.errorMessage?.let {
                     Text(
                         text = it,
@@ -131,9 +178,7 @@ fun PhysiotherapistMainScreen(
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                 }
-
                 Spacer(modifier = Modifier.weight(1f))
-
                 Button(
                     onClick = { viewModel.onEvent(PhysiotherapistEvent.SignOut) },
                     enabled = !state.isLoading,

@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen
-
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -44,7 +43,6 @@ fun MessagesDetailScreen(
     val coroutineScope = rememberCoroutineScope()
     val currentUserId = state.currentUserId
     val context = LocalContext.current
-
     val primaryColor = Color(0xFF3B3E68)
     val backgroundColor = Color(0xFFF8F9FC)
     val accentColor = Color(0xFF6D72C3)
@@ -52,7 +50,6 @@ fun MessagesDetailScreen(
     val otherMessageColor = Color(0xFFF0F0F6)
     val textFieldColor = Color.White
 
-    // Video arama aktifse video ekranını göster
     if (state.isVideoCallActive) {
         val otherUserName = if (state.isPhysiotherapist) {
             "${state.physiotherapist?.firstName ?: ""} ${state.physiotherapist?.lastName ?: ""}"
@@ -120,13 +117,13 @@ fun MessagesDetailScreen(
                         ) {
                             val name = if (state.isPhysiotherapist) {
                                 if (state.physiotherapist != null) {
-                                    "FZT. ${state.physiotherapist!!.firstName} ${state.physiotherapist!!.lastName}"
+                                    "FZT. ${state.physiotherapist!!.firstName ?: ""} ${state.physiotherapist!!.lastName ?: ""}"
                                 } else {
                                     "Fizyoterapist"
                                 }
                             } else {
                                 if (state.user != null) {
-                                    "${state.user!!.firstName} ${state.user!!.lastName}"
+                                    "${state.user!!.firstName ?: ""} ${state.user!!.lastName ?: ""}"
                                 } else {
                                     "Kullanıcı"
                                 }
@@ -143,15 +140,11 @@ fun MessagesDetailScreen(
                                     fontSize = 12.sp,
                                     color = Color.White.copy(alpha = 0.8f)
                                 )
-
                             }
                         }
-
-
                     }
                 },
                 navigationIcon = {
-
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
@@ -207,8 +200,6 @@ fun MessagesDetailScreen(
                             }
                         }
                     }
-
-
                     state.error != null && state.messages.isEmpty() -> {
                         Box(
                             modifier = Modifier.weight(1f),
@@ -255,7 +246,6 @@ fun MessagesDetailScreen(
                                 .fillMaxWidth()
                                 .background(backgroundColor)
                         ) {
-                            // Mesajlar Listesi
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -392,19 +382,11 @@ fun MessagesDetailScreen(
                                 )
                             }
                         }
-
                     }
-
-
                 }
             }
-
-
         }
-
-
     }
-
 }
 
 @Composable
