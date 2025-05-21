@@ -11,6 +11,7 @@ lifecycle = "2.8.7"
 activity-compose = "1.8.2"
 compose-bom = "2024.02.00"
 lottie-compose = "6.4.1"
+material = "1.8.2"
 navigation = "2.7.7"
 room = "2.6.1"
 serialization-json = "1.6.0"
@@ -22,6 +23,7 @@ room-runtime-android = "2.7.1"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 androidx-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "core-testing" }
 androidx-lifecycle-runtime-testing = { module = "androidx.lifecycle:lifecycle-runtime-testing", version.ref = "lifecycle" }
+androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }

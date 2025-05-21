@@ -1,5 +1,6 @@
 package com.example.fizyoapp.presentation.navigation
 
+import OrnekEgzersizler
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -8,32 +9,31 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.MessagesDetailScreen
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MessagesScreen
 import com.example.fizyoapp.presentation.login.LoginScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen.PhysiotherapistMainScreen
 import com.example.fizyoapp.presentation.register.RegisterScreen
 import com.example.fizyoapp.presentation.user.usermainscreen.UserMainScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.paylasimlarscreen.PaylasimlarScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.ProfilScreen
+import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.SettingsScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.searchscreen.SearchScreen
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MessagesScreen
+import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_profile_screen.PhysiotherapistProfileSetupScreen
+import com.example.fizyoapp.presentation.splashscreen.SplashScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip.HipExercisesScreen
+import com.example.fizyoapp.presentation.user.userprofile.UserProfileSetupScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.addnote.AddNoteScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notedetail.NoteDetailScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesEvent
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesViewModel
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapistdetail.PhysiotherapistDetailScreen
-import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_profile_screen.PhysiotherapistProfileSetupScreen
-import com.example.fizyoapp.presentation.splashscreen.SplashScreen
-import com.example.fizyoapp.presentation.user.hastaliklarim.HastaliklarimScreen
-import com.example.fizyoapp.presentation.user.hastaliklarim.radyolojikgoruntuekle.RadyolojikGoruntuEkle
-import com.example.fizyoapp.presentation.user.ornekegzersizler.OrnekEgzersizler
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesScreen
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.LegExercisesScreen
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.LowerBackExercisesScreen
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.NeckExercisesScreen
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.ShoulderExercisesScreen
-import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip.HipExercisesScreen
-import com.example.fizyoapp.presentation.user.userprofile.UserProfileSetupScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesScreen
+import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesScreen
+import com.example.fizyoapp.presentation.user.usermainscreen.PainTrackingScreen
 
 
 @Composable
@@ -70,35 +70,33 @@ fun AppNavigation() {
         composable(AppScreens.PaylasimlarScreen.route) {
             PaylasimlarScreen(navController = navController)
         }
-        composable(AppScreens.HastaliklarimScreen.route) {
-            HastaliklarimScreen(navController = navController)
+        composable(AppScreens.ShoulderExercisesScreen.route){
+            ShoulderExercisesScreen(navController=navController)
         }
-        composable(AppScreens.RadyolojikGoruntuEkleScreen.route) {
-            RadyolojikGoruntuEkle(navController = navController)
+        composable(AppScreens.LowerBackExercisesScreen.route){
+            LowerBackExercisesScreen(navController=navController)
         }
-        composable(AppScreens.ShoulderExercisesScreen.route) {
-            ShoulderExercisesScreen(navController = navController)
+        composable(AppScreens.NeckExercisesScreen.route){
+            NeckExercisesScreen(navController=navController)
         }
-        composable(AppScreens.LowerBackExercisesScreen.route) {
-            LowerBackExercisesScreen(navController = navController)
+        composable(AppScreens.HipExercisesScreen.route){
+            HipExercisesScreen(navController=navController)
         }
-        composable(AppScreens.NeckExercisesScreen.route) {
-            NeckExercisesScreen(navController = navController)
+        composable(AppScreens.LegExercisesScreen.route){
+            LegExercisesScreen(navController=navController)
         }
-        composable(AppScreens.HipExercisesScreen.route) {
-            HipExercisesScreen(navController = navController)
+        composable(AppScreens.CoreExercisesScreen.route){
+            CoreExercisesScreen(navController=navController)
         }
-        composable(AppScreens.LegExercisesScreen.route) {
-            LegExercisesScreen(navController = navController)
-        }
-        composable(AppScreens.CoreExercisesScreen.route) {
-            CoreExercisesScreen(navController = navController)
-        }
+
         composable(AppScreens.UserProfileSetupScreen.route) {
             UserProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = true
             )
+        }
+        composable(AppScreens.SettingsScreen.route){
+            SettingsScreen(navController=navController)
         }
 
 
@@ -109,18 +107,22 @@ fun AppNavigation() {
                 isFirstSetup = false
             )
         }
+
         composable(AppScreens.PhysiotherapistProfileSetupScreen.route) {
             PhysiotherapistProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = true
             )
         }
+
         composable(AppScreens.PhysiotherapistProfileUpdateScreen.route) {
             PhysiotherapistProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = false
             )
         }
+
+
         composable(
             route = "${AppScreens.PhysiotherapistDetailScreen.route}/{physiotherapistId}",
             arguments = listOf(navArgument("physiotherapistId") { type = NavType.StringType })
@@ -156,19 +158,25 @@ fun AppNavigation() {
         ) {
             MessagesScreen(navController = navController)
         }
+
+        composable(
+            route = AppScreens.MessagesScreen.route,
+        ) { MessagesScreen(navController) }
+
         composable(
             route = AppScreens.MessagesDetailScreen.route,
             arguments = listOf(
-                navArgument("userId") {
-                    type = NavType.StringType
-                }
+                navArgument("userId") { type = NavType.StringType }
             )
-        ) {
-            val userId = it.arguments?.getString("userId") ?: ""
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
             MessagesDetailScreen(
                 navController = navController,
                 userId = userId
             )
+        }
+        composable(AppScreens.PainTrackingScreen.route) {
+            PainTrackingScreen(navController = navController)
         }
     }
 }

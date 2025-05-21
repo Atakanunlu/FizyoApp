@@ -33,9 +33,7 @@ import coil.request.ImageRequest
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.user.usermainscreen.UserEvent
 import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
-import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
-
-
+import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
 import kotlinx.coroutines.flow.collectLatest
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -64,6 +62,12 @@ fun ProfilScreen(
                 }
                 else -> {}
             }
+        }
+    }
+    LaunchedEffect(key1 = true) {
+        viewModel.profileUpdatedEvent.collectLatest {
+            // Profil güncellendiğinde kullanıcı profilini tekrar yükle
+            viewModel.onEvent(UserEvent.LoadUserProfile)
         }
     }
 
@@ -128,7 +132,7 @@ fun ProfilScreen(
                     .padding(bottom = paddingValues.calculateBottomPadding())
             ) {
                 ProfileHeader(
-                    userName = "${state.userProfile?.firstName ?: ""} ${state.userProfile?.lastName ?: ""}",
+                    userName = "${state.userProfile?.firstName} ${state.userProfile?.lastName}",
                     profilePhotoUrl = state.userProfile?.profilePhotoUrl,
                     onEditProfileClick = {
                         navController.navigate(AppScreens.UserInformationScreen.route)
@@ -320,7 +324,7 @@ fun ProfileMenuSection(
                     primaryColor = primaryColor,
                     accentColor = accentColor
                 ) {
-
+                    navController.navigate(AppScreens.SettingsScreen.route)
                 }
             }
         }

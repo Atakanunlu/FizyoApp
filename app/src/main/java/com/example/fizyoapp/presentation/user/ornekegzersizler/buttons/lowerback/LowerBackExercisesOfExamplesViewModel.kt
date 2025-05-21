@@ -1,8 +1,5 @@
 package com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback
-
-
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.local.entity.exercisevideos.ExamplesOfExercisesEntity
@@ -21,9 +18,8 @@ class LowerBackExercisesOfExamplesViewModel @Inject constructor(
 ): ViewModel() {
     private val _videoList = MutableStateFlow<List<ExamplesOfExercisesEntity>>(emptyList())
     val videoList: StateFlow<List<ExamplesOfExercisesEntity>> = _videoList
-
     private val CATEGORY="lowerback"
-    // Uygulama başladığında videoları yükle
+
     init {
         loadVideos()
     }
@@ -31,10 +27,7 @@ class LowerBackExercisesOfExamplesViewModel @Inject constructor(
     fun loadVideos() {
         viewModelScope.launch {
             try {
-                // Veritabanını temizle - artık suspend func olarak çağrılabilir
                 repository.deleteVideosByCategory(CATEGORY)
-
-                // Video listesi
                 val videoResources = listOf(
                     VideoResource("spinalrotation", "Sırt üstü yat, dizlerini bük. Ağrın varsa bacaklarını düz şekilde uzatıp duvara yaslayabilirsin.\n" +
                             "\n" +
@@ -50,11 +43,11 @@ class LowerBackExercisesOfExamplesViewModel @Inject constructor(
                             "\n"),
                     VideoResource("spinalflexion", "Ayakta dur, kollarını aşağı uzatarak yavaşça belini hissederek aşağı eğilebildiğin kadar eğil.\n" +
                             "\n" +
-                    " Tekrardan yavaş yavaş başlangıç pozisyonuna gel.\n" +
+                            " Tekrardan yavaş yavaş başlangıç pozisyonuna gel.\n" +
                             "\uD83D\uDD01 Her iki yönde 10 tekrar yap.\n"),
                     VideoResource("spinalextansion", "Ayakta dur, ellerini belinden tut ve vücudunu arkaya doğru esnet. \n" +
                             "\n" +
-                    "Tekrardan yavaş yavaş başlangıç pozisyonuna gel.\n"+
+                            "Tekrardan yavaş yavaş başlangıç pozisyonuna gel.\n"+
                             "\uD83D\uDD01 Her iki yönde 10 tekrar yap.\n"),
                     VideoResource("bridge", "Sırt üstü yat, dizlerini bük ve ayaklarını yere bas.\n" +
                             "\n" +
@@ -105,14 +98,12 @@ class LowerBackExercisesOfExamplesViewModel @Inject constructor(
                             "\n"),
                     VideoResource("childpose", "Diz çökün, kalçalarınızı topuklara yaklaştırın. Kollarınızı öne uzatın ve alnınızı yere koyun. Derin nefes alarak rahatlayın.\n" +
                             "\uD83D\uDD52 30 saniye boyunca pozisyonda kalın.")
-                    )
+                )
 
-                // Videoları hazırla
                 val videoEntities = videoResources.mapNotNull { videoResource ->
                     val resourceId = context.resources.getIdentifier(
                         videoResource.name, "raw", context.packageName
                     )
-
                     if (resourceId != 0) {
                         val uri = "android.resource://${context.packageName}/$resourceId"
                         ExamplesOfExercisesEntity(
@@ -125,21 +116,17 @@ class LowerBackExercisesOfExamplesViewModel @Inject constructor(
                     }
                 }
 
-                // Toplu olarak videoları ekle
                 if (videoEntities.isNotEmpty()) {
                     repository.insertVideos(videoEntities)
                 }
+
                 repository.getVideosByCategory(CATEGORY).collect { videos ->
                     _videoList.value = videos
                 }
-
-
             } catch (e: Exception) {
-                Log.e("VideoViewModel", "Error loading videos: ${e.message}")
+                // Hata durumunda işlem yapılmıyor
             }
         }
-
-
     }
 
     private data class VideoResource(

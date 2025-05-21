@@ -6,14 +6,14 @@ import com.example.fizyoapp.domain.model.user_profile.UserProfile
 
 data class MessageDetailScreenState(
     val messages: List<Message> = emptyList(),
+    val currentUserId: String = "",
     val messageText: String = "",
+    val isSending: Boolean = false,
+    val isPhysiotherapist: Boolean = false,
     val physiotherapist: PhysiotherapistProfile? = null,
     val user: UserProfile? = null,
-    val isPhysiotherapist: Boolean = false,
+    val isVideoCallActive: Boolean = false,
+    val isInitialLoading: Boolean = true,
     val isLoading: Boolean = false,
-    val isSending: Boolean = false,
-    val error: String? = null,
-    val currentUserId: String = "",
-    val isVideoCallActive: Boolean = false
-
+    val error: String? = null
 )

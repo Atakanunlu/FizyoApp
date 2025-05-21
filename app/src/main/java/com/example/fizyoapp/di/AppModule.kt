@@ -11,8 +11,10 @@ import com.example.fizyoapp.data.repository.auth.AuthRepositoryImpl
 import com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExerciseRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExercisesRepositoryImp
-import com.example.fizyoapp.data.repository.messagesscreen.MessageRepository
+import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainTrackingRepository
+import com.example.fizyoapp.data.repository.mainscreen.PainTrackingRepositoryImpl
 import com.example.fizyoapp.data.repository.messagesscreen.MessageRepositoryImpl
+import com.example.fizyoapp.data.repository.messagesscreen.MessagesRepository
 import com.example.fizyoapp.data.repository.note.NoteRepository
 import com.example.fizyoapp.data.repository.note.NoteRepositoryImpl
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepository
@@ -26,6 +28,11 @@ import com.example.fizyoapp.domain.usecase.auth.SignOutUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignUpUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.GetExerciseCategoriesUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.PopulateDatabaseUseCase
+import com.example.fizyoapp.domain.usecase.mainscreen.AddPainRecordUseCase
+import com.example.fizyoapp.domain.usecase.mainscreen.DeletePainRecordUseCase
+import com.example.fizyoapp.domain.usecase.mainscreen.GetLatestPainRecordUseCase
+import com.example.fizyoapp.domain.usecase.mainscreen.GetPainRecordsUseCase
+import com.example.fizyoapp.domain.usecase.mainscreen.UpdatePainRecordUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.GetChatThreadsUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.GetMessagesUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.MarkMessagesAsReadUseCase
@@ -46,7 +53,6 @@ import com.example.fizyoapp.domain.usecase.user_profile.CheckProfileCompletedUse
 import com.example.fizyoapp.domain.usecase.user_profile.GetUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UpdateUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UploadProfilePhotoUseCase
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MessagesScreenViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.ExercisesExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip.HipExercisesOfExamplesViewModel
@@ -54,6 +60,8 @@ import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegEx
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesOfExamplesViewModel
+import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -64,10 +72,24 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+
+    @Provides
+    @Singleton
+    fun provideFirebaseFirestore(): FirebaseFirestore {
+        return FirebaseFirestore.getInstance()
+    }
     @Provides
     @Singleton
     fun provideAuthRepository(): AuthRepository {
         return AuthRepositoryImpl()
+    }
+    @Provides
+    @Singleton
+    fun provideMessagesRepository(   userProfileRepository: UserProfileRepository,
+                                     authRepository: AuthRepository,
+                                     physiotherapistProfileRepository: PhysiotherapistProfileRepository): MessagesRepository {
+        return MessageRepositoryImpl(userProfileRepository,authRepository,physiotherapistProfileRepository)
     }
 
     @Provides
@@ -81,6 +103,75 @@ object AppModule {
     fun providePhysiotherapistProfileRepository(): PhysiotherapistProfileRepository {
         return PhysiotherapistProfileRepositoryImpl()
     }
+
+    @Provides
+    @Singleton
+    fun providePainRepository(firestore: FirebaseFirestore): PainTrackingRepository {
+        return PainTrackingRepositoryImpl(firestore)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideGetLatestPainRecordUseCase(painRepository: PainTrackingRepository): GetLatestPainRecordUseCase {
+        return GetLatestPainRecordUseCase(painRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddPainRecordUseCase(painRepository: PainTrackingRepository): AddPainRecordUseCase {
+        return AddPainRecordUseCase(painRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetPainRecordsForUserUseCase(painRepository: PainTrackingRepository): GetPainRecordsUseCase {
+        return GetPainRecordsUseCase (painRepository)
+    }
+    @Provides
+    @Singleton
+    fun provideGetChatThreadsUseCase(messagesRepository: MessagesRepository,authRepository: AuthRepository): GetChatThreadsUseCase {
+        return GetChatThreadsUseCase(messagesRepository,authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetMessagesUseCase(messagesRepository: MessagesRepository,authRepository: AuthRepository): GetMessagesUseCase {
+        return GetMessagesUseCase(messagesRepository,authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSendMessageUseCase(messagesRepository: MessagesRepository,authRepository: AuthRepository): SendMessageUseCase {
+        return SendMessageUseCase(messagesRepository,authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMarkMessagesAsReadUseCase(messagesRepository: MessagesRepository,authRepository: AuthRepository): MarkMessagesAsReadUseCase {
+        return MarkMessagesAsReadUseCase(messagesRepository,authRepository)
+    }
+
+
+
+    // Main Screen ViewModels
+    @Provides
+    @Singleton
+    fun provideUserViewModel(
+        getCurrentUseCase: GetCurrentUseCase,
+        signOutUseCase: SignOutUseCase,
+        getUserProfileUseCase: GetUserProfileUseCase,
+        getLatestPainRecordUseCase: GetLatestPainRecordUseCase,
+    ): UserViewModel {
+        return UserViewModel(
+            getCurrentUseCase,
+            signOutUseCase,
+            getUserProfileUseCase,
+            getLatestPainRecordUseCase)
+    }
+
+
+
 
     @Provides
     @Singleton
@@ -293,6 +384,7 @@ object AppModule {
         return ExercisesExamplesViewModel(getExerciseCategoriesUseCase, populateDatabaseUseCase)
     }
 
+    // Note Repository ve Use-Case'ler
     @Provides
     @Singleton
     fun provideNoteRepository(): NoteRepository {
@@ -335,59 +427,14 @@ object AppModule {
         return UpdateNoteUpdateUseCase(repository)
     }
 
+
     @Provides
-    @Singleton
-    fun provideMessagesScreenViewModel(
-        getChatThreadsUseCase: GetChatThreadsUseCase
-    ): MessagesScreenViewModel {
-        return MessagesScreenViewModel(getChatThreadsUseCase)
+    fun provideUpdatePainRecordUseCase(repository: PainTrackingRepository): UpdatePainRecordUseCase {
+        return UpdatePainRecordUseCase(repository)
     }
 
     @Provides
-    @Singleton
-    fun provideMessageRepository(
-        authRepository: AuthRepository,
-        userProfileRepository: UserProfileRepository,
-        physiotherapistProfileRepository: PhysiotherapistProfileRepository
-    ): MessageRepository {
-        return MessageRepositoryImpl(
-            userProfileRepository, authRepository, physiotherapistProfileRepository
-        )
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetChatThreadsUseCase(
-        messageRepository: MessageRepository,
-        authRepository: AuthRepository
-    ): GetChatThreadsUseCase {
-        return GetChatThreadsUseCase(messageRepository, authRepository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetMessagesUseCase(
-        messageRepository: MessageRepository,
-        authRepository: AuthRepository
-    ): GetMessagesUseCase {
-        return GetMessagesUseCase(messageRepository, authRepository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideSendMessageUseCase(
-        messageRepository: MessageRepository,
-        authRepository: AuthRepository
-    ): SendMessageUseCase {
-        return SendMessageUseCase(messageRepository, authRepository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideMarkMessagesAsReadUseCase(
-        messageRepository: MessageRepository,
-        authRepository: AuthRepository
-    ): MarkMessagesAsReadUseCase {
-        return MarkMessagesAsReadUseCase(messageRepository, authRepository)
+    fun provideDeletePainRecordUseCase(repository: PainTrackingRepository): DeletePainRecordUseCase {
+        return DeletePainRecordUseCase(repository)
     }
 }

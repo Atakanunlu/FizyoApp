@@ -9,4 +9,5 @@ sealed class AuthResult {
     data class CurrentUserResult(val user: User?): AuthResult()
     data class UserRoleResult(val role: UserRole?): AuthResult()
     data object SignOutResult: AuthResult()
+
 }

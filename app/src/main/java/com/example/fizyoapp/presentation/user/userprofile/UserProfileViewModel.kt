@@ -12,6 +12,7 @@ import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.GetUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UpdateUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UploadProfilePhotoUseCase
+import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +29,7 @@ class UserProfileViewModel @Inject constructor(
     private val getUserProfileUseCase: GetUserProfileUseCase,
     private val updateUserProfileUseCase: UpdateUserProfileUseCase,
     private val uploadProfilePhotoUseCase: UploadProfilePhotoUseCase,
+    private val userViewModel: UserViewModel, // ViewModel enjekte edildi
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow(UserProfileState())
@@ -176,7 +178,6 @@ class UserProfileViewModel @Inject constructor(
         val districtError = currentState.district.isBlank()
         val phoneNumberError = currentState.phoneNumber.isBlank()
 
-        // Eğer herhangi bir hata varsa, state'i güncelle ve işlemi durdur
         if (firstNameError || lastNameError || birthDateError || genderError ||
             cityError || districtError || phoneNumberError) {
             _state.value = _state.value.copy(
@@ -243,6 +244,7 @@ class UserProfileViewModel @Inject constructor(
 
                         }
                         is Resource.Success -> {
+                            userViewModel.emitProfileUpdated()
                             _state.value = _state.value.copy(
                                 isLoading = false,
                                 isProfileSaved = true,

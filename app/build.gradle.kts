@@ -169,6 +169,8 @@ dependencies {
 
     // Permissions handling
     implementation( "com.google.accompanist:accompanist-permissions:0.32.0")
+    implementation( libs.androidx.material)
+    implementation( "com.google.accompanist:accompanist-swiperefresh:0.30.1")
 
 }
 

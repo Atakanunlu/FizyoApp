@@ -1,14 +1,14 @@
 package com.example.fizyoapp.domain.usecase.messagesscreen
 
 import com.example.fizyoapp.data.repository.auth.AuthRepository
-import com.example.fizyoapp.data.repository.messagesscreen.MessageRepository
+import com.example.fizyoapp.data.repository.messagesscreen.MessagesRepository
 import com.example.fizyoapp.data.util.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class MarkMessagesAsReadUseCase @Inject constructor(
-    private val messageRepository: MessageRepository,
+    private val messageRepository: MessagesRepository,
     private val authRepository: AuthRepository
 ) {
     operator fun invoke(senderId: String): Flow<Resource<Boolean>> = flow {
