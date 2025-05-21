@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessibilityNew
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Button
@@ -35,7 +36,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
-
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -102,6 +102,39 @@ fun UserMainScreen(
                     }
                 }
 
+                // Sosyal Medya Butonu
+                Row(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Button(
+                        onClick = { navController.navigate(AppScreens.SocialFeedScreen.route) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 20.dp)
+                            .height(150.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 10.dp,
+                            pressedElevation = 6.dp
+                        ),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.DarkGray
+                        )
+                    ) {
+                        Text(
+                            text = "SOSYAL MEDYA  ",
+                            fontStyle = FontStyle.Italic,
+                            style = TextStyle(fontSize = 20.sp)
+                        )
+                        Icon(
+                            imageVector = Icons.Default.Forum,
+                            contentDescription = null,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                }
+
                 // Orta Butonlar
                 Row(
                     modifier = Modifier.fillMaxSize(),
@@ -135,7 +168,6 @@ fun UserMainScreen(
                             modifier = Modifier.size(17.dp)
                         )
                     }
-
                     Button(
                         onClick = { navController.navigate(AppScreens.HastaliklarimScreen.route) },
                         colors = ButtonDefaults.buttonColors(
@@ -199,9 +231,7 @@ fun UserMainScreen(
                         )
                     }
                 }
-
             }
-
 
             item {
                 if (state.isLoading) {

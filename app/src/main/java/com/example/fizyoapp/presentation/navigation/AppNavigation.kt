@@ -23,6 +23,10 @@ import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_sc
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesViewModel
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapistdetail.PhysiotherapistDetailScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_profile_screen.PhysiotherapistProfileSetupScreen
+import com.example.fizyoapp.presentation.social.comments.CommentsScreen
+import com.example.fizyoapp.presentation.social.create.CreatePostScreen
+import com.example.fizyoapp.presentation.social.feed.SocialFeedScreen
+import com.example.fizyoapp.presentation.social.profile.SocialProfileScreen
 import com.example.fizyoapp.presentation.splashscreen.SplashScreen
 import com.example.fizyoapp.presentation.user.hastaliklarim.HastaliklarimScreen
 import com.example.fizyoapp.presentation.user.hastaliklarim.radyolojikgoruntuekle.RadyolojikGoruntuEkle
@@ -170,5 +174,35 @@ fun AppNavigation() {
                 userId = userId
             )
         }
+
+        // Sosyal medya ekranları
+        composable(
+            route = AppScreens.SocialFeedScreen.route
+        ) {
+            SocialFeedScreen(navController = navController)
+        }
+
+        composable(
+            route = AppScreens.SocialProfileScreen.route,
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) {
+            val userId = it.arguments?.getString("userId") ?: ""
+            SocialProfileScreen(navController = navController)
+        }
+
+        composable(
+            route = AppScreens.CreatePostScreen.route
+        ) {
+            CreatePostScreen(navController = navController)
+        }
+
+        composable(
+            route = AppScreens.CommentsScreen.route,
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) {
+            val postId = it.arguments?.getString("postId") ?: ""
+            CommentsScreen(navController = navController)
+        }
     }
+
 }

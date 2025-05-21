@@ -6,6 +6,7 @@ import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.auth.UserRole
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignOutUseCase
+import com.example.fizyoapp.domain.usecase.user_profile.GetUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class UserViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUseCase,
-    private val signOutUseCase: SignOutUseCase
+    private val signOutUseCase: SignOutUseCase,
+    private val getUserProfileUseCase: GetUserProfileUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(UserState())
@@ -46,6 +48,7 @@ class UserViewModel @Inject constructor(
                                 user = user,
                                 errorMessage = null
                             )
+                            getUserProfile(user.id) // yeni
                         } else {
                             _state.value = _state.value.copy(
                                 isLoading = false,
@@ -60,6 +63,33 @@ class UserViewModel @Inject constructor(
                             errorMessage = result.message
                         )
                         _uiEvent.send(UiEvent.NavigateToLogin)
+                    }
+                }
+            }
+        }
+    }
+
+    //yeni
+    private fun getUserProfile(userId: String) {
+        viewModelScope.launch {
+            getUserProfileUseCase(userId).collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(
+                            userProfile = result.data,
+                            isLoading = false
+                        )
+                    }
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(
+                            errorMessage = result.message,
+                            isLoading = false
+                        )
+                    }
+                    is Resource.Loading -> {
+                        _state.value = _state.value.copy(
+                            isLoading = true
+                        )
                     }
                 }
             }

@@ -37,6 +37,12 @@ sealed class AppScreens(val route:String) {
         }
     }
 
-    // Ayarlar ekranı (master'dan)
-    object SettingsScreen : AppScreens("settings")
+    object SocialFeedScreen : AppScreens("social_feed")
+    object SocialProfileScreen : AppScreens("social_profile/{userId}") {
+        fun createRoute(userId: String): String = "social_profile/$userId"
+    }
+    object CreatePostScreen : AppScreens("create_post")
+    object CommentsScreen : AppScreens("comments/{postId}") {
+        fun createRoute(postId: String): String = "comments/$postId"
+    }
 }
