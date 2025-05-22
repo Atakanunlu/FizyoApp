@@ -111,4 +111,13 @@ sealed class AppScreens(val route: String) {
             return "edit_post_screen/$postId"
         }
     }
+
+    object AppointmentBookingScreen: AppScreens("appointment_booking_screen/{physiotherapistId}") {
+        fun createRoute(physiotherapistId: String): String {
+            return "appointment_booking_screen/$physiotherapistId"
+        }
+    }
+
+    object PhysiotherapistCalendarScreen: AppScreens("physiotherapist_calendar_screen")
+
 }

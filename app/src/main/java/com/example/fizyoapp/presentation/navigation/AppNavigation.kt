@@ -1,5 +1,6 @@
 package com.example.fizyoapp.presentation.navigation
 import OrnekEgzersizler
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -7,6 +8,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.fizyoapp.presentation.appointment.booking.AppointmentBookingScreen
+import com.example.fizyoapp.presentation.appointment.calendar.PhysiotherapistCalendarScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.MessagesDetailScreen
 import com.example.fizyoapp.presentation.login.LoginScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen.PhysiotherapistMainScreen
@@ -40,6 +43,7 @@ import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegEx
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesScreen
+import com.example.fizyoapp.presentation.user.rehabilitation.RehabilitationHistoryScreen
 import com.example.fizyoapp.presentation.user.usermainscreen.PainTrackingScreen
 
 @Composable
@@ -331,6 +335,21 @@ fun AppNavigation() {
             )
         }
 
+        composable(
+            route = AppScreens.AppointmentBookingScreen.route,
+            arguments = listOf(navArgument("physiotherapistId") { type = NavType.StringType })
+        ) {
+            val physiotherapistId = it.arguments?.getString("physiotherapistId") ?: ""
+            AppointmentBookingScreen(navController = navController)
+        }
+
+        composable(AppScreens.PhysiotherapistCalendarScreen.route) {
+            PhysiotherapistCalendarScreen(navController = navController)
+        }
+
+        composable(AppScreens.RehabilitationHistoryScreen.route) {
+            RehabilitationHistoryScreen(navController = navController)
+        }
 
 
     }
