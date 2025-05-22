@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.navigation
-
 import OrnekEgzersizler
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,12 +34,13 @@ import com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms.Eval
 import com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms.FormResponseDetailScreen
 import com.example.fizyoapp.presentation.user.illnessrecord.medicalrecord.MedicalReportScreen
 import com.example.fizyoapp.presentation.user.illnessrecord.radyologicalimagesadd.RadyolojikGoruntulerScreen
+import com.example.fizyoapp.presentation.socialmedia.*
+import com.example.fizyoapp.presentation.socialmedia.notification.NotificationScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesScreen
 import com.example.fizyoapp.presentation.user.usermainscreen.PainTrackingScreen
-
 
 @Composable
 fun AppNavigation() {
@@ -237,6 +237,101 @@ fun AppNavigation() {
                 responseId = responseId
             )
         }
+
+        composable(AppScreens.SocialMediaScreen.route) {
+            SocialMediaScreen(navController = navController)
+        }
+        composable(AppScreens.SocialMediaSearchScreen.route) {
+            SocialMediaSearchScreen(navController = navController)
+        }
+        composable(AppScreens.CreatePostScreen.route) {
+            CreatePostScreen(navController = navController)
+        }
+        composable(
+            route = AppScreens.PostDetailScreen.route,
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) {
+            val postId = it.arguments?.getString("postId") ?: ""
+            PostDetailScreen(navController = navController)
+        }
+        composable(
+            route = AppScreens.EditPostScreen.route,
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) {
+            val postId = it.arguments?.getString("postId") ?: ""
+            EditPostScreen(navController = navController)
+        }
+
+        composable(AppScreens.PhysiotherapistSocialProfile.route) {
+            PhysiotherapistSocialProfileScreen(navController = navController)
+        }
+
+
+        composable(
+            route = "${AppScreens.PhysiotherapistSocialProfile.route}/{physiotherapistId}",
+            arguments = listOf(navArgument("physiotherapistId") {
+                type = NavType.StringType
+                nullable = true
+            })
+        ) {
+            val physiotherapistId = it.arguments?.getString("physiotherapistId")
+            PhysiotherapistSocialProfileScreen(
+                navController = navController,
+                physiotherapistId = physiotherapistId
+            )
+        }
+
+        composable(AppScreens.SocialMediaScreen.route) {
+            SocialMediaScreen(navController = navController)
+        }
+
+        composable(AppScreens.SocialMediaSearchScreen.route) {
+            SocialMediaSearchScreen(navController = navController)
+        }
+
+        composable(AppScreens.NotificationScreen.route) {
+            NotificationScreen(navController = navController)
+        }
+
+        composable(AppScreens.CreatePostScreen.route) {
+            CreatePostScreen(navController = navController)
+        }
+
+        composable(
+            route = AppScreens.PostDetailScreen.route,
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) {
+            val postId = it.arguments?.getString("postId") ?: ""
+            PostDetailScreen(navController = navController)
+        }
+
+        composable(
+            route = AppScreens.EditPostScreen.route,
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) {
+            val postId = it.arguments?.getString("postId") ?: ""
+            EditPostScreen(navController = navController)
+        }
+
+        composable(AppScreens.PhysiotherapistSocialProfile.route) {
+            PhysiotherapistSocialProfileScreen(navController = navController)
+        }
+
+        composable(
+            route = "${AppScreens.PhysiotherapistSocialProfile.route}/{physiotherapistId}",
+            arguments = listOf(navArgument("physiotherapistId") {
+                type = NavType.StringType
+                nullable = true
+            })
+        ) {
+            val physiotherapistId = it.arguments?.getString("physiotherapistId")
+            PhysiotherapistSocialProfileScreen(
+                navController = navController,
+                physiotherapistId = physiotherapistId
+            )
+        }
+
+
 
     }
 }

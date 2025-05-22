@@ -19,14 +19,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fizyoapp.R
-import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
+import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun PaylasimlarScreen(navController: NavController) {
     Scaffold(
-        bottomBar = { BottomNavbarComponent(navController)}
+        bottomBar = { BottomNavbarComponent(navController) }
 
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
