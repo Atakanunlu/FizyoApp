@@ -74,6 +74,7 @@ sealed class AppScreens(val route: String) {
             return "evaluation_form_create_screen/$formType"
         }
     }
+    object RadyolojikGoruntulerScreen: AppScreens("radiology_images_screen")
 
 
     object RadiologyImagesScreen: AppScreens("radiology_images_screen")
@@ -82,6 +83,9 @@ sealed class AppScreens(val route: String) {
             return "radiology_image_detail_screen/$imageId"
         }
     }
+    object MedicalReportScreen : AppScreens("medical_report_screen")
+    object FormResponseDetailScreen : AppScreens("form_response_detail_screen")
+
     object RadyolojikGoruntuEkleScreen: AppScreens("radyolojik_goruntu_ekle_screen")
 
 

@@ -12,6 +12,12 @@ import com.example.fizyoapp.data.repository.auth.AuthRepositoryImpl
 import com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExerciseRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExercisesRepositoryImp
+import com.example.fizyoapp.data.repository.illnessrecordscreen.evaluationformscreen.EvaluationFormRepository
+import com.example.fizyoapp.data.repository.illnessrecordscreen.evaluationformscreen.EvaluationFormRepositoryImpl
+import com.example.fizyoapp.data.repository.illnessrecordscreen.medicalrecord.MedicalReportRepository
+import com.example.fizyoapp.data.repository.illnessrecordscreen.medicalreport.MedicalReportRepositoryImpl
+import com.example.fizyoapp.data.repository.illnessrecordscreen.radiologicalimagesscreen.RadyolojikGoruntuRepository
+import com.example.fizyoapp.data.repository.illnessrecordscreen.radiologicalimagesscreen.RadyolojikGoruntuRepositoryImpl
 import com.example.fizyoapp.data.repository.follow.FollowRepository
 import com.example.fizyoapp.data.repository.follow.FollowRepositoryImpl
 import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainTrackingRepository
@@ -92,6 +98,7 @@ import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.Neck
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -467,6 +474,38 @@ object AppModule {
     fun provideDeletePainRecordUseCase(repository: PainTrackingRepository): DeletePainRecordUseCase {
         return DeletePainRecordUseCase(repository)
     }
+    @Provides
+    @Singleton
+    fun provideRadyolojikGoruntuRepository(
+
+        storage: FirebaseStorage
+    ): RadyolojikGoruntuRepository {
+        return RadyolojikGoruntuRepositoryImpl(storage)
+    }
+    @Provides
+    @Singleton
+    fun provideFirebaseStorage(): FirebaseStorage {
+        // Özel yapılandırma
+        val storage = FirebaseStorage.getInstance()
+        // İsteğe bağlı diğer yapılandırmalar
+        return storage
+    }
+    @Provides
+    @Singleton
+    fun provideMedicalReportRepository(
+        storage: FirebaseStorage
+    ): MedicalReportRepository {
+        return MedicalReportRepositoryImpl(storage)
+    }
+
+    @Provides
+    @Singleton
+    fun provideEvaluationFormRepository(
+        firestore: FirebaseFirestore
+    ): EvaluationFormRepository {
+        return EvaluationFormRepositoryImpl(firestore)
+    }
+
 
     @Provides
     @Singleton

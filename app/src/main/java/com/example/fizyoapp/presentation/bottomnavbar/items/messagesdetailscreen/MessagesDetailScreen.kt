@@ -28,6 +28,15 @@ import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.messagesscreen.Message
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.videocall.VideoCallScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.DateFormatter
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.EvaluationFormDetailDialog
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.EvaluationFormMessageBubble
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MedicalReportDetailDialog
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MedicalReportMessageBubble
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.RadiologicalImageDetailDialog
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.RadiologicalImageMessageBubble
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.isEvaluationFormMessage
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.isMedicalReportMessage
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.isRadiologicalImageMessage
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -50,6 +59,10 @@ fun MessagesDetailScreen(
     val otherMessageColor = Color(0xFFF0F0F6)
     val textFieldColor = Color.White
 
+    var selectedRadiologicalMessage by remember { mutableStateOf<Message?>(null) }
+    var selectedMedicalReportMessage by remember { mutableStateOf<Message?>(null) }
+    var selectedEvaluationFormMessage by remember { mutableStateOf<Message?>(null) }
+
     if (state.isVideoCallActive) {
         val otherUserName = if (state.isPhysiotherapist) {
             "${state.physiotherapist?.firstName ?: ""} ${state.physiotherapist?.lastName ?: ""}"
@@ -63,6 +76,7 @@ fun MessagesDetailScreen(
         )
         return
     }
+
 
     LaunchedEffect(state.messages.size) {
         if(state.messages.isNotEmpty()){
@@ -258,9 +272,41 @@ fun MessagesDetailScreen(
                                         message = message,
                                         isFromCurrentUser = message.senderId == currentUserId,
                                         myMessageColor = myMessageColor,
-                                        otherMessageColor = otherMessageColor
+                                        otherMessageColor = otherMessageColor,
+                                        onMessageClick = { clickedMessage ->
+                                            when {
+                                                isRadiologicalImageMessage(clickedMessage) -> {
+                                                    selectedRadiologicalMessage = clickedMessage
+                                                }
+                                                isMedicalReportMessage(clickedMessage) -> {
+                                                    selectedMedicalReportMessage = clickedMessage
+                                                }
+                                                isEvaluationFormMessage(clickedMessage) -> {
+                                                    selectedEvaluationFormMessage = clickedMessage
+                                                }
+                                            }
+                                        }
                                     )
                                 }
+                            }
+                            selectedRadiologicalMessage?.let { message ->
+                                RadiologicalImageDetailDialog(
+                                    message = message,
+                                    onDismiss = { selectedRadiologicalMessage = null }
+                                )
+                            }
+
+                            selectedMedicalReportMessage?.let { message ->
+                                MedicalReportDetailDialog(
+                                    message = message,
+                                    onDismiss = { selectedMedicalReportMessage = null }
+                                )
+                            }
+                            selectedEvaluationFormMessage?.let { message ->
+                                EvaluationFormDetailDialog(
+                                    message = message,
+                                    onDismiss = { selectedEvaluationFormMessage = null }
+                                )
                             }
                             val showScrollToBottom by remember {
                                 derivedStateOf {
@@ -388,13 +434,13 @@ fun MessagesDetailScreen(
         }
     }
 }
-
 @Composable
 fun ModernMessageItem(
     message: Message,
     isFromCurrentUser: Boolean,
     myMessageColor: Color,
-    otherMessageColor: Color
+    otherMessageColor: Color,
+    onMessageClick: (Message) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -402,51 +448,81 @@ fun ModernMessageItem(
             .padding(vertical = 4.dp),
         horizontalAlignment = if (isFromCurrentUser) Alignment.End else Alignment.Start
     ) {
-        Box(
-            modifier = Modifier
-                .widthIn(max = 280.dp)
-                .clip(
-                    RoundedCornerShape(
-                        topStart = 16.dp,
-                        topEnd = 16.dp,
-                        bottomStart = if (isFromCurrentUser) 16.dp else 4.dp,
-                        bottomEnd = if (isFromCurrentUser) 4.dp else 16.dp
+
+        when {
+            isRadiologicalImageMessage(message) -> {
+
+                RadiologicalImageMessageBubble(
+                    message = message,
+                    isCurrentUser = isFromCurrentUser,
+                    onClick = { onMessageClick(message) }
+                )
+            }
+            isMedicalReportMessage(message) -> {
+
+                MedicalReportMessageBubble(
+                    message = message,
+                    isCurrentUser = isFromCurrentUser,
+                    onClick = { onMessageClick(message) }
+                )
+            }
+            isEvaluationFormMessage(message) -> {
+
+                EvaluationFormMessageBubble(
+                    message = message,
+                    isCurrentUser = isFromCurrentUser,
+                    onClick = { onMessageClick(message) }
+                )
+            }
+            else -> {
+
+                Box(
+                    modifier = Modifier
+                        .widthIn(max = 280.dp)
+                        .clip(
+                            RoundedCornerShape(
+                                topStart = 16.dp,
+                                topEnd = 16.dp,
+                                bottomStart = if (isFromCurrentUser) 16.dp else 4.dp,
+                                bottomEnd = if (isFromCurrentUser) 4.dp else 16.dp
+                            )
+                        )
+                        .background(
+                            if (isFromCurrentUser) myMessageColor else otherMessageColor
+                        )
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = message.content,
+                        color = if (isFromCurrentUser) Color.White else Color.Black
                     )
-                )
-                .background(
-                    if (isFromCurrentUser) myMessageColor else otherMessageColor
-                )
-                .padding(12.dp)
-        ) {
-            Text(
-                text = message.content,
-                color = if (isFromCurrentUser) Color.White else Color.Black
-            )
-        }
-        Spacer(modifier = Modifier.height(2.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 4.dp)
-        ) {
-            if (isFromCurrentUser) {
-                Text(
-                    text = DateFormatter.formatMessageTime(message.timestamp),
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.Default.Done,
-                    contentDescription = null,
-                    tint = Color.Gray,
-                    modifier = Modifier.size(12.dp)
-                )
-            } else {
-                Text(
-                    text = DateFormatter.formatMessageTime(message.timestamp),
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                ) {
+                    if (isFromCurrentUser) {
+                        Text(
+                            text = DateFormatter.formatMessageTime(message.timestamp),
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Default.Done,
+                            contentDescription = null,
+                            tint = Color.Gray,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    } else {
+                        Text(
+                            text = DateFormatter.formatMessageTime(message.timestamp),
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                    }
+                }
             }
         }
     }

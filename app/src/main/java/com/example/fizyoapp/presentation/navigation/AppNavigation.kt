@@ -28,6 +28,12 @@ import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_sc
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesViewModel
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapistdetail.PhysiotherapistDetailScreen
+import com.example.fizyoapp.presentation.user.illnessrecord.HastaliklarimScreen
+import com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms.EvaluationFormDetailScreen
+import com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms.EvaluationFormsScreen
+import com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms.FormResponseDetailScreen
+import com.example.fizyoapp.presentation.user.illnessrecord.medicalrecord.MedicalReportScreen
+import com.example.fizyoapp.presentation.user.illnessrecord.radyologicalimagesadd.RadyolojikGoruntulerScreen
 import com.example.fizyoapp.presentation.socialmedia.*
 import com.example.fizyoapp.presentation.socialmedia.notification.NotificationScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesScreen
@@ -88,6 +94,11 @@ fun AppNavigation() {
         composable(AppScreens.CoreExercisesScreen.route){
             CoreExercisesScreen(navController=navController)
         }
+
+        composable(AppScreens.HastaliklarimScreen.route){
+            HastaliklarimScreen(navController=navController)
+        }
+
         composable(AppScreens.UserProfileSetupScreen.route) {
             UserProfileSetupScreen(
                 navController = navController,
@@ -97,24 +108,38 @@ fun AppNavigation() {
         composable(AppScreens.SettingsScreen.route){
             SettingsScreen(navController=navController)
         }
+        composable(AppScreens.RadyolojikGoruntulerScreen.route){
+            RadyolojikGoruntulerScreen(navController=navController)
+        }
+        composable(
+            route = AppScreens.MedicalReportScreen.route
+        ) {
+            MedicalReportScreen(navController = navController)
+        }
+
+
         composable(AppScreens.UserInformationScreen.route) {
             UserProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = false
             )
         }
+
         composable(AppScreens.PhysiotherapistProfileSetupScreen.route) {
             PhysiotherapistProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = true
             )
         }
+
         composable(AppScreens.PhysiotherapistProfileUpdateScreen.route) {
             PhysiotherapistProfileSetupScreen(
                 navController = navController,
                 isFirstSetup = false
             )
         }
+
+
         composable(
             route = "${AppScreens.PhysiotherapistDetailScreen.route}/{physiotherapistId}",
             arguments = listOf(navArgument("physiotherapistId") { type = NavType.StringType })
@@ -122,6 +147,8 @@ fun AppNavigation() {
             val physiotherapistId = it.arguments?.getString("physiotherapistId") ?: ""
             PhysiotherapistDetailScreen(navController = navController)
         }
+
+
         composable(AppScreens.NotesScreen.route) {
             NotesScreen(navController = navController)
         }
@@ -141,9 +168,18 @@ fun AppNavigation() {
                 }
             )
         }
-        composable(AppScreens.MessagesScreen.route) {
+
+
+        composable(
+            route = AppScreens.MessagesScreen.route
+        ) {
             MessagesScreen(navController = navController)
         }
+
+        composable(
+            route = AppScreens.MessagesScreen.route,
+        ) { MessagesScreen(navController) }
+
         composable(
             route = AppScreens.MessagesDetailScreen.route,
             arguments = listOf(
@@ -160,6 +196,47 @@ fun AppNavigation() {
             PainTrackingScreen(navController = navController)
         }
 
+        // ... Mevcut NavHost tanımlamaları ...
+
+// Değerlendirme Formları
+        composable(
+            route = AppScreens.EvaluationFormsScreen.route
+        ) {
+            EvaluationFormsScreen(navController = navController)
+        }
+
+// Form Detay Ekranı
+        composable(
+            route = AppScreens.EvaluationFormDetailScreen.route + "/{formId}",
+            arguments = listOf(
+                navArgument("formId") {
+                    type = NavType.StringType
+                    nullable = false
+                }
+            )
+        ) { entry ->
+            val formId = entry.arguments?.getString("formId") ?: ""
+            EvaluationFormDetailScreen(
+                navController = navController,
+                formId = formId
+            )
+        }
+
+        composable(
+            route = AppScreens.FormResponseDetailScreen.route + "/{responseId}",
+            arguments = listOf(
+                navArgument("responseId") {
+                    type = NavType.StringType
+                    nullable = false
+                }
+            )
+        ) { entry ->
+            val responseId = entry.arguments?.getString("responseId") ?: ""
+            FormResponseDetailScreen(
+                navController = navController,
+                responseId = responseId
+            )
+        }
 
         composable(AppScreens.SocialMediaScreen.route) {
             SocialMediaScreen(navController = navController)
