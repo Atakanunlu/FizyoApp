@@ -7,9 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Assignment
@@ -35,26 +33,21 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
-// ==== Mesaj Tipleri Kontrol Fonksiyonları ====
 
-// Radyolojik görüntü mesajı kontrolü
 fun isRadiologicalImageMessage(message: Message): Boolean {
     return message.content.startsWith("[RADIOLOGICAL_IMAGE]")
 }
 
-// Tıbbi rapor mesajı kontrolü
+
 fun isMedicalReportMessage(message: Message): Boolean {
     return message.content.startsWith("[MEDICAL_REPORT]")
 }
 
-// Değerlendirme formu mesajı kontrolü
 fun isEvaluationFormMessage(message: Message): Boolean {
     return message.content.startsWith("[EVALUATION_FORM]")
 }
 
-// ==== Veri Çıkarma Fonksiyonları ====
 
-// Radyolojik görüntü veri çıkarma
 fun extractRadiologicalImageData(message: Message): RadiologicalImageData {
     val jsonContent = try {
         val contentParts = message.content.split("\n", limit = 2)
@@ -85,7 +78,6 @@ fun extractRadiologicalImageData(message: Message): RadiologicalImageData {
     )
 }
 
-// Tıbbi rapor veri çıkarma
 fun extractMedicalReportData(message: Message): MedicalReportData {
     val jsonContent = try {
         val contentParts = message.content.split("\n", limit = 2)
@@ -133,7 +125,7 @@ fun extractEvaluationFormData(message: Message): EvaluationFormData {
             return createDefaultEvaluationFormData(message)
         }
 
-        // Temel form bilgileri
+
         val id = jsonContent.optString("id", "")
         val formId = jsonContent.optString("formId", "")
         val formTitle = jsonContent.optString("formTitle", "Değerlendirme Formu")
@@ -141,7 +133,6 @@ fun extractEvaluationFormData(message: Message): EvaluationFormData {
         val maxScore = jsonContent.optInt("maxScore", 0)
         val notes = jsonContent.optString("notes", "")
 
-        // Soruları çıkar
         val questions = mutableMapOf<String, String>()
         try {
             val questionsJsonStr = jsonContent.optString("questions", "{}")
@@ -154,10 +145,10 @@ fun extractEvaluationFormData(message: Message): EvaluationFormData {
                 }
             }
         } catch (e: Exception) {
-            // Soru çıkarma hatası
+
         }
 
-        // Yanıtları çıkar
+
         val answers = mutableMapOf<String, String>()
         try {
             val answersJsonStr = jsonContent.optString("answers", "{}")
@@ -170,10 +161,10 @@ fun extractEvaluationFormData(message: Message): EvaluationFormData {
                 }
             }
         } catch (e: Exception) {
-            // Yanıt çıkarma hatası
+
         }
 
-        // Tarih
+
         val timestamp = try {
             val timeStr = jsonContent.optString("dateCompleted", "0")
             Date(timeStr.toLong())
@@ -198,7 +189,7 @@ fun extractEvaluationFormData(message: Message): EvaluationFormData {
     }
 }
 
-// EvaluationFormData sınıfını güncelle
+
 data class EvaluationFormData(
     val id: String,
     val formId: String,
@@ -246,9 +237,6 @@ data class MedicalReportData(
 
 
 
-// ==== Mesaj Balonları Composable Fonksiyonları ====
-
-// Radyolojik görüntü mesaj balonu
 @Composable
 fun RadiologicalImageMessageBubble(
     message: Message,
@@ -324,7 +312,7 @@ fun RadiologicalImageMessageBubble(
                 )
             }
 
-            // Zaman
+
             Text(
                 text = SimpleDateFormat("HH:mm", Locale.getDefault())
                     .format(imageData.timestamp),
@@ -339,7 +327,7 @@ fun RadiologicalImageMessageBubble(
     }
 }
 
-// Tıbbi rapor mesaj balonu
+
 @Composable
 fun MedicalReportMessageBubble(
     message: Message,
@@ -367,7 +355,7 @@ fun MedicalReportMessageBubble(
                         "Rapor açılamadı: ${e.localizedMessage}",
                         Toast.LENGTH_SHORT
                     ).show()
-                    // Açılamazsa diyaloğu göster
+
                     onClick()
                 }
             },
@@ -496,7 +484,7 @@ fun MedicalReportMessageBubble(
                 )
             }
 
-            // Zaman
+
             Text(
                 text = SimpleDateFormat("HH:mm", Locale.getDefault())
                     .format(reportData.timestamp),
@@ -511,7 +499,7 @@ fun MedicalReportMessageBubble(
     }
 }
 
-// Değerlendirme formu mesaj balonu
+
 @Composable
 fun EvaluationFormMessageBubble(
     message: Message,
@@ -602,9 +590,6 @@ fun EvaluationFormMessageBubble(
     }
 }
 
-// ==== Detay Diyalogları ====
-
-// Radyolojik görüntü detay diyaloğu
 @Composable
 fun RadiologicalImageDetailDialog(
     message: Message,
@@ -723,7 +708,6 @@ fun RadiologicalImageDetailDialog(
     }
 }
 
-// Tıbbi rapor detay diyaloğu
 @Composable
 fun MedicalReportDetailDialog(
     message: Message,
@@ -923,7 +907,7 @@ fun EvaluationFormDetailDialog(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                // Başlık ve Kapat butonu
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -943,7 +927,7 @@ fun EvaluationFormDetailDialog(
                     }
                 }
 
-                // Form Bilgileri
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -987,7 +971,7 @@ fun EvaluationFormDetailDialog(
                     }
                 }
 
-                // Yanıtlar Başlığı
+
                 Text(
                     text = "Yanıtlar",
                     style = MaterialTheme.typography.titleMedium,
@@ -996,7 +980,7 @@ fun EvaluationFormDetailDialog(
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
 
-                // Yanıtlar Listesi
+
                 LazyColumn(
                     modifier = Modifier
                         .weight(1f)
@@ -1018,7 +1002,7 @@ fun EvaluationFormDetailDialog(
                             }
                         }
                     } else {
-                        // Her bir soru-yanıt çifti için ayrı bir öğe
+
                         formData.answers.forEach { (questionId, answer) ->
                             val questionText = formData.questions[questionId] ?: "Soru $questionId"
 
@@ -1055,7 +1039,7 @@ fun EvaluationFormDetailDialog(
                         }
                     }
 
-                    // Notlar
+
                     if (formData.notes.isNotEmpty()) {
                         item {
                             Spacer(modifier = Modifier.height(16.dp))
@@ -1086,7 +1070,7 @@ fun EvaluationFormDetailDialog(
                     }
                 }
 
-                // Tamam butonu
+
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier

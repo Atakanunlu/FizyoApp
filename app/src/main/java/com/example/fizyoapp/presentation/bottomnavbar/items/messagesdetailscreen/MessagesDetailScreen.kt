@@ -448,10 +448,10 @@ fun ModernMessageItem(
             .padding(vertical = 4.dp),
         horizontalAlignment = if (isFromCurrentUser) Alignment.End else Alignment.Start
     ) {
-        // Mesaj içeriğini kontrol et
+
         when {
             isRadiologicalImageMessage(message) -> {
-                // Radyolojik görüntü mesajı
+
                 RadiologicalImageMessageBubble(
                     message = message,
                     isCurrentUser = isFromCurrentUser,
@@ -459,7 +459,7 @@ fun ModernMessageItem(
                 )
             }
             isMedicalReportMessage(message) -> {
-                // Tıbbi rapor mesajı
+
                 MedicalReportMessageBubble(
                     message = message,
                     isCurrentUser = isFromCurrentUser,
@@ -467,7 +467,7 @@ fun ModernMessageItem(
                 )
             }
             isEvaluationFormMessage(message) -> {
-                // Değerlendirme formu mesajı
+
                 EvaluationFormMessageBubble(
                     message = message,
                     isCurrentUser = isFromCurrentUser,
@@ -475,7 +475,7 @@ fun ModernMessageItem(
                 )
             }
             else -> {
-                // Normal metin mesajı
+
                 Box(
                     modifier = Modifier
                         .widthIn(max = 280.dp)

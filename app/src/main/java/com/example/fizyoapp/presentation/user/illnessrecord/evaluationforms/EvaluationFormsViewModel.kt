@@ -62,10 +62,10 @@ class EvaluationFormsViewModel @Inject constructor(
             val userId = currentUser.uid
             _state.update { it.copy(currentUserId = userId) }
 
-            // Thread'leri yükle
+
             loadRecentThreads(userId)
 
-            // Diğer verileri yükle
+
             loadEvaluationForms(userId)
             loadUserResponsesDirectly(userId)
         }
@@ -228,7 +228,7 @@ class EvaluationFormsViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // Form detaylarını yükle - soruları almak için
+
                 val formDocument = try {
                     FirebaseFirestore.getInstance()
                         .collection("evaluationForms")
@@ -238,8 +238,6 @@ class EvaluationFormsViewModel @Inject constructor(
                 } catch (e: Exception) {
                     null
                 }
-
-                // Soru metinlerini al
                 val questions = mutableMapOf<String, String>()
                 if (formDocument != null && formDocument.exists()) {
                     val questionsData = formDocument.get("questions") as? List<Map<String, Any>> ?: emptyList()
@@ -252,13 +250,11 @@ class EvaluationFormsViewModel @Inject constructor(
                     }
                 }
 
-                // Yanıtları JSON formatına dönüştür
                 val answersJson = JSONObject()
                 formToShare.answers.forEach { (key, value) ->
                     answersJson.put(key, value)
                 }
 
-                // Soruları JSON formatına dönüştür
                 val questionsJson = JSONObject()
                 questions.forEach { (key, text) ->
                     questionsJson.put(key, text)
@@ -289,7 +285,6 @@ class EvaluationFormsViewModel @Inject constructor(
                 )
 
                 messagesRepository.sendMessage(message).collect { result ->
-                    // Mesaj gönderme kodu...
                 }
             } catch (e: Exception) {
                 _state.update {

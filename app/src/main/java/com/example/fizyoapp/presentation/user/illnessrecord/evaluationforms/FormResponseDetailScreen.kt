@@ -129,7 +129,7 @@ fun FormResponseDetailScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp)
                 ) {
-                    // Yanıt bilgileri
+
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -187,7 +187,7 @@ fun FormResponseDetailScreen(
                         }
                     }
 
-                    // Yanıtlar
+
                     Text(
                         text = "Yanıtlar",
                         fontSize = 20.sp,
@@ -206,7 +206,7 @@ fun FormResponseDetailScreen(
                         }
                     }
 
-                    // Notlar
+
                     if (state.response!!.notes.isNotEmpty()) {
                         Text(
                             text = "Notlar",
@@ -239,7 +239,7 @@ fun FormResponseDetailScreen(
                 }
             }
 
-            // Başarı veya hata mesajları
+
             if (state.actionError != null) {
                 Snackbar(
                     modifier = Modifier

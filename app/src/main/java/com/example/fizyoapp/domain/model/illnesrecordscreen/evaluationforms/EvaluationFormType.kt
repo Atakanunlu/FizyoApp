@@ -3,18 +3,17 @@ package com.example.fizyoapp.domain.model.illnesrecordscreen.evaluationforms
 
 import java.util.Date
 
-// Form tipleri için enum
 enum class EvaluationFormType {
-    PAIN_ASSESSMENT,       // Ağrı değerlendirmesi
-    FUNCTIONAL_MOBILITY,   // Fonksiyonel mobilite
-    ROM_ASSESSMENT,        // Eklem hareket açıklığı
-    MUSCLE_STRENGTH,       // Kas gücü
-    POSTURE_ASSESSMENT,    // Postür değerlendirmesi
+    PAIN_ASSESSMENT,
+    FUNCTIONAL_MOBILITY,
+    ROM_ASSESSMENT,
+    MUSCLE_STRENGTH,
+    POSTURE_ASSESSMENT,
     BALANCE_ASSESSMENT,
     CUSTOM
 }
 
-// Temel form sınıfı
+
 data class EvaluationForm(
     val id: String = "",
     val userId: String = "",
@@ -30,16 +29,15 @@ data class EvaluationForm(
     val maxScore: Int = 0
 )
 
-// Soru tipleri için enum
 enum class QuestionType {
-    TEXT,           // Metin girişi
-    NUMBER,         // Sayısal değer
-    SCALE,          // Ölçek (1-10 gibi)
-    MULTIPLE_CHOICE, // Çoktan seçmeli
-    YES_NO        // Evet/Hayır// Vücut bölgesi seçimi
+    TEXT,
+    NUMBER,
+    SCALE,
+    MULTIPLE_CHOICE,
+    YES_NO
 }
 
-// Soru modeli
+
 data class FormQuestion(
     val id: String = "",
     val text: String = "",
@@ -50,7 +48,7 @@ data class FormQuestion(
     val maxValue: Int? = null
 )
 
-// Form yanıtları
+
 data class FormResponse(
     val id: String = "",
     val formId: String = "",
@@ -60,6 +58,6 @@ data class FormResponse(
     val score: Int = 0,
     val maxScore: Int = 0,
     val notes: String = "",
-    val title: String = "" // Burayı ekledik
+    val title: String = ""
 
 )
