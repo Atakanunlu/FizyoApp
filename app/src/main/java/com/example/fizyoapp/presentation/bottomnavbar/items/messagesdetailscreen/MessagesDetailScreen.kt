@@ -28,10 +28,13 @@ import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.messagesscreen.Message
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.videocall.VideoCallScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.DateFormatter
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.EvaluationFormDetailDialog
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.EvaluationFormMessageBubble
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MedicalReportDetailDialog
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MedicalReportMessageBubble
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.RadiologicalImageDetailDialog
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.RadiologicalImageMessageBubble
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.isEvaluationFormMessage
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.isMedicalReportMessage
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.isRadiologicalImageMessage
 import kotlinx.coroutines.launch
@@ -55,8 +58,11 @@ fun MessagesDetailScreen(
     val myMessageColor = Color(0xFF6D72C3)
     val otherMessageColor = Color(0xFFF0F0F6)
     val textFieldColor = Color.White
+
     var selectedRadiologicalMessage by remember { mutableStateOf<Message?>(null) }
     var selectedMedicalReportMessage by remember { mutableStateOf<Message?>(null) }
+    var selectedEvaluationFormMessage by remember { mutableStateOf<Message?>(null) }
+
     if (state.isVideoCallActive) {
         val otherUserName = if (state.isPhysiotherapist) {
             "${state.physiotherapist?.firstName ?: ""} ${state.physiotherapist?.lastName ?: ""}"
@@ -275,6 +281,9 @@ fun MessagesDetailScreen(
                                                 isMedicalReportMessage(clickedMessage) -> {
                                                     selectedMedicalReportMessage = clickedMessage
                                                 }
+                                                isEvaluationFormMessage(clickedMessage) -> {
+                                                    selectedEvaluationFormMessage = clickedMessage
+                                                }
                                             }
                                         }
                                     )
@@ -291,6 +300,12 @@ fun MessagesDetailScreen(
                                 MedicalReportDetailDialog(
                                     message = message,
                                     onDismiss = { selectedMedicalReportMessage = null }
+                                )
+                            }
+                            selectedEvaluationFormMessage?.let { message ->
+                                EvaluationFormDetailDialog(
+                                    message = message,
+                                    onDismiss = { selectedEvaluationFormMessage = null }
                                 )
                             }
                             val showScrollToBottom by remember {
@@ -446,6 +461,14 @@ fun ModernMessageItem(
             isMedicalReportMessage(message) -> {
                 // Tıbbi rapor mesajı
                 MedicalReportMessageBubble(
+                    message = message,
+                    isCurrentUser = isFromCurrentUser,
+                    onClick = { onMessageClick(message) }
+                )
+            }
+            isEvaluationFormMessage(message) -> {
+                // Değerlendirme formu mesajı
+                EvaluationFormMessageBubble(
                     message = message,
                     isCurrentUser = isFromCurrentUser,
                     onClick = { onMessageClick(message) }

@@ -6,13 +6,16 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BrokenImage
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material3.*
+import androidx.compose.material3.CardDefaults.cardElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +25,7 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -31,15 +35,24 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
-// Radyolojik mesaj kontrol fonksiyonu
+// ==== Mesaj Tipleri Kontrol Fonksiyonları ====
+
+// Radyolojik görüntü mesajı kontrolü
 fun isRadiologicalImageMessage(message: Message): Boolean {
     return message.content.startsWith("[RADIOLOGICAL_IMAGE]")
 }
 
-// Tıbbi rapor mesaj kontrol fonksiyonu
+// Tıbbi rapor mesajı kontrolü
 fun isMedicalReportMessage(message: Message): Boolean {
     return message.content.startsWith("[MEDICAL_REPORT]")
 }
+
+// Değerlendirme formu mesajı kontrolü
+fun isEvaluationFormMessage(message: Message): Boolean {
+    return message.content.startsWith("[EVALUATION_FORM]")
+}
+
+// ==== Veri Çıkarma Fonksiyonları ====
 
 // Radyolojik görüntü veri çıkarma
 fun extractRadiologicalImageData(message: Message): RadiologicalImageData {
@@ -107,6 +120,114 @@ fun extractMedicalReportData(message: Message): MedicalReportData {
     )
 }
 
+fun extractEvaluationFormData(message: Message): EvaluationFormData {
+    try {
+        val contentParts = message.content.split("\n", limit = 2)
+        if (contentParts.size < 2) {
+            return createDefaultEvaluationFormData(message)
+        }
+
+        val jsonContent = try {
+            JSONObject(contentParts[1])
+        } catch (e: Exception) {
+            return createDefaultEvaluationFormData(message)
+        }
+
+        // Temel form bilgileri
+        val id = jsonContent.optString("id", "")
+        val formId = jsonContent.optString("formId", "")
+        val formTitle = jsonContent.optString("formTitle", "Değerlendirme Formu")
+        val score = jsonContent.optInt("score", 0)
+        val maxScore = jsonContent.optInt("maxScore", 0)
+        val notes = jsonContent.optString("notes", "")
+
+        // Soruları çıkar
+        val questions = mutableMapOf<String, String>()
+        try {
+            val questionsJsonStr = jsonContent.optString("questions", "{}")
+            if (questionsJsonStr.isNotBlank() && questionsJsonStr != "{}") {
+                val questionsJson = JSONObject(questionsJsonStr)
+                val keys = questionsJson.keys()
+                while (keys.hasNext()) {
+                    val key = keys.next()
+                    questions[key] = questionsJson.optString(key, "")
+                }
+            }
+        } catch (e: Exception) {
+            // Soru çıkarma hatası
+        }
+
+        // Yanıtları çıkar
+        val answers = mutableMapOf<String, String>()
+        try {
+            val answersJsonStr = jsonContent.optString("answers", "{}")
+            if (answersJsonStr.isNotBlank() && answersJsonStr != "{}") {
+                val answersJson = JSONObject(answersJsonStr)
+                val keys = answersJson.keys()
+                while (keys.hasNext()) {
+                    val key = keys.next()
+                    answers[key] = answersJson.optString(key, "")
+                }
+            }
+        } catch (e: Exception) {
+            // Yanıt çıkarma hatası
+        }
+
+        // Tarih
+        val timestamp = try {
+            val timeStr = jsonContent.optString("dateCompleted", "0")
+            Date(timeStr.toLong())
+        } catch (e: Exception) {
+            message.timestamp
+        }
+
+        return EvaluationFormData(
+            id = id,
+            formId = formId,
+            formTitle = formTitle,
+            formDescription = "",
+            questions = questions,
+            answers = answers,
+            score = score,
+            maxScore = maxScore,
+            timestamp = timestamp,
+            notes = notes
+        )
+    } catch (e: Exception) {
+        return createDefaultEvaluationFormData(message)
+    }
+}
+
+// EvaluationFormData sınıfını güncelle
+data class EvaluationFormData(
+    val id: String,
+    val formId: String,
+    val formTitle: String,
+    val formDescription: String,
+    val questions: Map<String, String>, // Yeni eklenen alan: questionId -> questionText
+    val answers: Map<String, String>,
+    val score: Int,
+    val maxScore: Int,
+    val timestamp: Date,
+    val notes: String
+)
+
+private fun createDefaultEvaluationFormData(message: Message): EvaluationFormData {
+    return EvaluationFormData(
+        id = "",
+        formId = "",
+        formTitle = "Değerlendirme Formu",
+        formDescription = "",
+        questions = emptyMap(),
+        answers = emptyMap(),
+        score = 0,
+        maxScore = 0,
+        timestamp = message.timestamp,
+        notes = ""
+    )
+}
+
+
 data class RadiologicalImageData(
     val title: String,
     val description: String,
@@ -122,6 +243,10 @@ data class MedicalReportData(
     val hospitalName: String = "",
     val timestamp: Date
 )
+
+
+
+// ==== Mesaj Balonları Composable Fonksiyonları ====
 
 // Radyolojik görüntü mesaj balonu
 @Composable
@@ -146,7 +271,7 @@ fun RadiologicalImageMessageBubble(
             containerColor = if (isCurrentUser)
                 Color(59, 62, 104) else Color(0xFFEEEEEE)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(8.dp)
@@ -256,7 +381,7 @@ fun MedicalReportMessageBubble(
             containerColor = if (isCurrentUser)
                 Color(59, 62, 104) else Color(0xFFEEEEEE)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(8.dp)
@@ -386,6 +511,99 @@ fun MedicalReportMessageBubble(
     }
 }
 
+// Değerlendirme formu mesaj balonu
+@Composable
+fun EvaluationFormMessageBubble(
+    message: Message,
+    isCurrentUser: Boolean,
+    onClick: () -> Unit
+) {
+    val formData = extractEvaluationFormData(message)
+
+    Card(
+        modifier = Modifier
+            .widthIn(max = 280.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(
+            topStart = if (isCurrentUser) 12.dp else 0.dp,
+            topEnd = if (isCurrentUser) 0.dp else 12.dp,
+            bottomStart = 12.dp,
+            bottomEnd = 12.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isCurrentUser)
+                Color(59, 62, 104) else Color(0xFFEEEEEE)
+        ),
+        elevation = cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            Text(
+                text = formData.formTitle,
+                fontWeight = FontWeight.Bold,
+                color = if (isCurrentUser) Color.White else Color.Black,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        if (isCurrentUser) Color.White.copy(alpha = 0.1f)
+                        else Color(0xFFF0F0F0)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Assignment,
+                        contentDescription = "Değerlendirme Formu",
+                        tint = if (isCurrentUser) Color.White.copy(alpha = 0.9f) else Color(59, 62, 104),
+                        modifier = Modifier.size(48.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Değerlendirme Formu",
+                        color = if (isCurrentUser) Color.White else Color(59, 62, 104),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Puan: ${formData.score}/${formData.maxScore}",
+                        color = if (isCurrentUser) Color.White.copy(alpha = 0.9f) else Color(59, 62, 104),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            // Zaman
+            Text(
+                text = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    .format(formData.timestamp),
+                fontSize = 10.sp,
+                color = if (isCurrentUser) Color.White.copy(alpha = 0.6f)
+                else Color.Black.copy(alpha = 0.6f),
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(top = 4.dp)
+            )
+        }
+    }
+}
+
+// ==== Detay Diyalogları ====
+
 // Radyolojik görüntü detay diyaloğu
 @Composable
 fun RadiologicalImageDetailDialog(
@@ -505,7 +723,7 @@ fun RadiologicalImageDetailDialog(
     }
 }
 
-
+// Tıbbi rapor detay diyaloğu
 @Composable
 fun MedicalReportDetailDialog(
     message: Message,
@@ -595,7 +813,7 @@ fun MedicalReportDetailDialog(
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFFF5F5F5)
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    elevation = cardElevation(defaultElevation = 0.dp)
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -677,6 +895,208 @@ fun MedicalReportDetailDialog(
                     ) {
                         Text("Tamam")
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EvaluationFormDetailDialog(
+    message: Message,
+    onDismiss: () -> Unit
+) {
+    val formData = extractEvaluationFormData(message)
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.9f),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                // Başlık ve Kapat butonu
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = formData.formTitle,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(59, 62, 104)
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Kapat"
+                        )
+                    }
+                }
+
+                // Form Bilgileri
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(59, 62, 104, 0x10)
+                    ),
+                    elevation = CardDefaults.cardElevation(0.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Score,
+                                contentDescription = null,
+                                tint = Color(59, 62, 104)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Puan: ${formData.score}/${formData.maxScore}",
+                                fontWeight = FontWeight.Bold,
+                                color = Color(59, 62, 104)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Tamamlanma: ${
+                                SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
+                                    .format(formData.timestamp)
+                            }",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                    }
+                }
+
+                // Yanıtlar Başlığı
+                Text(
+                    text = "Yanıtlar",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(59, 62, 104),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                // Yanıtlar Listesi
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) {
+                    if (formData.answers.isEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Yanıt bulunmuyor",
+                                    color = Color.Gray,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    } else {
+                        // Her bir soru-yanıt çifti için ayrı bir öğe
+                        formData.answers.forEach { (questionId, answer) ->
+                            val questionText = formData.questions[questionId] ?: "Soru $questionId"
+
+                            item {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color(0xFFF5F5F5)
+                                    ),
+                                    elevation = CardDefaults.cardElevation(0.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp)
+                                    ) {
+                                        Text(
+                                            text = questionText,
+                                            fontWeight = FontWeight.Medium,
+                                            color = Color(59, 62, 104)
+                                        )
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        Text(
+                                            text = answer,
+                                            color = Color.DarkGray
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Notlar
+                    if (formData.notes.isNotEmpty()) {
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                text = "Notlar",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(59, 62, 104)
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFFF5F5F5)
+                                ),
+                                elevation = CardDefaults.cardElevation(0.dp)
+                            ) {
+                                Text(
+                                    text = formData.notes,
+                                    modifier = Modifier.padding(16.dp),
+                                    color = Color.DarkGray
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Tamam butonu
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(59, 62, 104)
+                    )
+                ) {
+                    Text("Tamam")
                 }
             }
         }

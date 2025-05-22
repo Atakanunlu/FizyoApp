@@ -11,6 +11,8 @@ import com.example.fizyoapp.data.repository.auth.AuthRepositoryImpl
 import com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExerciseRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExercisesRepositoryImp
+import com.example.fizyoapp.data.repository.illnessrecordscreen.evaluationformscreen.EvaluationFormRepository
+import com.example.fizyoapp.data.repository.illnessrecordscreen.evaluationformscreen.EvaluationFormRepositoryImpl
 import com.example.fizyoapp.data.repository.illnessrecordscreen.medicalrecord.MedicalReportRepository
 import com.example.fizyoapp.data.repository.illnessrecordscreen.medicalreport.MedicalReportRepositoryImpl
 import com.example.fizyoapp.data.repository.illnessrecordscreen.radiologicalimagesscreen.RadyolojikGoruntuRepository
@@ -468,4 +470,12 @@ object AppModule {
     ): MessagesRepository {
         return MessageRepositoryImpl(userProfileRepository,auth,physiotherapistProfileRepository)
     }
+    @Provides
+    @Singleton
+    fun provideEvaluationFormRepository(
+        firestore: FirebaseFirestore
+    ): EvaluationFormRepository {
+        return EvaluationFormRepositoryImpl(firestore)
+    }
+
 }

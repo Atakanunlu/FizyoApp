@@ -30,6 +30,9 @@ import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_sc
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesViewModel
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapistdetail.PhysiotherapistDetailScreen
 import com.example.fizyoapp.presentation.user.illnessrecord.HastaliklarimScreen
+import com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms.EvaluationFormDetailScreen
+import com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms.EvaluationFormsScreen
+import com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms.FormResponseDetailScreen
 import com.example.fizyoapp.presentation.user.illnessrecord.medicalrecord.MedicalReportScreen
 import com.example.fizyoapp.presentation.user.illnessrecord.radyologicalimagesadd.RadyolojikGoruntulerScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesScreen
@@ -192,5 +195,48 @@ fun AppNavigation() {
         composable(AppScreens.PainTrackingScreen.route) {
             PainTrackingScreen(navController = navController)
         }
+
+        // ... Mevcut NavHost tanımlamaları ...
+
+// Değerlendirme Formları
+        composable(
+            route = AppScreens.EvaluationFormsScreen.route
+        ) {
+            EvaluationFormsScreen(navController = navController)
+        }
+
+// Form Detay Ekranı
+        composable(
+            route = AppScreens.EvaluationFormDetailScreen.route + "/{formId}",
+            arguments = listOf(
+                navArgument("formId") {
+                    type = NavType.StringType
+                    nullable = false
+                }
+            )
+        ) { entry ->
+            val formId = entry.arguments?.getString("formId") ?: ""
+            EvaluationFormDetailScreen(
+                navController = navController,
+                formId = formId
+            )
+        }
+
+        composable(
+            route = AppScreens.FormResponseDetailScreen.route + "/{responseId}",
+            arguments = listOf(
+                navArgument("responseId") {
+                    type = NavType.StringType
+                    nullable = false
+                }
+            )
+        ) { entry ->
+            val responseId = entry.arguments?.getString("responseId") ?: ""
+            FormResponseDetailScreen(
+                navController = navController,
+                responseId = responseId
+            )
+        }
+
     }
 }

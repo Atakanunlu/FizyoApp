@@ -50,12 +50,7 @@ sealed class AppScreens(val route:String) {
             return "medical_record_detail_screen/$recordId"
         }
     }
-    object EvaluationFormsScreen: AppScreens("evaluation_forms_screen")
-    object EvaluationFormDetailScreen: AppScreens("evaluation_form_detail_screen/{formId}") {
-        fun createRoute(formId: String): String {
-            return "evaluation_form_detail_screen/$formId"
-        }
-    }
+
     object EvaluationFormCreateScreen: AppScreens("evaluation_form_create_screen/{formType}") {
         fun createRoute(formType: String): String {
             return "evaluation_form_create_screen/$formType"
@@ -68,5 +63,8 @@ sealed class AppScreens(val route:String) {
         }
     }
     object MedicalReportScreen : AppScreens("medical_report_screen")
+    object EvaluationFormsScreen : AppScreens("evaluation_forms_screen")
+    object EvaluationFormDetailScreen : AppScreens("evaluation_form_detail_screen")
+    object FormResponseDetailScreen : AppScreens("form_response_detail_screen")
 
 }

@@ -107,9 +107,10 @@ fun HastaliklarimScreen(
 
                 HealthDocumentButton(
                     title = "Değerlendirme Formları",
-                    description = "",
+                    description = "Fizyoterapi değerlendirme ve ölçüm formları",
                     icon = Icons.Outlined.CloudUpload,
-                    onClick = { /* Raporlar ekranına git */ }
+                    onClick = { navController.navigate(AppScreens.EvaluationFormsScreen.route) }
+
                 )
 
 
