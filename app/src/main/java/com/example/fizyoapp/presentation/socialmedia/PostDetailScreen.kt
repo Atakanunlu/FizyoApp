@@ -10,6 +10,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Comment
+import androidx.compose.material.icons.automirrored.filled.Feed
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material3.*
@@ -60,7 +64,7 @@ fun PostDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Geri"
                         )
                     }
@@ -130,7 +134,7 @@ fun PostDetailScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Feed,
+                        imageVector = Icons.AutoMirrored.Filled.Feed,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
@@ -260,7 +264,7 @@ fun PostDetailScreen(
                                             )
                                             Spacer(modifier = Modifier.width(16.dp))
                                             Icon(
-                                                imageVector = Icons.Default.Comment,
+                                                imageVector = Icons.AutoMirrored.Filled.Comment,
                                                 contentDescription = "Yorum",
                                                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                                 modifier = Modifier.size(20.dp)
@@ -384,7 +388,7 @@ fun PostDetailScreen(
                                         )
                                     } else {
                                         Icon(
-                                            imageVector = Icons.Default.Send,
+                                            imageVector = Icons.AutoMirrored.Filled.Send,
                                             contentDescription = "Gönder",
                                             tint = if (commentText.isBlank())
                                                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else

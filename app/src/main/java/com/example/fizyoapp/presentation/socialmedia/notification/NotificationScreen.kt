@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -50,7 +52,7 @@ fun NotificationScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Geri"
                         )
                     }
@@ -234,7 +236,7 @@ fun NotificationItem(
             Icon(
                 imageVector = when (notification.type) {
                     NotificationType.LIKE -> Icons.Default.Favorite
-                    NotificationType.COMMENT -> Icons.Default.Comment
+                    NotificationType.COMMENT -> Icons.AutoMirrored.Filled.Comment
                     NotificationType.FOLLOW -> Icons.Default.Person
                 },
                 contentDescription = null,

@@ -9,6 +9,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -49,7 +52,7 @@ fun PhysiotherapistSocialProfileScreen(
                 title = { Text("Fizyoterapist Profili") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Geri")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
                     }
                 },
                 actions = {
@@ -149,7 +152,7 @@ fun PhysiotherapistSocialProfileScreen(
                                 onFollowingClick = { viewModel.toggleShowFollowing() }
                             )
 
-                            Divider(modifier = Modifier.padding(vertical = 16.dp))
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                         }
                     }
 
@@ -357,7 +360,7 @@ fun ProfilePostItem(
                     Spacer(modifier = Modifier.width(16.dp))
 
                     Icon(
-                        imageVector = Icons.Default.Comment,
+                        imageVector = Icons.AutoMirrored.Filled.Comment,
                         contentDescription = null,
                         tint = Color.Gray,
                         modifier = Modifier.size(18.dp)
@@ -608,7 +611,7 @@ fun FollowProfileItem(
 
         if (role == "PHYSIOTHERAPIST") {
             Icon(
-                imageVector = Icons.Default.ArrowForward,
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = "Profili Görüntüle",
                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                 modifier = Modifier.size(16.dp)
