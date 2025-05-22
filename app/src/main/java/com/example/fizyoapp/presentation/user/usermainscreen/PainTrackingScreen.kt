@@ -27,7 +27,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.domain.model.usermainscreen.PainRecord
-import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
+import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
+
 import java.text.SimpleDateFormat
 import java.util.*
 

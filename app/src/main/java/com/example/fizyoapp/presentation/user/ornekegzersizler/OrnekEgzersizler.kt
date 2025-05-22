@@ -29,9 +29,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.data.local.entity.exerciseexamplesscreen.OrnekEgzersizlerGiris
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
 import com.example.fizyoapp.presentation.user.ornekegzersizler.ExercisesExamplesEvent
 import com.example.fizyoapp.presentation.user.ornekegzersizler.ExercisesExamplesViewModel
-import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
+
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable

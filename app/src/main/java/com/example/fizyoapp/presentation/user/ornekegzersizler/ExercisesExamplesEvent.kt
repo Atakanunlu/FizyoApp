@@ -1,8 +1,8 @@
 package com.example.fizyoapp.presentation.user.ornekegzersizler
 
-import com.example.fizyoapp.data.local.dao.exerciseexamplesscreen.OrnekEgzersizlerGirisDao
+
 import com.example.fizyoapp.data.local.entity.exerciseexamplesscreen.OrnekEgzersizlerGiris
-import com.example.fizyoapp.domain.model.exercisesexample.ExerciseCategory
+
 
 sealed class ExercisesExamplesEvent {
 

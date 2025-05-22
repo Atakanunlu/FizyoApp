@@ -1,4 +1,3 @@
-
 package com.example.fizyoapp.domain.model.user_profile
 
 import java.util.Date

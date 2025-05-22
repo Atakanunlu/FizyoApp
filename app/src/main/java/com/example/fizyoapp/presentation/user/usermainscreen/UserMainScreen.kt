@@ -28,7 +28,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.fizyoapp.domain.model.usermainscreen.PainRecord
 import com.example.fizyoapp.presentation.navigation.AppScreens
-import com.example.fizyoapp.ui.bottomnavbar.BottomNavbarComponent
+import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
+
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -297,6 +298,33 @@ fun MainNavigationButtons(navController: NavController) {
                 modifier = Modifier.size(30.dp)
             )
         }
+    }
+    Button(
+        onClick = { navController.navigate(AppScreens.SocialMediaScreen.route) },
+        shape = RoundedCornerShape(10.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.White,
+            contentColor = Color.DarkGray
+        ),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 10.dp,
+            pressedElevation = 6.dp
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 20.dp)
+            .height(150.dp),
+    ) {
+        Text(
+            text = "Sosyal Medya  ",
+            fontStyle = FontStyle.Italic,
+            style = TextStyle(fontSize = 20.sp)
+        )
+        Icon(
+            imageVector = Icons.Default.Share,
+            contentDescription = null,
+            modifier = Modifier.size(30.dp)
+        )
     }
 }
 
