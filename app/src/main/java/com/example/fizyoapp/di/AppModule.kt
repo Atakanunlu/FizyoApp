@@ -7,6 +7,8 @@ import com.example.fizyoapp.data.local.dao.exercisevideos.VideoDao
 import com.example.fizyoapp.data.local.database.exerciseexamplesscreen.ExercisesDatabase
 import com.example.fizyoapp.data.local.database.exercisevideos.VideoDatabase
 import com.example.fizyoapp.data.repository.ExercisesExamplesRepositoryImpl
+import com.example.fizyoapp.data.repository.appointment.AppointmentRepository
+import com.example.fizyoapp.data.repository.appointment.AppointmentRepositoryImpl
 import com.example.fizyoapp.data.repository.auth.AuthRepository
 import com.example.fizyoapp.data.repository.auth.AuthRepositoryImpl
 import com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepository
@@ -34,6 +36,14 @@ import com.example.fizyoapp.data.repository.socialmedia.SocialMediaRepository
 import com.example.fizyoapp.data.repository.socialmedia.SocialMediaRepositoryImpl
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepository
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepositoryImpl
+import com.example.fizyoapp.domain.usecase.appointment.BlockTimeSlotUseCase
+import com.example.fizyoapp.domain.usecase.appointment.CreateAppointmentUseCase
+import com.example.fizyoapp.domain.usecase.appointment.GetAvailableTimeSlotsUseCase
+import com.example.fizyoapp.domain.usecase.appointment.GetPhysiotherapistAppointmentsUseCase
+import com.example.fizyoapp.domain.usecase.appointment.GetUserAppointmentsUseCase
+import com.example.fizyoapp.domain.usecase.appointment.UnblockTimeSlotUseCase
+import com.example.fizyoapp.domain.usecase.appointment.UpdateAppointmentNotesUseCase
+import com.example.fizyoapp.domain.usecase.auth.GetCurrentPhysiotherapistUseCase
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.example.fizyoapp.domain.usecase.auth.GetUserRoleUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignInUseCase
@@ -89,6 +99,7 @@ import com.example.fizyoapp.domain.usecase.user_profile.CheckProfileCompletedUse
 import com.example.fizyoapp.domain.usecase.user_profile.GetUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UpdateUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UploadProfilePhotoUseCase
+import com.example.fizyoapp.presentation.appointment.calendar.CalenderUserDetailsViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.ExercisesExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip.HipExercisesOfExamplesViewModel
@@ -96,6 +107,7 @@ import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegEx
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesOfExamplesViewModel
+import com.example.fizyoapp.presentation.user.rehabilitation.RehabilitationHistoryViewModel
 import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -667,6 +679,80 @@ object AppModule {
     @Singleton
     fun provideDeleteNotificationUseCase(repository: NotificationRepository): DeleteNotificationUseCase {
         return DeleteNotificationUseCase(repository)
+    }
+    @Provides
+    @Singleton
+    fun provideAppointmentRepository(): AppointmentRepository {
+        return AppointmentRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetAvailableTimeSlotsUseCase(repository: AppointmentRepository): GetAvailableTimeSlotsUseCase {
+        return GetAvailableTimeSlotsUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCreateAppointmentUseCase(repository: AppointmentRepository): CreateAppointmentUseCase {
+        return CreateAppointmentUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetUserAppointmentsUseCase(repository: AppointmentRepository): GetUserAppointmentsUseCase {
+        return GetUserAppointmentsUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetPhysiotherapistAppointmentsUseCase(repository: AppointmentRepository): GetPhysiotherapistAppointmentsUseCase {
+        return GetPhysiotherapistAppointmentsUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBlockTimeSlotUseCase(repository: AppointmentRepository): BlockTimeSlotUseCase {
+        return BlockTimeSlotUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUnblockTimeSlotUseCase(repository: AppointmentRepository): UnblockTimeSlotUseCase {
+        return UnblockTimeSlotUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetCurrentPhysiotherapistUseCase(authRepository: AuthRepository): GetCurrentPhysiotherapistUseCase {
+        return GetCurrentPhysiotherapistUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCalenderUserDetailsViewModel(getUserProfileUseCase: GetUserProfileUseCase): CalenderUserDetailsViewModel {
+        return CalenderUserDetailsViewModel(getUserProfileUseCase)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateAppointmentNotesUseCase(repository: AppointmentRepository): UpdateAppointmentNotesUseCase {
+        return UpdateAppointmentNotesUseCase(repository)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideRehabilitationHistoryViewModel(
+        getUserAppointmentsUseCase: GetUserAppointmentsUseCase,
+        getPhysiotherapistByIdUseCase: GetPhysiotherapistByIdUseCase,
+        getCurrentUserUseCase: GetCurrentUseCase
+    ): RehabilitationHistoryViewModel {
+        return RehabilitationHistoryViewModel(
+            getUserAppointmentsUseCase,
+            getPhysiotherapistByIdUseCase,
+            getCurrentUserUseCase
+        )
     }
 
 

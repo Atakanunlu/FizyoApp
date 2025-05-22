@@ -29,7 +29,6 @@ import androidx.navigation.NavController
 import com.example.fizyoapp.domain.model.usermainscreen.PainRecord
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
-
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -41,9 +40,7 @@ fun UserMainScreen(
     viewModel: UserViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.collectAsState().value
-    val lifecycleOwner = LocalLifecycleOwner.current
-
-
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -90,7 +87,6 @@ fun UserMainScreen(
                     }
                 },
                 actions = {
-
                     IconButton(onClick = { navController.navigate("settings") }) {
                         Icon(
                             Icons.Default.Settings,
@@ -128,10 +124,7 @@ fun UserMainScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     item {
-
                         MainNavigationButtons(navController)
-
-
                         PainSymptomSummaryCard(navController, state.latestPainRecord)
                     }
 
@@ -141,7 +134,6 @@ fun UserMainScreen(
                 }
             }
 
-            // Hata gösterim
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
@@ -272,7 +264,7 @@ fun MainNavigationButtons(navController: NavController) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Button(
-            onClick = {},
+            onClick = { navController.navigate(AppScreens.RehabilitationHistoryScreen.route) },
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.White,
@@ -394,9 +386,9 @@ fun PainSymptomSummaryCard(navController: NavController, painRecord: PainRecord?
                                 .background(
                                     if (index < intensity) {
                                         when (index) {
-                                            0, 1, 2 -> Color(0xFF388E3C) // Yeşil
-                                            3, 4, 5 -> Color(0xFFFFA000) // Sarı/Turuncu
-                                            else -> Color(0xFFE53935) // Kırmızı
+                                            0, 1, 2 -> Color(0xFF388E3C)
+                                            3, 4, 5 -> Color(0xFFFFA000)
+                                            else -> Color(0xFFE53935)
                                         }
                                     } else {
                                         Color.LightGray
