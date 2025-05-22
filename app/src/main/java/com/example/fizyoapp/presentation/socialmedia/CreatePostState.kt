@@ -1,4 +1,3 @@
-// presentation/socialmedia/CreatePostState.kt
 package com.example.fizyoapp.presentation.socialmedia
 
 data class CreatePostState(

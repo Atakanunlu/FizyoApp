@@ -1,4 +1,3 @@
-// presentation/socialmedia/CreatePostViewModel.kt
 package com.example.fizyoapp.presentation.socialmedia
 
 import android.util.Log
@@ -57,7 +56,7 @@ class CreatePostViewModel @Inject constructor(
                         )
                     }
                     is Resource.Loading -> {
-                        // Loading state
+
                     }
                 }
             }
@@ -84,7 +83,7 @@ class CreatePostViewModel @Inject constructor(
                             )
                         }
                         is Resource.Loading -> {
-                            // Loading state
+
                         }
                     }
                 }

@@ -12,12 +12,16 @@ import com.example.fizyoapp.data.repository.auth.AuthRepositoryImpl
 import com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExerciseRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExercisesRepositoryImp
+import com.example.fizyoapp.data.repository.follow.FollowRepository
+import com.example.fizyoapp.data.repository.follow.FollowRepositoryImpl
 import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainTrackingRepository
 import com.example.fizyoapp.data.repository.mainscreen.PainTrackingRepositoryImpl
 import com.example.fizyoapp.data.repository.messagesscreen.MessageRepositoryImpl
 import com.example.fizyoapp.data.repository.messagesscreen.MessagesRepository
 import com.example.fizyoapp.data.repository.note.NoteRepository
 import com.example.fizyoapp.data.repository.note.NoteRepositoryImpl
+import com.example.fizyoapp.data.repository.notification.NotificationRepository
+import com.example.fizyoapp.data.repository.notification.NotificationRepositoryImpl
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepository
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepositoryImpl
 import com.example.fizyoapp.data.repository.socialmedia.SocialMediaRepository
@@ -31,6 +35,13 @@ import com.example.fizyoapp.domain.usecase.auth.SignOutUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignUpUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.GetExerciseCategoriesUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.PopulateDatabaseUseCase
+import com.example.fizyoapp.domain.usecase.follow.FollowPhysiotherapistUseCase
+import com.example.fizyoapp.domain.usecase.follow.GetFollowersCountUseCase
+import com.example.fizyoapp.domain.usecase.follow.GetFollowersUseCase
+import com.example.fizyoapp.domain.usecase.follow.GetFollowingCountUseCase
+import com.example.fizyoapp.domain.usecase.follow.GetFollowingUseCase
+import com.example.fizyoapp.domain.usecase.follow.IsFollowingUseCase
+import com.example.fizyoapp.domain.usecase.follow.UnfollowPhysiotherapistUseCase
 import com.example.fizyoapp.domain.usecase.mainscreen.AddPainRecordUseCase
 import com.example.fizyoapp.domain.usecase.mainscreen.DeletePainRecordUseCase
 import com.example.fizyoapp.domain.usecase.mainscreen.GetLatestPainRecordUseCase
@@ -46,6 +57,12 @@ import com.example.fizyoapp.domain.usecase.note.DeleteNoteUseCase
 import com.example.fizyoapp.domain.usecase.note.GetNoteByIdUseCase
 import com.example.fizyoapp.domain.usecase.note.GetNotesByPhysiotherapistIdUseCase
 import com.example.fizyoapp.domain.usecase.note.UpdateNoteUpdateUseCase
+import com.example.fizyoapp.domain.usecase.notification.CreateNotificationUseCase
+import com.example.fizyoapp.domain.usecase.notification.DeleteNotificationUseCase
+import com.example.fizyoapp.domain.usecase.notification.GetNotificationsUseCase
+import com.example.fizyoapp.domain.usecase.notification.GetUnreadNotificationsCountUseCase
+import com.example.fizyoapp.domain.usecase.notification.MarkAllNotificationsAsReadUseCase
+import com.example.fizyoapp.domain.usecase.notification.MarkNotificationAsReadUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.CheckPhysiotherapistProfileCompletedUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetAllPhysiotherapistsUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistByIdUseCase
@@ -66,9 +83,6 @@ import com.example.fizyoapp.domain.usecase.user_profile.CheckProfileCompletedUse
 import com.example.fizyoapp.domain.usecase.user_profile.GetUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UpdateUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UploadProfilePhotoUseCase
-import com.example.fizyoapp.presentation.socialmedia.PhysiotherapistSocialProfileViewModel
-import com.example.fizyoapp.presentation.socialmedia.SocialMediaSearchViewModel
-import com.example.fizyoapp.presentation.socialmedia.SocialMediaViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.ExercisesExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip.HipExercisesOfExamplesViewModel
@@ -524,6 +538,96 @@ object AppModule {
     @Singleton
     fun provideUpdatePostUseCase(repository: SocialMediaRepository): UpdatePostUseCase {
         return UpdatePostUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFollowRepository(firestore: FirebaseFirestore): FollowRepository {
+        return FollowRepositoryImpl(firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFollowPhysiotherapistUseCase(repository: FollowRepository): FollowPhysiotherapistUseCase {
+        return FollowPhysiotherapistUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUnfollowPhysiotherapistUseCase(repository: FollowRepository): UnfollowPhysiotherapistUseCase {
+        return UnfollowPhysiotherapistUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideIsFollowingUseCase(repository: FollowRepository): IsFollowingUseCase {
+        return IsFollowingUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetFollowersCountUseCase(repository: FollowRepository): GetFollowersCountUseCase {
+        return GetFollowersCountUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetFollowingCountUseCase(repository: FollowRepository): GetFollowingCountUseCase {
+        return GetFollowingCountUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetFollowersUseCase(repository: FollowRepository): GetFollowersUseCase {
+        return GetFollowersUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetFollowingUseCase(repository: FollowRepository): GetFollowingUseCase {
+        return GetFollowingUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationRepository(firestore: FirebaseFirestore): NotificationRepository {
+        return NotificationRepositoryImpl(firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetNotificationsUseCase(repository: NotificationRepository): GetNotificationsUseCase {
+        return GetNotificationsUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetUnreadNotificationsCountUseCase(repository: NotificationRepository): GetUnreadNotificationsCountUseCase {
+        return GetUnreadNotificationsCountUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMarkNotificationAsReadUseCase(repository: NotificationRepository): MarkNotificationAsReadUseCase {
+        return MarkNotificationAsReadUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMarkAllNotificationsAsReadUseCase(repository: NotificationRepository): MarkAllNotificationsAsReadUseCase {
+        return MarkAllNotificationsAsReadUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCreateNotificationUseCase(repository: NotificationRepository): CreateNotificationUseCase {
+        return CreateNotificationUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteNotificationUseCase(repository: NotificationRepository): DeleteNotificationUseCase {
+        return DeleteNotificationUseCase(repository)
     }
 
 

@@ -1,4 +1,3 @@
-// presentation/socialmedia/SocialMediaState.kt
 package com.example.fizyoapp.presentation.socialmedia
 
 import com.example.fizyoapp.domain.model.socialmedia.Post

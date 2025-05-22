@@ -1,4 +1,3 @@
-// domain/usecase/socialmedia/DeletePostUseCase.kt
 package com.example.fizyoapp.domain.usecase.socialmedia
 
 import com.example.fizyoapp.data.repository.socialmedia.SocialMediaRepository

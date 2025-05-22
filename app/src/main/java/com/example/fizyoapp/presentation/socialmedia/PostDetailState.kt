@@ -1,4 +1,3 @@
-// presentation/socialmedia/PostDetailState.kt
 package com.example.fizyoapp.presentation.socialmedia
 
 import com.example.fizyoapp.domain.model.socialmedia.Comment
@@ -12,7 +11,7 @@ data class PostDetailState(
     val error: String? = null,
     val currentUserName: String = "",
     val currentUserPhotoUrl: String = "",
-    val currentUserId: String = "", // Eklendi
+    val currentUserId: String = "",
     val isPostLikedByCurrentUser: Boolean = false,
-    val postDeleted: Boolean = false // Eklendi
+    val postDeleted: Boolean = false
 )

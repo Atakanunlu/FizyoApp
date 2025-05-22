@@ -1,4 +1,3 @@
-// presentation/socialmedia/SocialMediaSearchState.kt
 package com.example.fizyoapp.presentation.socialmedia
 
 import com.example.fizyoapp.domain.model.physiotherapist_profile.PhysiotherapistProfile

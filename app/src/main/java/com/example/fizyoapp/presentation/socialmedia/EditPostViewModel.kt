@@ -1,12 +1,9 @@
-// presentation/socialmedia/EditPostViewModel.kt
 package com.example.fizyoapp.presentation.socialmedia
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
-import com.example.fizyoapp.domain.model.socialmedia.Post
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.example.fizyoapp.domain.usecase.socialmedia.GetPostByIdUseCase
 import com.example.fizyoapp.domain.usecase.socialmedia.UpdatePostUseCase
@@ -26,7 +23,6 @@ class EditPostViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(EditPostState())
     val state: StateFlow<EditPostState> = _state.asStateFlow()
 
@@ -39,75 +35,58 @@ class EditPostViewModel @Inject constructor(
         if (postId.isNotEmpty()) {
             loadPost()
         } else {
-            _state.value = _state.value.copy(
-                error = "Gönderi ID'si bulunamadı"
-            )
+            _state.value = _state.value.copy(error = "Gönderi ID'si bulunamadı")
         }
     }
 
     private fun loadPost() {
         viewModelScope.launch {
             getCurrentUserUseCase().collect { userResult ->
-                when (userResult) {
-                    is Resource.Success -> {
-                        val currentUser = userResult.data
-                        if (currentUser != null) {
-                            _state.value = _state.value.copy(
-                                userId = currentUser.id
-                            )
+                if (userResult is Resource.Success) {
+                    val currentUser = userResult.data
+                    if (currentUser != null) {
+                        _state.value = _state.value.copy(userId = currentUser.id)
 
-                            // Gönderiyi yükle
-                            getPostByIdUseCase(postId).collect { postResult ->
-                                when (postResult) {
-                                    is Resource.Success -> {
-                                        val post = postResult.data
-
-                                        // Yalnızca gönderi sahibi düzenleyebilir
-                                        if (post.userId != currentUser.id) {
-                                            _state.value = _state.value.copy(
-                                                error = "Bu gönderiyi düzenleme yetkiniz yok",
-                                                isLoading = false
-                                            )
-                                            _uiEvent.send(UiEvent.NavigateBack)
-                                            return@collect
-                                        }
-
+                        getPostByIdUseCase(postId).collect { postResult ->
+                            when (postResult) {
+                                is Resource.Success -> {
+                                    val post = postResult.data
+                                    if (post.userId != currentUser.id) {
                                         _state.value = _state.value.copy(
-                                            postId = post.id,
-                                            content = post.content,
-                                            existingMediaUrls = post.mediaUrls,
-                                            existingMediaTypes = post.mediaTypes,
-                                            userName = post.userName,
-                                            userPhotoUrl = post.userPhotoUrl,
+                                            error = "Bu gönderiyi düzenleme yetkiniz yok",
                                             isLoading = false
                                         )
+                                        _uiEvent.send(UiEvent.NavigateBack)
+                                        return@collect
                                     }
-                                    is Resource.Error -> {
-                                        _state.value = _state.value.copy(
-                                            error = postResult.message ?: "Gönderi yüklenemedi",
-                                            isLoading = false
-                                        )
-                                    }
-                                    is Resource.Loading -> {
-                                        _state.value = _state.value.copy(
-                                            isLoading = true
-                                        )
-                                    }
+
+                                    _state.value = _state.value.copy(
+                                        postId = post.id,
+                                        content = post.content,
+                                        existingMediaUrls = post.mediaUrls,
+                                        existingMediaTypes = post.mediaTypes,
+                                        userName = post.userName,
+                                        userPhotoUrl = post.userPhotoUrl,
+                                        isLoading = false
+                                    )
+                                }
+                                is Resource.Error -> {
+                                    _state.value = _state.value.copy(
+                                        error = postResult.message ?: "Gönderi yüklenemedi",
+                                        isLoading = false
+                                    )
+                                }
+                                is Resource.Loading -> {
+                                    _state.value = _state.value.copy(isLoading = true)
                                 }
                             }
                         }
                     }
-                    is Resource.Error -> {
-                        _state.value = _state.value.copy(
-                            error = userResult.message ?: "Kullanıcı bilgileri alınamadı",
-                            isLoading = false
-                        )
-                    }
-                    is Resource.Loading -> {
-                        _state.value = _state.value.copy(
-                            isLoading = true
-                        )
-                    }
+                } else if (userResult is Resource.Error) {
+                    _state.value = _state.value.copy(
+                        error = userResult.message ?: "Kullanıcı bilgileri alınamadı",
+                        isLoading = false
+                    )
                 }
             }
         }
@@ -116,9 +95,7 @@ class EditPostViewModel @Inject constructor(
     fun onEvent(event: EditPostEvent) {
         when (event) {
             is EditPostEvent.ContentChanged -> {
-                _state.value = _state.value.copy(
-                    content = event.content
-                )
+                _state.value = _state.value.copy(content = event.content)
             }
             is EditPostEvent.MediaAdded -> {
                 _state.value = _state.value.copy(
@@ -132,8 +109,6 @@ class EditPostViewModel @Inject constructor(
             }
             is EditPostEvent.ExistingMediaRemoved -> {
                 val index = _state.value.existingMediaUrls.indexOf(event.uri)
-
-                // Bu URL'yi ve karşılık gelen medya tipini kaldır
                 val updatedUrls = _state.value.existingMediaUrls.toMutableList()
                 val updatedTypes = _state.value.existingMediaTypes.toMutableList()
 
@@ -157,19 +132,13 @@ class EditPostViewModel @Inject constructor(
 
     private fun updatePost() {
         val currentState = _state.value
-
         if (currentState.content.isBlank() && currentState.existingMediaUrls.isEmpty() && currentState.newMediaUris.isEmpty()) {
-            _state.value = _state.value.copy(
-                error = "İçerik veya medya ekleyin"
-            )
+            _state.value = _state.value.copy(error = "İçerik veya medya ekleyin")
             return
         }
 
         viewModelScope.launch {
-            _state.value = _state.value.copy(
-                isLoading = true,
-                error = null
-            )
+            _state.value = _state.value.copy(isLoading = true, error = null)
 
             updatePostUseCase(
                 postId = currentState.postId,
@@ -193,9 +162,7 @@ class EditPostViewModel @Inject constructor(
                         )
                     }
                     is Resource.Loading -> {
-                        _state.value = _state.value.copy(
-                            isLoading = true
-                        )
+                        _state.value = _state.value.copy(isLoading = true)
                     }
                 }
             }

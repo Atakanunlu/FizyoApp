@@ -1,4 +1,3 @@
-// domain/model/socialmedia/Comment.kt
 package com.example.fizyoapp.domain.model.socialmedia
 
 import java.util.Date

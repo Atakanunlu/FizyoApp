@@ -1,14 +1,11 @@
-// presentation/socialmedia/PostDetailViewModel.kt
 package com.example.fizyoapp.presentation.socialmedia
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.auth.User
 import com.example.fizyoapp.domain.model.socialmedia.Comment
-import com.example.fizyoapp.domain.model.socialmedia.Post
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistProfileUseCase
 import com.example.fizyoapp.domain.usecase.socialmedia.*
@@ -30,13 +27,12 @@ class PostDetailViewModel @Inject constructor(
     private val addCommentUseCase: AddCommentUseCase,
     private val likePostUseCase: LikePostUseCase,
     private val unlikePostUseCase: UnlikePostUseCase,
-    private val deletePostUseCase: DeletePostUseCase, // YENİ
+    private val deletePostUseCase: DeletePostUseCase,
     private val getCurrentUserUseCase: GetCurrentUseCase,
     private val getPhysiotherapistProfileUseCase: GetPhysiotherapistProfileUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(PostDetailState())
     val state: StateFlow<PostDetailState> = _state.asStateFlow()
 
@@ -53,9 +49,7 @@ class PostDetailViewModel @Inject constructor(
         if (postId.isNotEmpty()) {
             loadCurrentUser()
         } else {
-            _state.value = _state.value.copy(
-                error = "Gönderi bulunamadı"
-            )
+            _state.value = _state.value.copy(error = "Gönderi bulunamadı")
         }
     }
 
@@ -67,13 +61,11 @@ class PostDetailViewModel @Inject constructor(
                         val user = result.data
                         if (user != null) {
                             currentUser = user
-                            _state.value = _state.value.copy(currentUserId = user.id) // YENİ
+                            _state.value = _state.value.copy(currentUserId = user.id)
                             loadUserProfile(user)
                             loadPostAndComments()
                         } else {
-                            _state.value = _state.value.copy(
-                                error = "Kullanıcı bulunamadı"
-                            )
+                            _state.value = _state.value.copy(error = "Kullanıcı bulunamadı")
                         }
                     }
                     is Resource.Error -> {
@@ -82,7 +74,7 @@ class PostDetailViewModel @Inject constructor(
                         )
                     }
                     is Resource.Loading -> {
-                        // Loading state
+
                     }
                 }
             }
@@ -95,73 +87,48 @@ class PostDetailViewModel @Inject constructor(
                 when (user.role.name) {
                     "PHYSIOTHERAPIST" -> {
                         getPhysiotherapistProfileUseCase(user.id).collect { result ->
-                            when (result) {
-                                is Resource.Success -> {
-                                    val profile = result.data
-                                    _state.value = _state.value.copy(
-                                        currentUserName = "${profile.firstName} ${profile.lastName}",
-                                        currentUserPhotoUrl = profile.profilePhotoUrl
-                                    )
-                                }
-                                is Resource.Error -> {
-                                    // Profile could not be loaded
-                                    Log.e("PostDetailVM", "Fizyoterapist profili yüklenemedi: ${result.message}")
-                                }
-                                is Resource.Loading -> {
-                                    // Loading
-                                }
+                            if (result is Resource.Success) {
+                                val profile = result.data
+                                _state.value = _state.value.copy(
+                                    currentUserName = "${profile.firstName} ${profile.lastName}",
+                                    currentUserPhotoUrl = profile.profilePhotoUrl
+                                )
                             }
                         }
                     }
                     else -> {
                         getUserProfileUseCase(user.id).collect { result ->
-                            when (result) {
-                                is Resource.Success -> {
-                                    val profile = result.data
-                                    _state.value = _state.value.copy(
-                                        currentUserName = "${profile.firstName} ${profile.lastName}",
-                                        currentUserPhotoUrl = profile.profilePhotoUrl
-                                    )
-                                }
-                                is Resource.Error -> {
-                                    // Profile could not be loaded
-                                    Log.e("PostDetailVM", "Kullanıcı profili yüklenemedi: ${result.message}")
-                                }
-                                is Resource.Loading -> {
-                                    // Loading
-                                }
+                            if (result is Resource.Success) {
+                                val profile = result.data
+                                _state.value = _state.value.copy(
+                                    currentUserName = "${profile.firstName} ${profile.lastName}",
+                                    currentUserPhotoUrl = profile.profilePhotoUrl
+                                )
                             }
                         }
                     }
                 }
             } catch (e: Exception) {
-                Log.e("PostDetailVM", "Profil yükleme hatası", e)
+
             }
         }
     }
 
     fun loadPostAndComments() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(
-                isLoading = true,
-                error = null
-            )
+            _state.value = _state.value.copy(isLoading = true, error = null)
 
             try {
-                // Gönderiyi yükle
                 getPostByIdUseCase(postId).collect { result ->
                     when (result) {
                         is Resource.Success -> {
                             val post = result.data
                             val isLiked = post.likedBy.contains(currentUser?.id)
-
                             _state.value = _state.value.copy(
                                 post = post,
                                 isPostLikedByCurrentUser = isLiked,
                                 isLoading = false
                             )
-
-                            // Yorumları yükle
                             loadComments()
                         }
                         is Resource.Error -> {
@@ -171,9 +138,7 @@ class PostDetailViewModel @Inject constructor(
                             )
                         }
                         is Resource.Loading -> {
-                            _state.value = _state.value.copy(
-                                isLoading = true
-                            )
+                            _state.value = _state.value.copy(isLoading = true)
                         }
                     }
                 }
@@ -182,7 +147,6 @@ class PostDetailViewModel @Inject constructor(
                     isLoading = false,
                     error = "Gönderi yüklenirken bir hata oluştu: ${e.message}"
                 )
-                Log.e("PostDetailVM", "Post yükleme hatası", e)
             }
         }
     }
@@ -199,19 +163,18 @@ class PostDetailViewModel @Inject constructor(
                             )
                         }
                         is Resource.Error -> {
-                            Log.e("PostDetailVM", "Yorumlar yüklenemedi: ${result.message}")
                             _state.value = _state.value.copy(
                                 isLoading = false,
                                 error = result.message ?: "Yorumlar yüklenemedi"
                             )
                         }
                         is Resource.Loading -> {
-                            // Already set in loadPostAndComments
+
                         }
                     }
                 }
             } catch (e: Exception) {
-                Log.e("PostDetailVM", "Yorumlar yüklenirken hata", e)
+
             }
         }
     }
@@ -232,10 +195,7 @@ class PostDetailViewModel @Inject constructor(
         if (commentText.isBlank()) return
 
         viewModelScope.launch {
-            _state.value = _state.value.copy(
-                isCommentLoading = true,
-                error = null
-            )
+            _state.value = _state.value.copy(isCommentLoading = true, error = null)
 
             try {
                 val comment = Comment(
@@ -252,27 +212,21 @@ class PostDetailViewModel @Inject constructor(
                     when (result) {
                         is Resource.Success -> {
                             _commentText.value = ""
-                            _state.value = _state.value.copy(
-                                isCommentLoading = false
-                            )
-                            loadPostAndComments() // Yorumları ve gönderiyi güncelle
+                            _state.value = _state.value.copy(isCommentLoading = false)
+                            loadPostAndComments()
                         }
                         is Resource.Error -> {
-                            Log.e("PostDetailVM", "Yorum eklenemedi: ${result.message}", result.exception)
                             _state.value = _state.value.copy(
                                 isCommentLoading = false,
                                 error = result.message ?: "Yorum eklenemedi"
                             )
                         }
                         is Resource.Loading -> {
-                            _state.value = _state.value.copy(
-                                isCommentLoading = true
-                            )
+                            _state.value = _state.value.copy(isCommentLoading = true)
                         }
                     }
                 }
             } catch (e: Exception) {
-                Log.e("PostDetailVM", "Yorum ekleme hatası", e)
                 _state.value = _state.value.copy(
                     isCommentLoading = false,
                     error = "Yorum eklenirken hata oluştu: ${e.message}"
@@ -288,40 +242,30 @@ class PostDetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 if (post.likedBy.contains(userId)) {
-                    // Unlike post
                     unlikePostUseCase(postId, userId).collect { result ->
                         if (result is Resource.Success) {
-                            loadPostAndComments() // Beğeni durumunu güncelle
-                        } else if (result is Resource.Error) {
-                            Log.e("PostDetailVM", "Beğeni kaldırma hatası: ${result.message}")
+                            loadPostAndComments()
                         }
                     }
                 } else {
-                    // Like post
                     likePostUseCase(postId, userId).collect { result ->
                         if (result is Resource.Success) {
-                            loadPostAndComments() // Beğeni durumunu güncelle
-                        } else if (result is Resource.Error) {
-                            Log.e("PostDetailVM", "Beğeni hatası: ${result.message}")
+                            loadPostAndComments()
                         }
                     }
                 }
             } catch (e: Exception) {
-                Log.e("PostDetailVM", "Beğeni işlemi hatası", e)
+
             }
         }
     }
 
-    // YENİ: Gönderi silme fonksiyonu
     fun deletePost() {
         val post = _state.value.post ?: return
         val userId = currentUser?.id ?: return
 
-        // Sadece gönderi sahibi silebilir
         if (post.userId != userId) {
-            _state.value = _state.value.copy(
-                error = "Bu gönderiyi silme yetkiniz yok"
-            )
+            _state.value = _state.value.copy(error = "Bu gönderiyi silme yetkiniz yok")
             return
         }
 

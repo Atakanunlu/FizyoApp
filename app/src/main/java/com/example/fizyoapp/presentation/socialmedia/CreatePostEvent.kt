@@ -1,4 +1,3 @@
-// presentation/socialmedia/CreatePostEvent.kt
 package com.example.fizyoapp.presentation.socialmedia
 
 sealed class CreatePostEvent {

@@ -1,4 +1,3 @@
-// presentation/socialmedia/CreatePostScreen.kt
 package com.example.fizyoapp.presentation.socialmedia
 
 import android.Manifest
@@ -45,14 +44,12 @@ fun CreatePostScreen(
     val context = LocalContext.current
     var showMediaOptions by remember { mutableStateOf(false) }
 
-    // Fotoğraf seçimi için launcher - birden fazla seçime izin ver
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->
         viewModel.onEvent(CreatePostEvent.MediaAdded(uris.map { it.toString() }))
     }
 
-    // Video seçimi için launcher
     val videoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->
@@ -67,7 +64,6 @@ fun CreatePostScreen(
         }
     }
 
-    // Video için izin
     val videoPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -82,9 +78,7 @@ fun CreatePostScreen(
                 is CreatePostViewModel.UiEvent.NavigateBack -> {
                     navController.popBackStack()
                 }
-                is CreatePostViewModel.UiEvent.ShowError -> {
-                    // Hata gösterme işlemi
-                }
+                else -> {}
             }
         }
     }
@@ -92,7 +86,7 @@ fun CreatePostScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Gönderi Oluştur") },
+                title = { Text("Gönderi Oluştur", fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -102,172 +96,181 @@ fun CreatePostScreen(
                     }
                 },
                 actions = {
+                    val isEnabled = !state.isLoading && (state.content.isNotBlank() || state.mediaUris.isNotEmpty())
                     TextButton(
                         onClick = { viewModel.onEvent(CreatePostEvent.CreatePost) },
-                        enabled = !state.isLoading && (state.content.isNotBlank() || state.mediaUris.isNotEmpty())
+                        enabled = isEnabled
                     ) {
                         Text(
                             text = "Paylaş",
-                            color = if (!state.isLoading && (state.content.isNotBlank() || state.mediaUris.isNotEmpty()))
+                            color = if (isEnabled)
                                 MaterialTheme.colorScheme.primary
                             else
-                                Color.Gray
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                         )
                     }
                 }
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Kullanıcı bilgisi ve profil fotoğrafı
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-                ) {
-                    if (state.currentUserPhotoUrl.isNotEmpty()) {
-                        AsyncImage(
-                            model = state.currentUserPhotoUrl,
-                            contentDescription = "Profil fotoğrafı",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .align(Alignment.Center),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column {
-                    Text(
-                        text = state.currentUserName,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                    Text(
-                        text = "Fizyoterapist",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // İçerik girişi
-            OutlinedTextField(
-                value = state.content,
-                onValueChange = { viewModel.onEvent(CreatePostEvent.ContentChanged(it)) },
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = 120.dp),
-                placeholder = { Text("Düşüncelerinizi paylaşın...") },
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Seçilen medya görüntüleri
-            if (state.mediaUris.isNotEmpty()) {
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(state.mediaUris) { uri ->
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-                        ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                    ) {
+                        if (state.currentUserPhotoUrl.isNotEmpty()) {
                             AsyncImage(
-                                model = uri,
-                                contentDescription = "Seçilen medya",
+                                model = state.currentUserPhotoUrl,
+                                contentDescription = "Profil fotoğrafı",
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
-
-                            IconButton(
-                                onClick = { viewModel.onEvent(CreatePostEvent.MediaRemoved(uri)) },
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
                                 modifier = Modifier
-                                    .align(Alignment.TopEnd)
                                     .size(24.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.Black.copy(alpha = 0.5f))
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Kaldır",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
+                                    .align(Alignment.Center),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = state.currentUserName,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        Text(
+                            text = "Fizyoterapist",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-            }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    OutlinedTextField(
+                        value = state.content,
+                        onValueChange = { viewModel.onEvent(CreatePostEvent.ContentChanged(it)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = 150.dp),
+                        placeholder = { Text("Düşüncelerinizi paylaşın...") },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        maxLines = 10
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (state.mediaUris.isNotEmpty()) {
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(state.mediaUris) { uri ->
+                            Box(
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
+                            ) {
+                                AsyncImage(
+                                    model = uri,
+                                    contentDescription = "Seçilen medya",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                                IconButton(
+                                    onClick = { viewModel.onEvent(CreatePostEvent.MediaRemoved(uri)) },
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .size(24.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.Black.copy(alpha = 0.6f))
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Kaldır",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
                 Button(
                     onClick = { showMediaOptions = true },
+                    modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                         contentColor = MaterialTheme.colorScheme.primary
-                    )
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Image,
                         contentDescription = "Fotoğraf/Video Ekle"
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text("Fotoğraf/Video Ekle")
+                }
+
+                if (state.error != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = state.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
 
             if (state.isLoading) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
-            }
-
-            state.error?.let { errorMessage ->
-                Text(
-                    text = errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
             }
         }
     }
@@ -278,13 +281,13 @@ fun CreatePostScreen(
             title = { Text("Medya Ekle") },
             text = {
                 Column {
-                    // Fotoğraf seçme - çoklu seçim
                     DropdownMenuItem(
                         text = { Text("Fotoğraf Ekle (Birden Fazla)") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.PhotoLibrary,
-                                contentDescription = "Fotoğraf"
+                                contentDescription = "Fotoğraf",
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         },
                         onClick = {
@@ -293,7 +296,6 @@ fun CreatePostScreen(
                             } else {
                                 Manifest.permission.READ_EXTERNAL_STORAGE
                             }
-
                             if (ContextCompat.checkSelfPermission(
                                     context,
                                     permission
@@ -307,13 +309,13 @@ fun CreatePostScreen(
                         }
                     )
 
-                    // Video seçme opsiyonu
                     DropdownMenuItem(
                         text = { Text("Video Ekle") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Videocam,
-                                contentDescription = "Video"
+                                contentDescription = "Video",
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         },
                         onClick = {
@@ -322,7 +324,6 @@ fun CreatePostScreen(
                             } else {
                                 Manifest.permission.READ_EXTERNAL_STORAGE
                             }
-
                             if (ContextCompat.checkSelfPermission(
                                     context,
                                     permission

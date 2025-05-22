@@ -1,16 +1,20 @@
-// presentation/socialmedia/PhysiotherapistSocialProfileViewModel.kt
 package com.example.fizyoapp.presentation.socialmedia
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.auth.User
-import com.example.fizyoapp.domain.model.socialmedia.Post
+import com.example.fizyoapp.domain.model.auth.UserRole
+import com.example.fizyoapp.domain.model.follow.FollowRelation
+import com.example.fizyoapp.domain.model.physiotherapist_profile.PhysiotherapistProfile
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
+import com.example.fizyoapp.domain.usecase.follow.*
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistByIdUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistProfileUseCase
 import com.example.fizyoapp.domain.usecase.socialmedia.GetAllPostsUseCase
+import com.example.fizyoapp.domain.usecase.user_profile.GetUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,58 +27,67 @@ class PhysiotherapistSocialProfileViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUseCase,
     private val getPhysiotherapistProfileUseCase: GetPhysiotherapistProfileUseCase,
     private val getPhysiotherapistByIdUseCase: GetPhysiotherapistByIdUseCase,
+    private val getUserProfileUseCase: GetUserProfileUseCase,
     private val getAllPostsUseCase: GetAllPostsUseCase,
+    private val followPhysiotherapistUseCase: FollowPhysiotherapistUseCase,
+    private val unfollowPhysiotherapistUseCase: UnfollowPhysiotherapistUseCase,
+    private val isFollowingUseCase: IsFollowingUseCase,
+    private val getFollowersCountUseCase: GetFollowersCountUseCase,
+    private val getFollowingCountUseCase: GetFollowingCountUseCase,
+    private val getFollowersUseCase: GetFollowersUseCase,
+    private val getFollowingUseCase: GetFollowingUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow(PhysiotherapistSocialProfileState(isLoading = true))
     val state: StateFlow<PhysiotherapistSocialProfileState> = _state.asStateFlow()
 
-    // URL'den fizyoterapist ID'sini al
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
+
+
     private val physiotherapistId: String? = savedStateHandle.get<String>("physiotherapistId")
 
     init {
-        if (physiotherapistId != null && physiotherapistId.isNotEmpty()) {
-            // URL'den gelen ID ile profilin yüklenmesi
-            loadSpecificPhysiotherapistProfile(physiotherapistId)
-        } else {
-            // Mevcut giriş yapmış kullanıcının kendi profili
-            loadCurrentUserProfile()
-        }
+        loadCurrentUser()
     }
 
-    private fun loadCurrentUserProfile() {
+    private fun loadCurrentUser() {
         viewModelScope.launch {
-            try {
-                getCurrentUserUseCase().collect { userResult ->
-                    when (userResult) {
-                        is Resource.Success -> {
-                            val user = userResult.data
-                            if (user != null) {
-                                // Fizyoterapist profilini yükle
-                                loadPhysiotherapistProfileAndPosts(user.id)
+            getCurrentUserUseCase().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        val user = result.data
+                        if (user != null) {
+                            _currentUser.value = user
+
+                            if (physiotherapistId != null && physiotherapistId.isNotEmpty()) {
+                                loadSpecificPhysiotherapistProfile(physiotherapistId)
                             } else {
-                                _state.value = _state.value.copy(
-                                    error = "Kullanıcı bulunamadı",
-                                    isLoading = false
-                                )
+                                if (user.role == UserRole.PHYSIOTHERAPIST) {
+                                    loadPhysiotherapistProfileAndData(user.id)
+                                } else {
+                                    _state.value = _state.value.copy(
+                                        error = "Sadece fizyoterapistlerin profili görüntülenebilir",
+                                        isLoading = false
+                                    )
+                                }
                             }
-                        }
-                        is Resource.Error -> {
+                        } else {
                             _state.value = _state.value.copy(
-                                error = userResult.message ?: "Kullanıcı bilgisi alınamadı",
+                                error = "Kullanıcı bulunamadı",
                                 isLoading = false
                             )
                         }
-                        is Resource.Loading -> {
-                            // Zaten yükleniyor
-                        }
+                    }
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(
+                            error = result.message ?: "Kullanıcı bilgisi alınamadı",
+                            isLoading = false
+                        )
+                    }
+                    is Resource.Loading -> {
                     }
                 }
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    error = "Profil yüklenirken bir hata oluştu: ${e.message}",
-                    isLoading = false
-                )
             }
         }
     }
@@ -92,8 +105,8 @@ class PhysiotherapistSocialProfileViewModel @Inject constructor(
                                 profile = profile,
                                 isLoading = false
                             )
-                            // Fizyoterapistin paylaşımlarını yükle
-                            loadPosts(physiotherapistId)
+
+                            loadAllProfileData(physiotherapistId)
                         }
                         is Resource.Error -> {
                             _state.value = _state.value.copy(
@@ -102,7 +115,6 @@ class PhysiotherapistSocialProfileViewModel @Inject constructor(
                             )
                         }
                         is Resource.Loading -> {
-                            // Zaten yükleniyor
                         }
                     }
                 }
@@ -115,7 +127,7 @@ class PhysiotherapistSocialProfileViewModel @Inject constructor(
         }
     }
 
-    private fun loadPhysiotherapistProfileAndPosts(userId: String) {
+    private fun loadPhysiotherapistProfileAndData(userId: String) {
         viewModelScope.launch {
             try {
                 getPhysiotherapistProfileUseCase(userId).collect { profileResult ->
@@ -126,8 +138,8 @@ class PhysiotherapistSocialProfileViewModel @Inject constructor(
                                 profile = profile,
                                 isLoading = false
                             )
-                            // Paylaşımları yükle
-                            loadPosts(userId)
+
+                            loadAllProfileData(userId)
                         }
                         is Resource.Error -> {
                             _state.value = _state.value.copy(
@@ -136,7 +148,6 @@ class PhysiotherapistSocialProfileViewModel @Inject constructor(
                             )
                         }
                         is Resource.Loading -> {
-                            // Zaten yükleniyor
                         }
                     }
                 }
@@ -149,43 +160,302 @@ class PhysiotherapistSocialProfileViewModel @Inject constructor(
         }
     }
 
+    private fun loadAllProfileData(userId: String) {
+        loadPosts(userId)
+        loadFollowersCount(userId)
+        loadFollowingCount(userId)
+
+        val currentUserId = _currentUser.value?.id
+        if (currentUserId != null && userId != currentUserId) {
+            checkFollowState(userId)
+        }
+    }
+
     private fun loadPosts(userId: String) {
         viewModelScope.launch {
             try {
                 getAllPostsUseCase().collect { result ->
                     when (result) {
                         is Resource.Success -> {
-                            // Belirli fizyoterapistin paylaşımlarını filtrele
                             val physiotherapistPosts = result.data.filter { it.userId == userId }
 
-                            // Toplam beğeni ve yorum sayılarını hesapla
                             val totalLikes = physiotherapistPosts.sumOf { it.likeCount }
                             val totalComments = physiotherapistPosts.sumOf { it.commentCount }
 
                             _state.value = _state.value.copy(
                                 posts = physiotherapistPosts,
                                 totalLikes = totalLikes,
-                                totalComments = totalComments,
-                                isLoading = false
+                                totalComments = totalComments
                             )
                         }
                         is Resource.Error -> {
-                            _state.value = _state.value.copy(
-                                error = result.message ?: "Paylaşımlar yüklenemedi",
-                                isLoading = false
-                            )
+                            Log.e("PhysiotherapistProfileVM", "Error loading posts: ${result.message}")
                         }
                         is Resource.Loading -> {
-                            // Zaten yükleniyor
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("PhysiotherapistProfileVM", "Exception loading posts", e)
+            }
+        }
+    }
+
+    private fun checkFollowState(physiotherapistId: String) {
+        val currentUserId = _currentUser.value?.id ?: return
+
+        viewModelScope.launch {
+            isFollowingUseCase(currentUserId, physiotherapistId).collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(
+                            isFollowing = result.data
+                        )
+                    }
+                    is Resource.Error -> {
+                        Log.e("PhysiotherapistProfileVM", "Error checking follow state: ${result.message}")
+                    }
+                    is Resource.Loading -> {
+                    }
+                }
+            }
+        }
+    }
+
+    fun toggleFollow(physiotherapistId: String) {
+        val currentUser = _currentUser.value ?: return
+        val isCurrentlyFollowing = _state.value.isFollowing
+
+        _state.value = _state.value.copy(isFollowLoading = true)
+
+        viewModelScope.launch {
+            try {
+                if (isCurrentlyFollowing) {
+                    unfollowPhysiotherapistUseCase(currentUser.id, physiotherapistId).collect { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                _state.value = _state.value.copy(
+                                    isFollowing = false,
+                                    isFollowLoading = false
+                                )
+
+                                loadFollowersCount(physiotherapistId)
+                            }
+                            is Resource.Error -> {
+                                _state.value = _state.value.copy(
+                                    error = result.message,
+                                    isFollowLoading = false
+                                )
+                            }
+                            is Resource.Loading -> {
+
+                            }
+                        }
+                    }
+                } else {
+
+                    followPhysiotherapistUseCase(
+                        currentUser.id,
+                        currentUser.role.toString(),
+                        physiotherapistId
+                    ).collect { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                _state.value = _state.value.copy(
+                                    isFollowing = true,
+                                    isFollowLoading = false
+                                )
+                                loadFollowersCount(physiotherapistId)
+                            }
+                            is Resource.Error -> {
+                                _state.value = _state.value.copy(
+                                    error = result.message,
+                                    isFollowLoading = false
+                                )
+                            }
+                            is Resource.Loading -> {
+                            }
                         }
                     }
                 }
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
-                    error = "Paylaşımlar yüklenirken bir hata oluştu: ${e.message}",
-                    isLoading = false
+                    error = "İşlem sırasında bir hata oluştu: ${e.message}",
+                    isFollowLoading = false
                 )
             }
+        }
+    }
+
+    private fun loadFollowersCount(physiotherapistId: String) {
+        viewModelScope.launch {
+            getFollowersCountUseCase(physiotherapistId).collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(
+                            followersCount = result.data
+                        )
+                    }
+                    is Resource.Error -> {
+                        Log.e("PhysiotherapistProfileVM", "Error loading followers count: ${result.message}")
+                    }
+                    is Resource.Loading -> {
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadFollowingCount(physiotherapistId: String) {
+        viewModelScope.launch {
+            getFollowingCountUseCase(physiotherapistId).collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(
+                            followingCount = result.data
+                        )
+                    }
+                    is Resource.Error -> {
+                        Log.e("PhysiotherapistProfileVM", "Error loading following count: ${result.message}")
+                    }
+                    is Resource.Loading -> {
+                    }
+                }
+            }
+        }
+    }
+
+    fun loadFollowers(physiotherapistId: String) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
+
+            getFollowersUseCase(physiotherapistId).collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(
+                            followers = result.data,
+                            isLoading = false
+                        )
+                        loadFollowerProfiles(result.data)
+                    }
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(
+                            error = result.message,
+                            isLoading = false
+                        )
+                    }
+                    is Resource.Loading -> {
+                    }
+                }
+            }
+        }
+    }
+
+    fun loadFollowing(physiotherapistId: String) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
+
+            getFollowingUseCase(physiotherapistId).collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _state.value = _state.value.copy(
+                            following = result.data,
+                            isLoading = false
+                        )
+
+                        loadFollowingProfiles(result.data)
+                    }
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(
+                            error = result.message,
+                            isLoading = false
+                        )
+                    }
+                    is Resource.Loading -> {
+
+                    }
+                }
+            }
+        }
+    }
+
+
+    private fun loadFollowerProfiles(followers: List<FollowRelation>) {
+        viewModelScope.launch {
+            val profiles = mutableMapOf<String, Any>()
+
+            followers.forEach { followRelation ->
+                try {
+                    if (followRelation.followerRole == "PHYSIOTHERAPIST") {
+                        getPhysiotherapistByIdUseCase(followRelation.followerId).collect { result ->
+                            if (result is Resource.Success && result.data != null) {
+                                profiles[followRelation.followerId] = result.data
+                                _state.value = _state.value.copy(
+                                    followerProfiles = profiles.toMap()
+                                )
+                            }
+                        }
+                    } else {
+                        getUserProfileUseCase(followRelation.followerId).collect { result ->
+                            if (result is Resource.Success && result.data != null) {
+                                profiles[followRelation.followerId] = result.data
+                                _state.value = _state.value.copy(
+                                    followerProfiles = profiles.toMap()
+                                )
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+
+                }
+            }
+        }
+    }
+
+
+    private fun loadFollowingProfiles(following: List<FollowRelation>) {
+        viewModelScope.launch {
+            val profiles = mutableMapOf<String, PhysiotherapistProfile>()
+
+            following.forEach { followRelation ->
+                try {
+
+                    getPhysiotherapistByIdUseCase(followRelation.followedId).collect { result ->
+                        if (result is Resource.Success && result.data != null) {
+                            profiles[followRelation.followedId] = result.data
+                            _state.value = _state.value.copy(
+                                followingProfiles = profiles.toMap()
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("PhysiotherapistProfileVM", "Error loading following profile", e)
+                }
+            }
+        }
+    }
+
+    fun toggleShowFollowers() {
+        _state.value = _state.value.copy(
+            showFollowers = !_state.value.showFollowers,
+            showFollowing = false
+        )
+
+        if (_state.value.showFollowers) {
+            val profileId = physiotherapistId ?: _currentUser.value?.id
+            profileId?.let { loadFollowers(it) }
+        }
+    }
+
+    fun toggleShowFollowing() {
+        _state.value = _state.value.copy(
+            showFollowing = !_state.value.showFollowing,
+            showFollowers = false
+        )
+
+        if (_state.value.showFollowing) {
+            val profileId = physiotherapistId ?: _currentUser.value?.id
+            profileId?.let { loadFollowing(it) }
         }
     }
 
@@ -195,7 +465,10 @@ class PhysiotherapistSocialProfileViewModel @Inject constructor(
         if (physiotherapistId != null && physiotherapistId.isNotEmpty()) {
             loadSpecificPhysiotherapistProfile(physiotherapistId)
         } else {
-            loadCurrentUserProfile()
+            val currentUser = _currentUser.value
+            if (currentUser != null && currentUser.role == UserRole.PHYSIOTHERAPIST) {
+                loadPhysiotherapistProfileAndData(currentUser.id)
+            }
         }
     }
 }

@@ -1,4 +1,3 @@
-// data/repository/socialmedia/SocialMediaRepository.kt
 package com.example.fizyoapp.data.repository.socialmedia
 
 import com.example.fizyoapp.data.util.Resource
@@ -14,14 +13,14 @@ interface SocialMediaRepository {
     fun unlikePost(postId: String, userId: String): Flow<Resource<Unit>>
     fun getCommentsByPostId(postId: String): Flow<Resource<List<Comment>>>
     fun addComment(comment: Comment): Flow<Resource<Comment>>
-    fun deletePost(postId: String): Flow<Resource<Unit>> // YENİ
+    fun deletePost(postId: String): Flow<Resource<Unit>>
     fun updatePost(
         postId: String,
         content: String,
         existingMediaUrls: List<String>,
         existingMediaTypes: List<String>,
         newMediaUris: List<String>
-    ): Flow<Resource<Post>> // YENİ
+    ): Flow<Resource<Post>>
 
     fun deleteComment(commentId: String): Flow<Resource<Unit>>
 }

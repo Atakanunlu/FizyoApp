@@ -1,4 +1,3 @@
-// presentation/socialmedia/EditPostScreen.kt
 package com.example.fizyoapp.presentation.socialmedia
 
 import android.Manifest
@@ -8,7 +7,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -45,7 +43,6 @@ fun EditPostScreen(
     val context = LocalContext.current
     var showMediaOptions by remember { mutableStateOf(false) }
 
-    // Fotoğraf ve video seçimi için launcher'lar
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->
@@ -58,7 +55,6 @@ fun EditPostScreen(
         viewModel.onEvent(EditPostEvent.MediaAdded(uris.map { it.toString() }))
     }
 
-    // İzin launcher'ları
     val storagePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -82,7 +78,7 @@ fun EditPostScreen(
                     navController.popBackStack()
                 }
                 is EditPostViewModel.UiEvent.ShowError -> {
-                    // Hata gösterme işlemi
+
                 }
             }
         }
@@ -124,7 +120,6 @@ fun EditPostScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Kullanıcı bilgisi ve profil fotoğrafı
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -171,7 +166,6 @@ fun EditPostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // İçerik girişi
             OutlinedTextField(
                 value = state.content,
                 onValueChange = { viewModel.onEvent(EditPostEvent.ContentChanged(it)) },
@@ -187,7 +181,6 @@ fun EditPostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Mevcut medya + Yeni eklenen medya
             val allMediaUris = state.existingMediaUrls + state.newMediaUris
 
             if (allMediaUris.isNotEmpty()) {
@@ -247,7 +240,6 @@ fun EditPostScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Medya ekleme butonu
             Button(
                 onClick = { showMediaOptions = true },
                 colors = ButtonDefaults.buttonColors(
@@ -285,14 +277,14 @@ fun EditPostScreen(
         }
     }
 
-    // Medya seçim dialog'u
+
     if (showMediaOptions) {
         AlertDialog(
             onDismissRequest = { showMediaOptions = false },
             title = { Text("Medya Ekle") },
             text = {
                 Column {
-                    // Fotoğraf seçme
+
                     DropdownMenuItem(
                         text = { Text("Fotoğraf Ekle") },
                         leadingIcon = {
@@ -321,7 +313,7 @@ fun EditPostScreen(
                         }
                     )
 
-                    // Video seçme
+
                     DropdownMenuItem(
                         text = { Text("Video Ekle") },
                         leadingIcon = {

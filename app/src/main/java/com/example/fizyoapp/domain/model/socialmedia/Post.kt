@@ -1,7 +1,5 @@
-// domain/model/socialmedia/Post.kt
 package com.example.fizyoapp.domain.model.socialmedia
 
-import com.google.firebase.Timestamp
 import java.util.Date
 
 data class Post(
@@ -11,7 +9,7 @@ data class Post(
     val userPhotoUrl: String = "",
     val content: String = "",
     val mediaUrls: List<String> = emptyList(),
-    val mediaTypes: List<String> = emptyList(), // "image" veya "video" değerleri
+    val mediaTypes: List<String> = emptyList(),
     val likeCount: Int = 0,
     val commentCount: Int = 0,
     val timestamp: Date = Date(),

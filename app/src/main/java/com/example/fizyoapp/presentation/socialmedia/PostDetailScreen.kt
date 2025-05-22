@@ -1,6 +1,6 @@
-// presentation/socialmedia/PostDetailScreen.kt
 package com.example.fizyoapp.presentation.socialmedia
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,10 +44,7 @@ fun PostDetailScreen(
     val commentText by viewModel.commentText.collectAsState()
     val dateFormatter = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
     var videoControlsVisible by remember { mutableStateOf(false) }
-
-    // Diyalog durumları
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
-    // Burada context'i ekliyoruz
     val context = LocalContext.current
 
     LaunchedEffect(key1 = state.postDeleted) {
@@ -58,7 +56,7 @@ fun PostDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Gönderi Detayı") },
+                title = { Text("Gönderi Detayı", fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -68,15 +66,14 @@ fun PostDetailScreen(
                     }
                 },
                 actions = {
-                    // Gönderi sahibiyse düzenleme ve silme seçenekleri göster
                     if (state.post?.userId == state.currentUserId) {
                         IconButton(onClick = { showDeleteConfirmDialog = true }) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
-                                contentDescription = "Gönderiyi Sil"
+                                contentDescription = "Gönderiyi Sil",
+                                tint = MaterialTheme.colorScheme.error
                             )
                         }
-
                         IconButton(
                             onClick = {
                                 state.post?.id?.let { postId ->
@@ -110,52 +107,70 @@ fun PostDetailScreen(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Icon(
+                        imageVector = Icons.Default.Error,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = state.error ?: "",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.error
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = { viewModel.loadPostAndComments() }) {
                         Text("Tekrar Dene")
                     }
                 }
             } else if (state.post == null) {
-                Text(
-                    text = "Gönderi bulunamadı",
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Feed,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Gönderi bulunamadı",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
             } else {
-                val post = state.post // Local değişkene atama yaparak smart cast
+                val post = state.post
                 if (post != null) {
                     Column(
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        // İçerik alanı
                         LazyColumn(
                             modifier = Modifier
                                 .weight(1f)
-                                .fillMaxWidth()
+                                .fillMaxWidth(),
+                            contentPadding = PaddingValues(bottom = 80.dp)
                         ) {
-                            // Gönderi detayı
                             item {
                                 Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(16.dp),
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(12.dp),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(16.dp)
                                     ) {
-                                        // Kullanıcı bilgisi
+                                        // User info
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .size(40.dp)
+                                                    .size(48.dp)
                                                     .clip(CircleShape)
                                                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
                                             ) {
@@ -177,7 +192,7 @@ fun PostDetailScreen(
                                                     )
                                                 }
                                             }
-                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Spacer(modifier = Modifier.width(12.dp))
                                             Column {
                                                 Text(
                                                     text = post.userName,
@@ -186,7 +201,7 @@ fun PostDetailScreen(
                                                 )
                                                 Text(
                                                     text = if (post.userRole == "PHYSIOTHERAPIST") "Fizyoterapist" else "Kullanıcı",
-                                                    fontSize = 12.sp,
+                                                    fontSize = 14.sp,
                                                     color = MaterialTheme.colorScheme.primary
                                                 )
                                             }
@@ -194,303 +209,32 @@ fun PostDetailScreen(
                                             Text(
                                                 text = dateFormatter.format(post.timestamp),
                                                 fontSize = 12.sp,
-                                                color = Color.Gray
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                             )
                                         }
 
                                         Spacer(modifier = Modifier.height(16.dp))
 
-                                        // Gönderi içeriği
                                         Text(
                                             text = post.content,
                                             modifier = Modifier.fillMaxWidth(),
-                                            fontSize = 16.sp
+                                            fontSize = 16.sp,
+                                            lineHeight = 24.sp
                                         )
 
-                                        // PostDetailScreen.kt içinde, gönderi detayı içindeki medya görüntüleme kısmı
-
-// Medya içeriği varsa göster
                                         if (post.mediaUrls.isNotEmpty()) {
                                             Spacer(modifier = Modifier.height(16.dp))
-
-                                            // Medya sayısına göre farklı görünümler
-                                            when {
-                                                // Tek medya varsa
-                                                post.mediaUrls.size == 1 -> {
-                                                    val mediaUrl = post.mediaUrls.first()
-                                                    val isVideo = post.mediaTypes.firstOrNull() == "video"
-
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .height(280.dp)
-                                                            .clip(RoundedCornerShape(8.dp))
-                                                            .clickable { videoControlsVisible = !videoControlsVisible }
-                                                    ) {
-                                                        if (isVideo) {
-                                                            // Video Player
-                                                            val videoUri = remember { Uri.parse(mediaUrl) }
-                                                            val exoPlayer = remember {
-                                                                ExoPlayer.Builder(context).build().apply {
-                                                                    setMediaItem(MediaItem.fromUri(videoUri))
-                                                                    prepare()
-                                                                }
-                                                            }
-
-                                                            DisposableEffect(key1 = videoUri.toString()) {
-                                                                onDispose {
-                                                                    exoPlayer.release()
-                                                                }
-                                                            }
-
-                                                            AndroidView(
-                                                                factory = { ctx ->
-                                                                    PlayerView(ctx).apply {
-                                                                        player = exoPlayer
-                                                                        useController = videoControlsVisible
-                                                                    }
-                                                                },
-                                                                modifier = Modifier.fillMaxSize()
-                                                            )
-
-                                                            // Video play butonu
-                                                            if (!videoControlsVisible) {
-                                                                Box(
-                                                                    modifier = Modifier
-                                                                        .size(50.dp)
-                                                                        .align(Alignment.Center)
-                                                                        .background(
-                                                                            color = Color.Black.copy(alpha = 0.5f),
-                                                                            shape = CircleShape
-                                                                        ),
-                                                                    contentAlignment = Alignment.Center
-                                                                ) {
-                                                                    Icon(
-                                                                        imageVector = Icons.Default.PlayArrow,
-                                                                        contentDescription = "Play",
-                                                                        tint = Color.White,
-                                                                        modifier = Modifier.size(30.dp)
-                                                                    )
-                                                                }
-                                                            }
-                                                        } else {
-                                                            // Resim gösterimi
-                                                            AsyncImage(
-                                                                model = mediaUrl,
-                                                                contentDescription = "Gönderi görüntüsü",
-                                                                modifier = Modifier.fillMaxSize(),
-                                                                contentScale = ContentScale.Crop
-                                                            )
-                                                        }
-                                                    }
-                                                }
-
-                                                // 2-4 arası medya için grid görünümü
-                                                post.mediaUrls.size in 2..4 -> {
-                                                    val rows = (post.mediaUrls.size + 1) / 2  // 2-3 medya için 2 satır, 4 medya için 2 satır
-
-                                                    Column(
-                                                        modifier = Modifier.fillMaxWidth(),
-                                                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                                                    ) {
-                                                        for (row in 0 until rows) {
-                                                            Row(
-                                                                modifier = Modifier
-                                                                    .fillMaxWidth()
-                                                                    .height(150.dp),
-                                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                                            ) {
-                                                                val startIndex = row * 2
-                                                                val endIndex = minOf(startIndex + 2, post.mediaUrls.size)
-
-                                                                for (i in startIndex until endIndex) {
-                                                                    val mediaUrl = post.mediaUrls[i]
-                                                                    val isVideo = post.mediaTypes.getOrNull(i) == "video"
-
-                                                                    Box(
-                                                                        modifier = Modifier
-                                                                            .weight(1f)
-                                                                            .fillMaxHeight()
-                                                                            .clip(RoundedCornerShape(8.dp))
-                                                                            .clickable {
-                                                                                // Burada seçilen medyayı tam ekran göstermek için bir işlev ekleyebilirsiniz
-                                                                            }
-                                                                    ) {
-                                                                        AsyncImage(
-                                                                            model = mediaUrl,
-                                                                            contentDescription = "Gönderi görüntüsü",
-                                                                            modifier = Modifier.fillMaxSize(),
-                                                                            contentScale = ContentScale.Crop
-                                                                        )
-
-                                                                        if (isVideo) {
-                                                                            Box(
-                                                                                modifier = Modifier
-                                                                                    .size(40.dp)
-                                                                                    .align(Alignment.Center)
-                                                                                    .background(
-                                                                                        color = Color.Black.copy(alpha = 0.5f),
-                                                                                        shape = CircleShape
-                                                                                    ),
-                                                                                contentAlignment = Alignment.Center
-                                                                            ) {
-                                                                                Icon(
-                                                                                    imageVector = Icons.Default.PlayArrow,
-                                                                                    contentDescription = "Video",
-                                                                                    tint = Color.White,
-                                                                                    modifier = Modifier.size(24.dp)
-                                                                                )
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-
-                                                                // Satırı doldurmak için gereken boş hücreler
-                                                                if (row == rows - 1 && (endIndex - startIndex) < 2) {
-                                                                    repeat(2 - (endIndex - startIndex)) {
-                                                                        Spacer(modifier = Modifier.weight(1f))
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-
-                                                // 5 veya daha fazla medya için gösterim
-                                                else -> {
-                                                    Column(
-                                                        modifier = Modifier.fillMaxWidth(),
-                                                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                                                    ) {
-                                                        // İlk satır - 2 medya yan yana
-                                                        Row(
-                                                            modifier = Modifier
-                                                                .fillMaxWidth()
-                                                                .height(150.dp),
-                                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                                        ) {
-                                                            for (i in 0..1) {
-                                                                val mediaUrl = post.mediaUrls[i]
-                                                                val isVideo = post.mediaTypes.getOrNull(i) == "video"
-
-                                                                Box(
-                                                                    modifier = Modifier
-                                                                        .weight(1f)
-                                                                        .fillMaxHeight()
-                                                                        .clip(RoundedCornerShape(8.dp))
-                                                                ) {
-                                                                    AsyncImage(
-                                                                        model = mediaUrl,
-                                                                        contentDescription = "Gönderi görüntüsü",
-                                                                        modifier = Modifier.fillMaxSize(),
-                                                                        contentScale = ContentScale.Crop
-                                                                    )
-
-                                                                    if (isVideo) {
-                                                                        Box(
-                                                                            modifier = Modifier
-                                                                                .size(40.dp)
-                                                                                .align(Alignment.Center)
-                                                                                .background(
-                                                                                    color = Color.Black.copy(alpha = 0.5f),
-                                                                                    shape = CircleShape
-                                                                                ),
-                                                                            contentAlignment = Alignment.Center
-                                                                        ) {
-                                                                            Icon(
-                                                                                imageVector = Icons.Default.PlayArrow,
-                                                                                contentDescription = "Video",
-                                                                                tint = Color.White,
-                                                                                modifier = Modifier.size(24.dp)
-                                                                            )
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-
-                                                        // İkinci satır - 3 medya yan yana
-                                                        Row(
-                                                            modifier = Modifier
-                                                                .fillMaxWidth()
-                                                                .height(100.dp),
-                                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                                        ) {
-                                                            for (i in 2..4) {
-                                                                if (i < post.mediaUrls.size) {
-                                                                    val mediaUrl = post.mediaUrls[i]
-                                                                    val isVideo = post.mediaTypes.getOrNull(i) == "video"
-
-                                                                    Box(
-                                                                        modifier = Modifier
-                                                                            .weight(1f)
-                                                                            .fillMaxHeight()
-                                                                            .clip(RoundedCornerShape(8.dp))
-                                                                    ) {
-                                                                        AsyncImage(
-                                                                            model = mediaUrl,
-                                                                            contentDescription = "Gönderi görüntüsü",
-                                                                            modifier = Modifier.fillMaxSize(),
-                                                                            contentScale = ContentScale.Crop
-                                                                        )
-
-                                                                        if (i == 4 && post.mediaUrls.size > 5) {
-                                                                            Box(
-                                                                                modifier = Modifier
-                                                                                    .fillMaxSize()
-                                                                                    .background(Color.Black.copy(alpha = 0.5f)),
-                                                                                contentAlignment = Alignment.Center
-                                                                            ) {
-                                                                                Text(
-                                                                                    text = "+${post.mediaUrls.size - 5}",
-                                                                                    color = Color.White,
-                                                                                    fontWeight = FontWeight.Bold,
-                                                                                    fontSize = 20.sp
-                                                                                )
-                                                                            }
-                                                                        } else if (isVideo) {
-                                                                            Box(
-                                                                                modifier = Modifier
-                                                                                    .size(30.dp)
-                                                                                    .align(Alignment.Center)
-                                                                                    .background(
-                                                                                        color = Color.Black.copy(alpha = 0.5f),
-                                                                                        shape = CircleShape
-                                                                                    ),
-                                                                                contentAlignment = Alignment.Center
-                                                                            ) {
-                                                                                Icon(
-                                                                                    imageVector = Icons.Default.PlayArrow,
-                                                                                    contentDescription = "Video",
-                                                                                    tint = Color.White,
-                                                                                    modifier = Modifier.size(18.dp)
-                                                                                )
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                } else {
-                                                                    Spacer(modifier = Modifier.weight(1f))
-                                                                }
-                                                            }
-                                                        }
-
-                                                        // Daha fazla medya gösterme seçeneği
-                                                        if (post.mediaUrls.size > 5) {
-                                                            TextButton(
-                                                                onClick = { /* Tüm medyaları görüntüleme ekranı açılabilir */ },
-                                                                modifier = Modifier.align(Alignment.End)
-                                                            ) {
-                                                                Text("Tüm Medyaları Görüntüle (${post.mediaUrls.size})")
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                            MediaGallery(
+                                                mediaUrls = post.mediaUrls,
+                                                mediaTypes = post.mediaTypes,
+                                                onVideoClick = { videoControlsVisible = !videoControlsVisible },
+                                                videoControlsVisible = videoControlsVisible,
+                                                context = context
+                                            )
                                         }
 
                                         Spacer(modifier = Modifier.height(16.dp))
 
-                                        // Beğeni ve yorum sayıları
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically
@@ -506,38 +250,32 @@ fun PostDetailScreen(
                                                     contentDescription = "Beğen",
                                                     tint = if (state.isPostLikedByCurrentUser)
                                                         Color.Red else
-                                                        Color.Gray
+                                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                                 )
                                             }
-
                                             Text(
                                                 text = "${post.likeCount} beğeni",
                                                 fontSize = 14.sp,
-                                                color = Color.Gray
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                             )
-
                                             Spacer(modifier = Modifier.width(16.dp))
-
                                             Icon(
                                                 imageVector = Icons.Default.Comment,
                                                 contentDescription = "Yorum",
-                                                tint = Color.Gray,
+                                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                                 modifier = Modifier.size(20.dp)
                                             )
-
                                             Spacer(modifier = Modifier.width(4.dp))
-
                                             Text(
                                                 text = "${post.commentCount} yorum",
                                                 fontSize = 14.sp,
-                                                color = Color.Gray
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                             )
                                         }
                                     }
                                 }
                             }
 
-                            // Yorumlar başlığı
                             item {
                                 Text(
                                     text = "Yorumlar",
@@ -546,23 +284,34 @@ fun PostDetailScreen(
                                     fontSize = 18.sp
                                 )
                                 HorizontalDivider(
-                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant
                                 )
                             }
 
-                            // Yorumlar listesi
                             if (state.comments.isEmpty()) {
                                 item {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(16.dp),
+                                            .height(120.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(
-                                            text = "Henüz yorum yapılmamış",
-                                            color = Color.Gray
-                                        )
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.ChatBubbleOutline,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                                                modifier = Modifier.size(32.dp)
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                text = "Henüz yorum yapılmamış",
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                            )
+                                        }
                                     }
                                 }
                             } else {
@@ -570,20 +319,15 @@ fun PostDetailScreen(
                                     CommentItem(comment = comment, dateFormatter = dateFormatter)
                                 }
                             }
-
-                            // Alt kısımda yorum giriş alanı için boşluk
-                            item {
-                                Spacer(modifier = Modifier.height(80.dp))
-                            }
                         }
 
-                        // Yorum giriş alanı
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp),
+                                .padding(8.dp)
+                                .navigationBarsPadding(),
                             shape = RoundedCornerShape(24.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Row(
                                 modifier = Modifier
@@ -615,7 +359,6 @@ fun PostDetailScreen(
                                         )
                                     }
                                 }
-
                                 OutlinedTextField(
                                     value = commentText,
                                     onValueChange = { viewModel.updateCommentText(it) },
@@ -625,11 +368,11 @@ fun PostDetailScreen(
                                         .padding(horizontal = 8.dp),
                                     colors = TextFieldDefaults.outlinedTextFieldColors(
                                         focusedBorderColor = Color.Transparent,
-                                        unfocusedBorderColor = Color.Transparent
+                                        unfocusedBorderColor = Color.Transparent,
+                                        containerColor = MaterialTheme.colorScheme.surface
                                     ),
                                     maxLines = 3
                                 )
-
                                 IconButton(
                                     onClick = { viewModel.addComment() },
                                     enabled = commentText.isNotBlank() && !state.isCommentLoading
@@ -644,7 +387,7 @@ fun PostDetailScreen(
                                             imageVector = Icons.Default.Send,
                                             contentDescription = "Gönder",
                                             tint = if (commentText.isBlank())
-                                                Color.Gray else
+                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else
                                                 MaterialTheme.colorScheme.primary
                                         )
                                     }
@@ -657,7 +400,6 @@ fun PostDetailScreen(
         }
     }
 
-    // Silme onay diyalogu
     if (showDeleteConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmDialog = false },
@@ -686,6 +428,260 @@ fun PostDetailScreen(
 }
 
 @Composable
+fun MediaGallery(
+    mediaUrls: List<String>,
+    mediaTypes: List<String>,
+    onVideoClick: () -> Unit,
+    videoControlsVisible: Boolean,
+    context: Context
+) {
+    when {
+        mediaUrls.size == 1 -> {
+            val mediaUrl = mediaUrls.first()
+            val isVideo = mediaTypes.firstOrNull() == "video"
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(280.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { if (isVideo) onVideoClick() }
+            ) {
+                if (isVideo) {
+                    val videoUri = remember { Uri.parse(mediaUrl) }
+                    val exoPlayer = remember {
+                        ExoPlayer.Builder(context).build().apply {
+                            setMediaItem(MediaItem.fromUri(videoUri))
+                            prepare()
+                        }
+                    }
+                    DisposableEffect(key1 = videoUri.toString()) {
+                        onDispose {
+                            exoPlayer.release()
+                        }
+                    }
+                    AndroidView(
+                        factory = { ctx ->
+                            PlayerView(ctx).apply {
+                                player = exoPlayer
+                                useController = videoControlsVisible
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    if (!videoControlsVisible) {
+                        Box(
+                            modifier = Modifier
+                                .size(60.dp)
+                                .align(Alignment.Center)
+                                .background(
+                                    color = Color.Black.copy(alpha = 0.5f),
+                                    shape = CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = "Play",
+                                tint = Color.White,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                    }
+                } else {
+                    AsyncImage(
+                        model = mediaUrl,
+                        contentDescription = "Gönderi görüntüsü",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+        }
+
+        mediaUrls.size in 2..4 -> {
+            val rows = (mediaUrls.size + 1) / 2
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                for (row in 0 until rows) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        val startIndex = row * 2
+                        val endIndex = minOf(startIndex + 2, mediaUrls.size)
+                        for (i in startIndex until endIndex) {
+                            val mediaUrl = mediaUrls[i]
+                            val isVideo = mediaTypes.getOrNull(i) == "video"
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .clip(RoundedCornerShape(8.dp))
+                            ) {
+                                AsyncImage(
+                                    model = mediaUrl,
+                                    contentDescription = "Gönderi görüntüsü",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                                if (isVideo) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .align(Alignment.Center)
+                                            .background(
+                                                color = Color.Black.copy(alpha = 0.5f),
+                                                shape = CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.PlayArrow,
+                                            contentDescription = "Video",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        if (row == rows - 1 && (endIndex - startIndex) < 2) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        }
+
+        else -> {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    for (i in 0..1) {
+                        val mediaUrl = mediaUrls[i]
+                        val isVideo = mediaTypes.getOrNull(i) == "video"
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(8.dp))
+                        ) {
+                            AsyncImage(
+                                model = mediaUrl,
+                                contentDescription = "Gönderi görüntüsü",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                            if (isVideo) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .align(Alignment.Center)
+                                        .background(
+                                            color = Color.Black.copy(alpha = 0.5f),
+                                            shape = CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.PlayArrow,
+                                        contentDescription = "Video",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    for (i in 2..4) {
+                        if (i < mediaUrls.size) {
+                            val mediaUrl = mediaUrls[i]
+                            val isVideo = mediaTypes.getOrNull(i) == "video"
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .clip(RoundedCornerShape(8.dp))
+                            ) {
+                                AsyncImage(
+                                    model = mediaUrl,
+                                    contentDescription = "Gönderi görüntüsü",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                                if (i == 4 && mediaUrls.size > 5) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color.Black.copy(alpha = 0.6f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "+${mediaUrls.size - 5}",
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 22.sp
+                                        )
+                                    }
+                                } else if (isVideo) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(30.dp)
+                                            .align(Alignment.Center)
+                                            .background(
+                                                color = Color.Black.copy(alpha = 0.5f),
+                                                shape = CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.PlayArrow,
+                                            contentDescription = "Video",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+
+                if (mediaUrls.size > 5) {
+                    TextButton(
+                        onClick = { /* Tüm medyaları görüntüleme ekranı açılabilir */ },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text("Tüm Medyaları Görüntüle (${mediaUrls.size})")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun CommentItem(
     comment: Comment,
     dateFormatter: SimpleDateFormat
@@ -694,19 +690,18 @@ fun CommentItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
             modifier = Modifier.padding(12.dp)
         ) {
-            // Kullanıcı bilgisi
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(36.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
                 ) {
@@ -728,9 +723,7 @@ fun CommentItem(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.width(8.dp))
-
                 Column {
                     Text(
                         text = comment.userName,
@@ -739,26 +732,22 @@ fun CommentItem(
                     )
                     Text(
                         text = if (comment.userRole == "PHYSIOTHERAPIST") "Fizyoterapist" else "Kullanıcı",
-                        fontSize = 10.sp,
+                        fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-
                 Spacer(modifier = Modifier.weight(1f))
-
                 Text(
                     text = dateFormatter.format(comment.timestamp),
                     fontSize = 10.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
-
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Yorum içeriği
             Text(
                 text = comment.content,
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                lineHeight = 20.sp
             )
         }
     }

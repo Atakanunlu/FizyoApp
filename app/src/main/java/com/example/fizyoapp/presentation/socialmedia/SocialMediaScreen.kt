@@ -1,6 +1,6 @@
-// presentation/socialmedia/SocialMediaScreen.kt
 package com.example.fizyoapp.presentation.socialmedia
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Feed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -36,36 +38,43 @@ fun SocialMediaScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
-    val userProfileState by viewModel.userProfile.collectAsState()
-    val physiotherapistProfileState by viewModel.physiotherapistProfile.collectAsState()
     val currentRoute = navController.currentBackStackEntry?.destination?.route ?: ""
     val isPhysiotherapist = currentUser?.role == UserRole.PHYSIOTHERAPIST
-
-    // Kullanıcı adı ve soyadı - Yerel değişkenlere atayarak smart cast sorununu çöz
-    val userProfile = userProfileState
-    val physiotherapistProfile = physiotherapistProfileState
-
-    val userFullName = when {
-        isPhysiotherapist && physiotherapistProfile != null -> {
-            "${physiotherapistProfile.firstName} ${physiotherapistProfile.lastName}"
-        }
-        !isPhysiotherapist && userProfile != null -> {
-            "${userProfile.firstName} ${userProfile.lastName}"
-        }
-        else -> "Kullanıcı"
+    val userFullName = if (isPhysiotherapist) {
+        viewModel.physiotherapistProfile.collectAsState().value?.let {
+            "${it.firstName} ${it.lastName}"
+        } ?: "Fizyoterapist"
+    } else {
+        viewModel.userProfile.collectAsState().value?.let {
+            "${it.firstName} ${it.lastName}"
+        } ?: "Kullanıcı"
     }
 
-    // Load posts and user info when the screen appears
     LaunchedEffect(key1 = true) {
-        viewModel.loadPosts()
-        viewModel.loadUserInfo()
+        viewModel.initializeScreen()
+    }
+
+    LaunchedEffect(key1 = state.posts) {
+        if (state.posts.isNotEmpty()) {
+            viewModel.checkAllFollowStates()
+        }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Merhaba, $userFullName")
+                    Column {
+                        Text(
+                            "Merhaba,",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            userFullName,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = {
@@ -87,8 +96,13 @@ fun SocialMediaScreen(
                 },
                 actions = {
                     if (isPhysiotherapist) {
-                        // Create post button for physiotherapists
-                        IconButton(onClick = { navController.navigate(AppScreens.CreatePostScreen.route) }) {
+                        FilledTonalIconButton(
+                            onClick = { navController.navigate(AppScreens.CreatePostScreen.route) },
+                            modifier = Modifier.padding(end = 8.dp),
+                            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "Paylaşım Yap"
@@ -113,49 +127,63 @@ fun SocialMediaScreen(
         ) {
             if (state.isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.primary
                 )
             } else if (state.posts.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Feed,
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Henüz gönderi paylaşılmamış",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
             } else {
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp)
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(state.posts) { post ->
+                        val isFollowingAuthor = viewModel.followStateMap.collectAsState().value[post.userId] ?: false
+                        val isFollowLoading = viewModel.followLoadingMap.collectAsState().value[post.userId] ?: false
                         PostItem(
                             post = post,
+                            currentUserId = currentUser?.id,
+                            isFollowingAuthor = isFollowingAuthor,
+                            isFollowLoading = isFollowLoading,
                             onClickDetail = {
                                 navController.navigate(AppScreens.PostDetailScreen.createRoute(post.id))
                             },
                             onLike = {
                                 viewModel.onLikePost(post.id)
                             },
-                            isLikedByCurrentUser = post.likedBy.contains(currentUser?.id),
-                            isCurrentUserPost = post.userId == currentUser?.id
+                            onFollow = {
+                                viewModel.toggleFollow(post.userId)
+                            }
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
                     }
                     item {
                         Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
             }
-            // Error handling
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
                 ) {
                     Text(state.error!!)
                 }
@@ -167,13 +195,17 @@ fun SocialMediaScreen(
 @Composable
 fun PostItem(
     post: Post,
+    currentUserId: String?,
+    isFollowingAuthor: Boolean,
+    isFollowLoading: Boolean,
     onClickDetail: () -> Unit,
     onLike: () -> Unit,
-    isLikedByCurrentUser: Boolean,
-    isCurrentUserPost: Boolean
+    onFollow: () -> Unit
 ) {
     val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-
+    val isLikedByCurrentUser = post.likedBy.contains(currentUserId)
+    val isCurrentUserPost = post.userId == currentUserId
+    val canFollow = post.userRole == "PHYSIOTHERAPIST" && !isCurrentUserPost
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -184,9 +216,9 @@ fun PostItem(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // User info
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Box(
                     modifier = Modifier
@@ -212,10 +244,10 @@ fun PostItem(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.width(12.dp))
-
-                Column {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text(
                         text = post.userName,
                         fontWeight = FontWeight.Bold
@@ -224,53 +256,66 @@ fun PostItem(
                         text = if (post.userRole == "PHYSIOTHERAPIST") "Fizyoterapist" else "Kullanıcı",
                         style = MaterialTheme.typography.bodySmall,
                         color = if (post.userRole == "PHYSIOTHERAPIST")
-                            MaterialTheme.colorScheme.primary else Color.Gray
+                            MaterialTheme.colorScheme.primary else
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
-
-                Spacer(modifier = Modifier.weight(1f))
-
+                if (canFollow) {
+                    FollowButton(
+                        isFollowing = isFollowingAuthor,
+                        isLoading = isFollowLoading,
+                        onClick = onFollow
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = dateFormat.format(post.timestamp),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
-            // Post content
             Text(
                 text = post.content,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                lineHeight = 24.sp
             )
-
-            // Show first media if exists
             if (post.mediaUrls.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
-
-                AsyncImage(
-                    model = post.mediaUrls.first(),
-                    contentDescription = "Gönderi görüntüsü",
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
-                )
-
-                if (post.mediaUrls.size > 1) {
-                    Text(
-                        text = "+${post.mediaUrls.size - 1} daha fazla",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.align(Alignment.End)
+                        .clip(RoundedCornerShape(8.dp))
+                ) {
+                    AsyncImage(
+                        model = post.mediaUrls.first(),
+                        contentDescription = "Gönderi görüntüsü",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
+                    if (post.mediaUrls.size > 1) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(8.dp)
+                                .background(
+                                    color = Color.Black.copy(alpha = 0.6f),
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "+${post.mediaUrls.size - 1}",
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
-            // Actions
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -283,44 +328,100 @@ fun PostItem(
                         imageVector = if (isLikedByCurrentUser)
                             Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Beğen",
-                        tint = if (isLikedByCurrentUser) Color.Red else Color.Gray
+                        tint = if (isLikedByCurrentUser) Color.Red else
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
-
                 Text(
                     text = "${post.likeCount} beğeni",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
-
                 Spacer(modifier = Modifier.width(16.dp))
-
                 Icon(
                     imageVector = Icons.Default.Comment,
                     contentDescription = "Yorum",
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     modifier = Modifier.size(20.dp)
                 )
-
                 Spacer(modifier = Modifier.width(4.dp))
-
                 Text(
                     text = "${post.commentCount} yorum",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
-
                 Spacer(modifier = Modifier.weight(1f))
-
-                Button(
+                FilledTonalButton(
                     onClick = { onClickDetail() },
-                    colors = ButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.filledTonalButtonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Text("Detaylar")
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun FollowButton(
+    isFollowing: Boolean,
+    isLoading: Boolean,
+    onClick: () -> Unit
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isFollowing)
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+        else
+            MaterialTheme.colorScheme.primary,
+        label = "backgroundColor"
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (isFollowing)
+            MaterialTheme.colorScheme.primary
+        else
+            Color.White,
+        label = "contentColor"
+    )
+    Button(
+        onClick = onClick,
+        enabled = !isLoading,
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = backgroundColor,
+            contentColor = contentColor,
+            disabledContainerColor = backgroundColor.copy(alpha = 0.6f),
+            disabledContentColor = contentColor.copy(alpha = 0.6f)
+        ),
+        modifier = Modifier.height(32.dp),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(16.dp),
+                strokeWidth = 2.dp,
+                color = contentColor
+            )
+        } else {
+            if (isFollowing) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Takip Ediliyor",
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Takip Ediliyor",
+                    fontSize = 10.sp
+                )
+            } else {
+                Text(
+                    text = "Takip Et",
+                    fontSize = 10.sp
+                )
             }
         }
     }

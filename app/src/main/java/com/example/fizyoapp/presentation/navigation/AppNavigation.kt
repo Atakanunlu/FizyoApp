@@ -1,6 +1,4 @@
-// presentation/navigation/AppNavigation.kt
 package com.example.fizyoapp.presentation.navigation
-
 import OrnekEgzersizler
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -31,6 +29,7 @@ import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_sc
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notes.NotesViewModel
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapistdetail.PhysiotherapistDetailScreen
 import com.example.fizyoapp.presentation.socialmedia.*
+import com.example.fizyoapp.presentation.socialmedia.notification.NotificationScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesScreen
@@ -98,7 +97,6 @@ fun AppNavigation() {
         composable(AppScreens.SettingsScreen.route){
             SettingsScreen(navController=navController)
         }
-
         composable(AppScreens.UserInformationScreen.route) {
             UserProfileSetupScreen(
                 navController = navController,
@@ -117,7 +115,6 @@ fun AppNavigation() {
                 isFirstSetup = false
             )
         }
-
         composable(
             route = "${AppScreens.PhysiotherapistDetailScreen.route}/{physiotherapistId}",
             arguments = listOf(navArgument("physiotherapistId") { type = NavType.StringType })
@@ -125,7 +122,6 @@ fun AppNavigation() {
             val physiotherapistId = it.arguments?.getString("physiotherapistId") ?: ""
             PhysiotherapistDetailScreen(navController = navController)
         }
-
         composable(AppScreens.NotesScreen.route) {
             NotesScreen(navController = navController)
         }
@@ -145,15 +141,9 @@ fun AppNavigation() {
                 }
             )
         }
-
-        composable(
-            route = AppScreens.MessagesScreen.route
-        ) {
+        composable(AppScreens.MessagesScreen.route) {
             MessagesScreen(navController = navController)
         }
-        composable(
-            route = AppScreens.MessagesScreen.route,
-        ) { MessagesScreen(navController) }
         composable(
             route = AppScreens.MessagesDetailScreen.route,
             arguments = listOf(
@@ -170,13 +160,60 @@ fun AppNavigation() {
             PainTrackingScreen(navController = navController)
         }
 
-        // Sosyal Medya ekranları
+
+        composable(AppScreens.SocialMediaScreen.route) {
+            SocialMediaScreen(navController = navController)
+        }
+        composable(AppScreens.SocialMediaSearchScreen.route) {
+            SocialMediaSearchScreen(navController = navController)
+        }
+        composable(AppScreens.CreatePostScreen.route) {
+            CreatePostScreen(navController = navController)
+        }
+        composable(
+            route = AppScreens.PostDetailScreen.route,
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) {
+            val postId = it.arguments?.getString("postId") ?: ""
+            PostDetailScreen(navController = navController)
+        }
+        composable(
+            route = AppScreens.EditPostScreen.route,
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) {
+            val postId = it.arguments?.getString("postId") ?: ""
+            EditPostScreen(navController = navController)
+        }
+
+        composable(AppScreens.PhysiotherapistSocialProfile.route) {
+            PhysiotherapistSocialProfileScreen(navController = navController)
+        }
+
+
+        composable(
+            route = "${AppScreens.PhysiotherapistSocialProfile.route}/{physiotherapistId}",
+            arguments = listOf(navArgument("physiotherapistId") {
+                type = NavType.StringType
+                nullable = true
+            })
+        ) {
+            val physiotherapistId = it.arguments?.getString("physiotherapistId")
+            PhysiotherapistSocialProfileScreen(
+                navController = navController,
+                physiotherapistId = physiotherapistId
+            )
+        }
+
         composable(AppScreens.SocialMediaScreen.route) {
             SocialMediaScreen(navController = navController)
         }
 
         composable(AppScreens.SocialMediaSearchScreen.route) {
             SocialMediaSearchScreen(navController = navController)
+        }
+
+        composable(AppScreens.NotificationScreen.route) {
+            NotificationScreen(navController = navController)
         }
 
         composable(AppScreens.CreatePostScreen.route) {
@@ -199,20 +236,25 @@ fun AppNavigation() {
             EditPostScreen(navController = navController)
         }
 
-        // Fizyoterapist Sosyal Profil
         composable(AppScreens.PhysiotherapistSocialProfile.route) {
             PhysiotherapistSocialProfileScreen(navController = navController)
         }
 
         composable(
             route = "${AppScreens.PhysiotherapistSocialProfile.route}/{physiotherapistId}",
-            arguments = listOf(navArgument("physiotherapistId") { type = NavType.StringType })
+            arguments = listOf(navArgument("physiotherapistId") {
+                type = NavType.StringType
+                nullable = true
+            })
         ) {
-            val physiotherapistId = it.arguments?.getString("physiotherapistId") ?: ""
+            val physiotherapistId = it.arguments?.getString("physiotherapistId")
             PhysiotherapistSocialProfileScreen(
                 navController = navController,
                 physiotherapistId = physiotherapistId
             )
         }
+
+
+
     }
 }

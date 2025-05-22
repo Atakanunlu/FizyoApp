@@ -1,4 +1,3 @@
-// presentation/socialmedia/SocialMediaViewModel.kt
 package com.example.fizyoapp.presentation.socialmedia
 
 import androidx.lifecycle.ViewModel
@@ -9,6 +8,9 @@ import com.example.fizyoapp.domain.model.auth.UserRole
 import com.example.fizyoapp.domain.model.physiotherapist_profile.PhysiotherapistProfile
 import com.example.fizyoapp.domain.model.user_profile.UserProfile
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
+import com.example.fizyoapp.domain.usecase.follow.FollowPhysiotherapistUseCase
+import com.example.fizyoapp.domain.usecase.follow.IsFollowingUseCase
+import com.example.fizyoapp.domain.usecase.follow.UnfollowPhysiotherapistUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistProfileUseCase
 import com.example.fizyoapp.domain.usecase.socialmedia.GetAllPostsUseCase
 import com.example.fizyoapp.domain.usecase.socialmedia.LikePostUseCase
@@ -26,22 +28,33 @@ class SocialMediaViewModel @Inject constructor(
     private val unlikePostUseCase: UnlikePostUseCase,
     private val getCurrentUserUseCase: GetCurrentUseCase,
     private val getUserProfileUseCase: GetUserProfileUseCase,
-    private val getPhysiotherapistProfileUseCase: GetPhysiotherapistProfileUseCase
+    private val getPhysiotherapistProfileUseCase: GetPhysiotherapistProfileUseCase,
+    private val followPhysiotherapistUseCase: FollowPhysiotherapistUseCase,
+    private val unfollowPhysiotherapistUseCase: UnfollowPhysiotherapistUseCase,
+    private val isFollowingUseCase: IsFollowingUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(SocialMediaState())
     val state: StateFlow<SocialMediaState> = _state.asStateFlow()
-
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
-
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
     val userProfile: StateFlow<UserProfile?> = _userProfile.asStateFlow()
-
     private val _physiotherapistProfile = MutableStateFlow<PhysiotherapistProfile?>(null)
     val physiotherapistProfile: StateFlow<PhysiotherapistProfile?> = _physiotherapistProfile.asStateFlow()
+    private val followStateMapInternal = mutableMapOf<String, Boolean>()
+    private val _followStateMap = MutableStateFlow<Map<String, Boolean>>(followStateMapInternal)
+    val followStateMap: StateFlow<Map<String, Boolean>> = _followStateMap.asStateFlow()
+    private val followLoadingMapInternal = mutableMapOf<String, Boolean>()
+    private val _followLoadingMap = MutableStateFlow<Map<String, Boolean>>(followLoadingMapInternal)
+    val followLoadingMap: StateFlow<Map<String, Boolean>> = _followLoadingMap.asStateFlow()
 
     init {
         getCurrentUser()
+    }
+
+    fun initializeScreen() {
+        getCurrentUser()
+        loadPosts()
     }
 
     private fun getCurrentUser() {
@@ -57,9 +70,7 @@ class SocialMediaViewModel @Inject constructor(
                             error = result.message ?: "Kullanıcı bilgisi alınamadı"
                         )
                     }
-                    is Resource.Loading -> {
-                        // Loading state
-                    }
+                    is Resource.Loading -> {}
                 }
             }
         }
@@ -77,35 +88,23 @@ class SocialMediaViewModel @Inject constructor(
             when (user.role) {
                 UserRole.USER -> {
                     getUserProfileUseCase(user.id).collect { result ->
-                        when (result) {
-                            is Resource.Success -> {
-                                _userProfile.value = result.data
-                            }
-                            is Resource.Error -> {
-                                _state.value = _state.value.copy(
-                                    error = result.message ?: "Kullanıcı profili alınamadı"
-                                )
-                            }
-                            is Resource.Loading -> {
-                                // Loading state
-                            }
+                        if (result is Resource.Success) {
+                            _userProfile.value = result.data
+                        } else if (result is Resource.Error) {
+                            _state.value = _state.value.copy(
+                                error = result.message ?: "Kullanıcı profili alınamadı"
+                            )
                         }
                     }
                 }
                 UserRole.PHYSIOTHERAPIST -> {
                     getPhysiotherapistProfileUseCase(user.id).collect { result ->
-                        when (result) {
-                            is Resource.Success -> {
-                                _physiotherapistProfile.value = result.data
-                            }
-                            is Resource.Error -> {
-                                _state.value = _state.value.copy(
-                                    error = result.message ?: "Fizyoterapist profili alınamadı"
-                                )
-                            }
-                            is Resource.Loading -> {
-                                // Loading state
-                            }
+                        if (result is Resource.Success) {
+                            _physiotherapistProfile.value = result.data
+                        } else if (result is Resource.Error) {
+                            _state.value = _state.value.copy(
+                                error = result.message ?: "Fizyoterapist profili alınamadı"
+                            )
                         }
                     }
                 }
@@ -114,12 +113,81 @@ class SocialMediaViewModel @Inject constructor(
         }
     }
 
+    fun checkFollowState(physiotherapistId: String) {
+        val currentUserId = _currentUser.value?.id ?: return
+        viewModelScope.launch {
+            isFollowingUseCase(currentUserId, physiotherapistId).collect { result ->
+                if (result is Resource.Success) {
+                    followStateMapInternal[physiotherapistId] = result.data
+                    _followStateMap.value = HashMap(followStateMapInternal)
+                }
+            }
+        }
+    }
+
+    fun checkAllFollowStates() {
+        val posts = _state.value.posts
+        val currentUserId = _currentUser.value?.id ?: return
+
+        viewModelScope.launch {
+            posts.filter { it.userRole == "PHYSIOTHERAPIST" }
+                .map { it.userId }
+                .distinct()
+                .forEach { physiotherapistId ->
+                    isFollowingUseCase(currentUserId, physiotherapistId).collect { result ->
+                        if (result is Resource.Success) {
+                            followStateMapInternal[physiotherapistId] = result.data
+                            _followStateMap.value = HashMap(followStateMapInternal)
+                        }
+                    }
+                }
+        }
+    }
+
+    fun toggleFollow(physiotherapistId: String) {
+        val currentUser = _currentUser.value ?: return
+        val isCurrentlyFollowing = followStateMapInternal[physiotherapistId] ?: false
+
+        followLoadingMapInternal[physiotherapistId] = true
+        _followLoadingMap.value = HashMap(followLoadingMapInternal)
+
+        viewModelScope.launch {
+            try {
+                if (isCurrentlyFollowing) {
+                    unfollowPhysiotherapistUseCase(currentUser.id, physiotherapistId).collect { result ->
+                        if (result is Resource.Success) {
+                            followStateMapInternal[physiotherapistId] = false
+                            _followStateMap.value = HashMap(followStateMapInternal)
+                        }
+                        followLoadingMapInternal[physiotherapistId] = false
+                        _followLoadingMap.value = HashMap(followLoadingMapInternal)
+                    }
+                } else {
+                    followPhysiotherapistUseCase(
+                        currentUser.id,
+                        currentUser.role.toString(),
+                        physiotherapistId
+                    ).collect { result ->
+                        if (result is Resource.Success) {
+                            followStateMapInternal[physiotherapistId] = true
+                            _followStateMap.value = HashMap(followStateMapInternal)
+                        }
+                        followLoadingMapInternal[physiotherapistId] = false
+                        _followLoadingMap.value = HashMap(followLoadingMapInternal)
+                    }
+                }
+
+                checkAllFollowStates()
+            } catch (e: Exception) {
+                followLoadingMapInternal[physiotherapistId] = false
+                _followLoadingMap.value = HashMap(followLoadingMapInternal)
+            }
+        }
+    }
+
     fun loadPosts() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(
-                isLoading = true,
-                error = null
-            )
+            _state.value = _state.value.copy(isLoading = true, error = null)
             getAllPostsUseCase().collect { result ->
                 when (result) {
                     is Resource.Success -> {
@@ -128,6 +196,7 @@ class SocialMediaViewModel @Inject constructor(
                             isLoading = false,
                             error = null
                         )
+                        checkAllFollowStates()
                     }
                     is Resource.Error -> {
                         _state.value = _state.value.copy(
@@ -136,9 +205,7 @@ class SocialMediaViewModel @Inject constructor(
                         )
                     }
                     is Resource.Loading -> {
-                        _state.value = _state.value.copy(
-                            isLoading = true
-                        )
+                        _state.value = _state.value.copy(isLoading = true)
                     }
                 }
             }
@@ -150,17 +217,15 @@ class SocialMediaViewModel @Inject constructor(
         val post = _state.value.posts.find { it.id == postId } ?: return
         viewModelScope.launch {
             if (post.likedBy.contains(userId)) {
-                // Unlike post
                 unlikePostUseCase(postId, userId).collect { result ->
                     if (result is Resource.Success) {
-                        loadPosts() // Yeniden yükle
+                        loadPosts()
                     }
                 }
             } else {
-                // Like post
                 likePostUseCase(postId, userId).collect { result ->
                     if (result is Resource.Success) {
-                        loadPosts() // Yeniden yükle
+                        loadPosts()
                     }
                 }
             }
