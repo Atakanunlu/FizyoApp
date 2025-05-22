@@ -1,6 +1,5 @@
 package com.example.fizyoapp.presentation.appointment.booking
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -373,7 +372,7 @@ fun CalendarView(
     onDateSelected: (Date) -> Unit,
     selectedDate: Date?
 ) {
-    val primaryColor = Color(0xFF3B3E68)
+
     val accentColor = Color(0xFF6D72C3)
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.MONTH, currentMonth)

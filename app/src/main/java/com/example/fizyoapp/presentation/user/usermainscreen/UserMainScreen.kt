@@ -40,7 +40,7 @@ fun UserMainScreen(
     viewModel: UserViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.collectAsState().value
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {

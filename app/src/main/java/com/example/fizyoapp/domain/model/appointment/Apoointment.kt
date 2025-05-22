@@ -11,8 +11,8 @@ data class Appointment(
     val status: AppointmentStatus = AppointmentStatus.PENDING,
     val userName: String = "",
     val userPhotoUrl: String = "",
-    val appointmentType: AppointmentType = AppointmentType.IN_PERSON, // Yeni eklenen
-    val rehabilitationNotes: String = "", // Yeni eklenen
+    val appointmentType: AppointmentType = AppointmentType.IN_PERSON,
+    val rehabilitationNotes: String = "",
     val createdAt: Date = Date()
 )
 

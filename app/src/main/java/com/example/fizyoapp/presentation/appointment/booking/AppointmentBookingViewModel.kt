@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.appointment.Appointment
 import com.example.fizyoapp.domain.model.appointment.AppointmentStatus
-import com.example.fizyoapp.domain.model.appointment.AppointmentType
 import com.example.fizyoapp.domain.usecase.appointment.CreateAppointmentUseCase
 import com.example.fizyoapp.domain.usecase.appointment.GetAvailableTimeSlotsUseCase
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase

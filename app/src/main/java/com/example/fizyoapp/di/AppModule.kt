@@ -109,7 +109,6 @@ import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.Neck
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.rehabilitation.RehabilitationHistoryViewModel
 import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
-import com.example.fizyoapp.presentation.user.userprofile.UserProfileViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
