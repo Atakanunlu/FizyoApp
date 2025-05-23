@@ -1,6 +1,7 @@
 package com.example.fizyoapp.presentation.socialmedia.physiotherapistsocialprofile
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -46,7 +47,6 @@ fun PhysiotherapistSocialProfileScreen(
     val state by viewModel.state.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
     val currentRoute = navController.currentBackStackEntry?.destination?.route ?: ""
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -85,7 +85,6 @@ fun PhysiotherapistSocialProfileScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-
                     item {
                         Column(
                             modifier = Modifier
@@ -93,7 +92,6 @@ fun PhysiotherapistSocialProfileScreen(
                                 .padding(bottom = 16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-
                             val profile = state.profile
                             Box(
                                 modifier = Modifier
@@ -119,9 +117,7 @@ fun PhysiotherapistSocialProfileScreen(
                                     )
                                 }
                             }
-
                             Spacer(modifier = Modifier.height(16.dp))
-
                             Text(
                                 text = "${profile?.firstName ?: ""} ${profile?.lastName ?: ""}",
                                 style = MaterialTheme.typography.headlineMedium,
@@ -135,16 +131,36 @@ fun PhysiotherapistSocialProfileScreen(
 
                             if (physiotherapistId != null && physiotherapistId != currentUser?.id) {
                                 Spacer(modifier = Modifier.height(16.dp))
-                                FollowButton(
-                                    isFollowing = state.isFollowing,
-                                    isLoading = state.isFollowLoading,
-                                    onClick = { viewModel.toggleFollow(physiotherapistId) },
-                                    modifier = Modifier.width(150.dp)
-                                )
+
+                                // Burada Takip Et ve Mesaj Gönder butonlarını yan yana yerleştiriyoruz
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    // Takip Et butonu
+                                    FollowButton(
+                                        isFollowing = state.isFollowing,
+                                        isLoading = state.isFollowLoading,
+                                        onClick = { viewModel.toggleFollow(physiotherapistId) },
+                                        modifier = Modifier.width(130.dp)
+                                    )
+
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    // Mesaj Gönder butonu
+                                    MessageButton(
+                                        onClick = {
+                                            navController.navigate(
+                                                AppScreens.MessagesDetailScreen.createMessageDetailRoute(physiotherapistId)
+                                            )
+                                        },
+                                        modifier = Modifier.width(130.dp)
+                                    )
+                                }
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
-
                             ProfileStats(
                                 postCount = state.posts.size,
                                 followersCount = state.followersCount,
@@ -152,11 +168,9 @@ fun PhysiotherapistSocialProfileScreen(
                                 onFollowersClick = { viewModel.toggleShowFollowers() },
                                 onFollowingClick = { viewModel.toggleShowFollowing() }
                             )
-
                             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                         }
                     }
-
                     item {
                         Text(
                             text = "Paylaşımlar",
@@ -165,7 +179,6 @@ fun PhysiotherapistSocialProfileScreen(
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
                     }
-
                     if (state.posts.isEmpty()) {
                         item {
                             Box(
@@ -191,13 +204,11 @@ fun PhysiotherapistSocialProfileScreen(
                             )
                         }
                     }
-
                     item {
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
-
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
@@ -207,7 +218,6 @@ fun PhysiotherapistSocialProfileScreen(
                     Text(state.error!!)
                 }
             }
-
             if (state.showFollowers) {
                 FollowersDialog(
                     followers = state.followers,
@@ -221,7 +231,6 @@ fun PhysiotherapistSocialProfileScreen(
                     }
                 )
             }
-
             if (state.showFollowing) {
                 FollowingDialog(
                     following = state.following,
@@ -234,6 +243,33 @@ fun PhysiotherapistSocialProfileScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun MessageButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedButton(
+        onClick = onClick,
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = MaterialTheme.colorScheme.primary
+        ),
+        modifier = modifier
+    ) {
+        Icon(
+            imageVector = Icons.Default.Message,
+            contentDescription = "Mesaj Gönder",
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = "Mesaj Gönder",
+            fontSize = 12.sp
+        )
     }
 }
 
@@ -252,13 +288,11 @@ fun ProfileStats(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         StatItem(title = "Paylaşımlar", value = postCount.toString())
-
         StatItem(
             title = "Takipçiler",
             value = followersCount.toString(),
             onClick = onFollowersClick
         )
-
         StatItem(
             title = "Takip Edilen",
             value = followingCount.toString(),
@@ -298,7 +332,6 @@ fun ProfilePostItem(
     onClick: () -> Unit
 ) {
     val dateFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -310,14 +343,11 @@ fun ProfilePostItem(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-
             Text(
                 text = post.content,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
-
-
             if (post.mediaUrls.isNotEmpty()) {
                 AsyncImage(
                     model = post.mediaUrls.first(),
@@ -328,7 +358,6 @@ fun ProfilePostItem(
                         .clip(RoundedCornerShape(8.dp)),
                     contentScale = ContentScale.Crop
                 )
-
                 if (post.mediaUrls.size > 1) {
                     Text(
                         text = "+${post.mediaUrls.size - 1} daha fazla",
@@ -336,10 +365,8 @@ fun ProfilePostItem(
                         modifier = Modifier.align(Alignment.End)
                     )
                 }
-
                 Spacer(modifier = Modifier.height(12.dp))
             }
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -357,9 +384,7 @@ fun ProfilePostItem(
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(start = 4.dp)
                     )
-
                     Spacer(modifier = Modifier.width(16.dp))
-
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Comment,
                         contentDescription = null,
@@ -372,19 +397,78 @@ fun ProfilePostItem(
                         modifier = Modifier.padding(start = 4.dp)
                     )
                 }
-
                 Text(
                     text = dateFormat.format(post.timestamp),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
             }
-
             TextButton(
                 onClick = { onClick() },
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text("Detaylar")
+            }
+        }
+    }
+}
+
+@Composable
+fun FollowButton(
+    isFollowing: Boolean,
+    isLoading: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isFollowing)
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+        else
+            MaterialTheme.colorScheme.primary,
+        label = "backgroundColor"
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (isFollowing)
+            MaterialTheme.colorScheme.primary
+        else
+            Color.White,
+        label = "contentColor"
+    )
+    Button(
+        onClick = onClick,
+        enabled = !isLoading,
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = backgroundColor,
+            contentColor = contentColor,
+            disabledContainerColor = backgroundColor.copy(alpha = 0.6f),
+            disabledContentColor = contentColor.copy(alpha = 0.6f)
+        ),
+        modifier = modifier
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(18.dp),
+                strokeWidth = 2.dp,
+                color = contentColor
+            )
+        } else {
+            if (isFollowing) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Takip Ediliyor",
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Takip Ediliyor",
+                    fontSize = 12.sp
+                )
+            } else {
+                Text(
+                    text = "Takip Et",
+                    fontSize = 12.sp
+                )
             }
         }
     }
@@ -412,9 +496,7 @@ fun FollowersDialog(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 if (followers.isEmpty()) {
                     Box(
                         modifier = Modifier
@@ -438,7 +520,6 @@ fun FollowersDialog(
                             val name: String
                             val photoUrl: String
                             val role = follower.followerRole
-
                             when (profile) {
                                 is PhysiotherapistProfile -> {
                                     name = "${profile.firstName} ${profile.lastName}"
@@ -453,7 +534,6 @@ fun FollowersDialog(
                                     photoUrl = ""
                                 }
                             }
-
                             FollowProfileItem(
                                 name = name,
                                 photoUrl = photoUrl,
@@ -463,9 +543,7 @@ fun FollowersDialog(
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier
@@ -501,9 +579,7 @@ fun FollowingDialog(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 if (following.isEmpty()) {
                     Box(
                         modifier = Modifier
@@ -535,9 +611,7 @@ fun FollowingDialog(
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier
@@ -590,9 +664,7 @@ fun FollowProfileItem(
                 )
             }
         }
-
         Spacer(modifier = Modifier.width(12.dp))
-
         Column {
             Text(
                 text = name,
@@ -607,9 +679,7 @@ fun FollowProfileItem(
                     Color.Gray
             )
         }
-
         Spacer(modifier = Modifier.weight(1f))
-
         if (role == "PHYSIOTHERAPIST") {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -617,69 +687,6 @@ fun FollowProfileItem(
                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                 modifier = Modifier.size(16.dp)
             )
-        }
-    }
-}
-
-@Composable
-fun FollowButton(
-    isFollowing: Boolean,
-    isLoading: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isFollowing)
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-        else
-            MaterialTheme.colorScheme.primary,
-        label = "backgroundColor"
-    )
-
-    val contentColor by animateColorAsState(
-        targetValue = if (isFollowing)
-            MaterialTheme.colorScheme.primary
-        else
-            Color.White,
-        label = "contentColor"
-    )
-
-    Button(
-        onClick = onClick,
-        enabled = !isLoading,
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = backgroundColor,
-            contentColor = contentColor,
-            disabledContainerColor = backgroundColor.copy(alpha = 0.6f),
-            disabledContentColor = contentColor.copy(alpha = 0.6f)
-        ),
-        modifier = modifier
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(18.dp),
-                strokeWidth = 2.dp,
-                color = contentColor
-            )
-        } else {
-            if (isFollowing) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Takip Ediliyor",
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "Takip Ediliyor",
-                    fontSize = 12.sp
-                )
-            } else {
-                Text(
-                    text = "Takip Et",
-                    fontSize = 12.sp
-                )
-            }
         }
     }
 }

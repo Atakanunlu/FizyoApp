@@ -7,6 +7,9 @@ import com.example.fizyoapp.data.local.dao.exercisevideos.VideoDao
 import com.example.fizyoapp.data.local.database.exerciseexamplesscreen.ExercisesDatabase
 import com.example.fizyoapp.data.local.database.exercisevideos.VideoDatabase
 import com.example.fizyoapp.data.repository.ExercisesExamplesRepositoryImpl
+import com.example.fizyoapp.data.repository.advertisement.AdvertisementDataRepository
+import com.example.fizyoapp.data.repository.advertisement.AdvertisementRepository
+import com.example.fizyoapp.data.repository.advertisement.AdvertisementRepositoryImpl
 import com.example.fizyoapp.data.repository.appointment.AppointmentRepository
 import com.example.fizyoapp.data.repository.appointment.AppointmentRepositoryImpl
 import com.example.fizyoapp.data.repository.auth.AuthRepository
@@ -32,12 +35,18 @@ import com.example.fizyoapp.data.repository.note.notefile.NoteFileRepository
 import com.example.fizyoapp.data.repository.note.notefile.NoteFileRepositoryImpl
 import com.example.fizyoapp.data.repository.notification.NotificationRepository
 import com.example.fizyoapp.data.repository.notification.NotificationRepositoryImpl
+import com.example.fizyoapp.data.repository.payment.PaymentRepository
+import com.example.fizyoapp.data.repository.payment.PaymentRepositoryImpl
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepository
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepositoryImpl
 import com.example.fizyoapp.data.repository.socialmedia.SocialMediaRepository
 import com.example.fizyoapp.data.repository.socialmedia.SocialMediaRepositoryImpl
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepository
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepositoryImpl
+import com.example.fizyoapp.domain.usecase.advertisement.CheckActiveAdvertisementByPhysiotherapistUseCase
+import com.example.fizyoapp.domain.usecase.advertisement.CreateAdvertisementUseCase
+import com.example.fizyoapp.domain.usecase.advertisement.GetActiveAdvertisementsUseCase
+import com.example.fizyoapp.domain.usecase.advertisement.GetAdvertisementByIdUseCase
 import com.example.fizyoapp.domain.usecase.appointment.BlockTimeSlotUseCase
 import com.example.fizyoapp.domain.usecase.appointment.CreateAppointmentUseCase
 import com.example.fizyoapp.domain.usecase.appointment.GetAvailableTimeSlotsUseCase
@@ -93,6 +102,7 @@ import com.example.fizyoapp.domain.usecase.notification.GetNotificationsUseCase
 import com.example.fizyoapp.domain.usecase.notification.GetUnreadNotificationsCountUseCase
 import com.example.fizyoapp.domain.usecase.notification.MarkAllNotificationsAsReadUseCase
 import com.example.fizyoapp.domain.usecase.notification.MarkNotificationAsReadUseCase
+import com.example.fizyoapp.domain.usecase.payment.MakePaymentUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.CheckPhysiotherapistProfileCompletedUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetAllPhysiotherapistsUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistByIdUseCase
@@ -846,4 +856,56 @@ object AppModule {
     fun provideAddDocumentToNoteUpdateUseCase(repository: NoteRepository): AddDocumentToNoteUpdateUseCase {
         return AddDocumentToNoteUpdateUseCase(repository)
     }
+
+    @Provides
+    @Singleton
+    fun provideAdvertisementRepository(
+        firestore: FirebaseFirestore,
+        storage: FirebaseStorage
+    ): AdvertisementRepository {
+        return AdvertisementRepositoryImpl(firestore, storage)
+    }
+
+    @Provides
+    @Singleton
+    fun providePaymentRepository(): PaymentRepository {
+        return PaymentRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMakePaymentUseCase(repository: PaymentRepository): MakePaymentUseCase {
+        return MakePaymentUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCreateAdvertisementUseCase(repository: AdvertisementRepository): CreateAdvertisementUseCase {
+        return CreateAdvertisementUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetActiveAdvertisementsUseCase(repository: AdvertisementRepository): GetActiveAdvertisementsUseCase {
+        return GetActiveAdvertisementsUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetAdvertisementByIdUseCase(repository: AdvertisementRepository): GetAdvertisementByIdUseCase {
+        return GetAdvertisementByIdUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCheckActiveAdvertisementByPhysiotherapistUseCase(repository: AdvertisementRepository): CheckActiveAdvertisementByPhysiotherapistUseCase {
+        return CheckActiveAdvertisementByPhysiotherapistUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAdvertisementDataRepository(): AdvertisementDataRepository {
+        return AdvertisementDataRepository()
+    }
+
 }
