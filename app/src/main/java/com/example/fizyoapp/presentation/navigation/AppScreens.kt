@@ -1,16 +1,12 @@
 package com.example.fizyoapp.presentation.navigation
 
 sealed class AppScreens(val route: String) {
-
     object SplashScreen: AppScreens("splash_screen")
     object LoginScreen: AppScreens("login_screen")
     object RegisterScreen: AppScreens("register_screen")
 
-
-
     object PhysiotherapistMainScreen: AppScreens("physiotherapist_main_screen")
     object UserMainScreen: AppScreens("user_main_screen")
-
 
     object UserProfileSetupScreen: AppScreens("user_profile_setup")
     object UserInformationScreen: AppScreens("user_information_screen")
@@ -44,23 +40,18 @@ sealed class AppScreens(val route: String) {
     }
     object EditExerciseScreen : AppScreens("edit_exercise_screen/{exerciseId}")
     object AddNoteScreen: AppScreens("add_note_screen")
-
     object MessagesScreen: AppScreens("messages_screen")
     object MessagesDetailScreen: AppScreens("message_detail_screen/{userId}") {
         fun createMessageDetailRoute(userId: String): String {
             return "message_detail_screen/$userId"
         }
     }
-
     object SettingsScreen: AppScreens("settings")
-
 
     object PainTrackingScreen: AppScreens("pain_tracking")
     object AddPainRecordScreen: AppScreens("add_pain_record")
 
-
     object RehabilitationHistoryScreen: AppScreens("rehabilitation_history_screen")
-
 
     object MedicalRecordsScreen: AppScreens("medical_records_screen")
     object MedicalRecordDetailScreen: AppScreens("medical_record_detail_screen/{recordId}") {
@@ -69,7 +60,6 @@ sealed class AppScreens(val route: String) {
         }
     }
     object UploadMedicalRecordScreen: AppScreens("upload_medical_record_screen")
-
 
     object EvaluationFormsScreen: AppScreens("evaluation_forms_screen")
     object EvaluationFormDetailScreen: AppScreens("evaluation_form_detail_screen/{formId}") {
@@ -84,7 +74,6 @@ sealed class AppScreens(val route: String) {
     }
     object RadyolojikGoruntulerScreen: AppScreens("radiology_images_screen")
 
-
     object RadiologyImagesScreen: AppScreens("radiology_images_screen")
     object RadiologyImageDetailScreen: AppScreens("radiology_image_detail_screen/{imageId}") {
         fun createRoute(imageId: String): String {
@@ -93,9 +82,7 @@ sealed class AppScreens(val route: String) {
     }
     object MedicalReportScreen : AppScreens("medical_report_screen")
     object FormResponseDetailScreen : AppScreens("form_response_detail_screen")
-
     object RadyolojikGoruntuEkleScreen: AppScreens("radyolojik_goruntu_ekle_screen")
-
 
     object SearchScreen: AppScreens("search_screen")
     object PaylasimlarScreen: AppScreens("paylasimlar_screen")
@@ -121,4 +108,13 @@ sealed class AppScreens(val route: String) {
     }
     object EditExercisePlanScreen : AppScreens("edit_exercise_plan_screen/{planId}")
 
+    object AppointmentBookingScreen: AppScreens("appointment_booking_screen/{physiotherapistId}") {
+        fun createRoute(physiotherapistId: String): String {
+            return "appointment_booking_screen/$physiotherapistId"
+        }
+    }
+    object PhysiotherapistCalendarScreen: AppScreens("physiotherapist_calendar_screen")
+
+    // Şifre sıfırlama ekranı
+    object ForgotPasswordScreen: AppScreens("forgot_password_screen")
 }

@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.fizyoapp.presentation.navigation.AppScreens
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +77,6 @@ fun PhysiotherapistDetailScreen(
                         .padding(top = paddingValues.calculateTopPadding())
                         .verticalScroll(scrollState)
                 ) {
-
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -88,7 +88,6 @@ fun PhysiotherapistDetailScreen(
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-
                             Box(
                                 modifier = Modifier
                                     .size(100.dp)
@@ -257,6 +256,37 @@ fun PhysiotherapistDetailScreen(
                                 fontSize = 16.sp
                             )
                         }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            val physiotherapistId = state.physiotherapist?.userId ?: ""
+                            if (physiotherapistId.isNotEmpty()) {
+                                val route = AppScreens.AppointmentBookingScreen.createRoute(physiotherapistId)
+                                navController.navigate(route)
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Randevu Oluştur",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))

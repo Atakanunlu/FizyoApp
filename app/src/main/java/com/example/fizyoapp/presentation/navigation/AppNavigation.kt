@@ -7,6 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.fizyoapp.presentation.appointment.booking.AppointmentBookingScreen
+import com.example.fizyoapp.presentation.appointment.calendar.PhysiotherapistCalendarScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.MessagesDetailScreen
 import com.example.fizyoapp.presentation.login.LoginScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen.PhysiotherapistMainScreen
@@ -17,6 +19,7 @@ import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.ProfilS
 import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.settings.SettingsScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.searchscreen.SearchScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MessagesScreen
+import com.example.fizyoapp.presentation.forgotpassword.ForgotPasswordScreen
 import com.example.fizyoapp.presentation.physiotherapist.exercise.EditExerciseScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexercise.AddExerciseScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexerciseplan.CreateExercisePlanScreen
@@ -39,14 +42,20 @@ import com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms.Eval
 import com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms.FormResponseDetailScreen
 import com.example.fizyoapp.presentation.user.illnessrecord.medicalrecord.MedicalReportScreen
 import com.example.fizyoapp.presentation.user.illnessrecord.radyologicalimagesadd.RadyolojikGoruntulerScreen
-import com.example.fizyoapp.presentation.socialmedia.*
+import com.example.fizyoapp.presentation.socialmedia.createpost.CreatePostScreen
+import com.example.fizyoapp.presentation.socialmedia.editpost.EditPostScreen
 import com.example.fizyoapp.presentation.socialmedia.notification.NotificationScreen
 import com.example.fizyoapp.presentation.user.egzersizlerim.ExercisePlanDetailScreen
 import com.example.fizyoapp.presentation.user.egzersizlerim.UserExercisePlansScreen
+import com.example.fizyoapp.presentation.socialmedia.physiotherapistsocialprofile.PhysiotherapistSocialProfileScreen
+import com.example.fizyoapp.presentation.socialmedia.postdetail.PostDetailScreen
+import com.example.fizyoapp.presentation.socialmedia.socialmediamain.SocialMediaScreen
+import com.example.fizyoapp.presentation.socialmedia.socialmediasearch.SocialMediaSearchScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesScreen
+import com.example.fizyoapp.presentation.user.rehabilitation.RehabilitationHistoryScreen
 import com.example.fizyoapp.presentation.user.usermainscreen.PainTrackingScreen
 
 @Composable
@@ -341,6 +350,30 @@ fun AppNavigation() {
                 navController = navController,
                 physiotherapistId = physiotherapistId
             )
+        }
+
+        composable(
+            route = AppScreens.AppointmentBookingScreen.route,
+            arguments = listOf(navArgument("physiotherapistId") { type = NavType.StringType })
+        ) {
+            val physiotherapistId = it.arguments?.getString("physiotherapistId") ?: ""
+            AppointmentBookingScreen(navController = navController)
+        }
+
+        composable(AppScreens.PhysiotherapistCalendarScreen.route) {
+            PhysiotherapistCalendarScreen(navController = navController)
+        }
+
+        composable(AppScreens.RehabilitationHistoryScreen.route) {
+            RehabilitationHistoryScreen(navController = navController)
+        }
+
+        composable(AppScreens.ForgotPasswordScreen.route) {
+            ForgotPasswordScreen(navController = navController)
+        }
+
+        composable(AppScreens.ForgotPasswordScreen.route) {
+            ForgotPasswordScreen(navController = navController)
         }
 
 

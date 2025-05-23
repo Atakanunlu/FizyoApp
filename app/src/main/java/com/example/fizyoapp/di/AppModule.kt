@@ -7,6 +7,8 @@ import com.example.fizyoapp.data.local.dao.exercisevideos.VideoDao
 import com.example.fizyoapp.data.local.database.exerciseexamplesscreen.ExercisesDatabase
 import com.example.fizyoapp.data.local.database.exercisevideos.VideoDatabase
 import com.example.fizyoapp.data.repository.ExercisesExamplesRepositoryImpl
+import com.example.fizyoapp.data.repository.appointment.AppointmentRepository
+import com.example.fizyoapp.data.repository.appointment.AppointmentRepositoryImpl
 import com.example.fizyoapp.data.repository.auth.AuthRepository
 import com.example.fizyoapp.data.repository.auth.AuthRepositoryImpl
 import com.example.fizyoapp.data.repository.exercisemanagescreen.ExerciseRepository
@@ -28,6 +30,8 @@ import com.example.fizyoapp.data.repository.messagesscreen.MessageRepositoryImpl
 import com.example.fizyoapp.data.repository.messagesscreen.MessagesRepository
 import com.example.fizyoapp.data.repository.note.NoteRepository
 import com.example.fizyoapp.data.repository.note.NoteRepositoryImpl
+import com.example.fizyoapp.data.repository.note.notefile.NoteFileRepository
+import com.example.fizyoapp.data.repository.note.notefile.NoteFileRepositoryImpl
 import com.example.fizyoapp.data.repository.notification.NotificationRepository
 import com.example.fizyoapp.data.repository.notification.NotificationRepositoryImpl
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepository
@@ -36,11 +40,24 @@ import com.example.fizyoapp.data.repository.socialmedia.SocialMediaRepository
 import com.example.fizyoapp.data.repository.socialmedia.SocialMediaRepositoryImpl
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepository
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepositoryImpl
+import com.example.fizyoapp.domain.usecase.appointment.BlockTimeSlotUseCase
+import com.example.fizyoapp.domain.usecase.appointment.CreateAppointmentUseCase
+import com.example.fizyoapp.domain.usecase.appointment.GetAvailableTimeSlotsUseCase
+import com.example.fizyoapp.domain.usecase.appointment.GetPhysiotherapistAppointmentsUseCase
+import com.example.fizyoapp.domain.usecase.appointment.GetUserAppointmentsUseCase
+import com.example.fizyoapp.domain.usecase.appointment.UnblockTimeSlotUseCase
+import com.example.fizyoapp.domain.usecase.appointment.UpdateAppointmentNotesUseCase
+import com.example.fizyoapp.domain.usecase.auth.CheckEmailVerifiedUseCase
+import com.example.fizyoapp.domain.usecase.auth.GetCurrentPhysiotherapistUseCase
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.example.fizyoapp.domain.usecase.auth.GetUserRoleUseCase
+import com.example.fizyoapp.domain.usecase.auth.ResetPasswordUseCase
+import com.example.fizyoapp.domain.usecase.auth.SendEmailVerificationUseCase
+import com.example.fizyoapp.domain.usecase.auth.SendPasswordResetEmailUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignInUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignOutUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignUpUseCase
+import com.example.fizyoapp.domain.usecase.auth.VerifyPasswordResetCodeUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.GetExerciseCategoriesUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.PopulateDatabaseUseCase
 import com.example.fizyoapp.domain.usecase.follow.FollowPhysiotherapistUseCase
@@ -59,12 +76,19 @@ import com.example.fizyoapp.domain.usecase.messagesscreen.GetChatThreadsUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.GetMessagesUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.MarkMessagesAsReadUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.SendMessageUseCase
+import com.example.fizyoapp.domain.usecase.note.AddDocumentToNoteUpdateUseCase
+import com.example.fizyoapp.domain.usecase.note.AddDocumentToNoteUseCase
+import com.example.fizyoapp.domain.usecase.note.AddImageToNoteUpdateUseCase
+import com.example.fizyoapp.domain.usecase.note.AddImageToNoteUseCase
 import com.example.fizyoapp.domain.usecase.note.AddUpdateToNoteUseCase
 import com.example.fizyoapp.domain.usecase.note.CreateNoteUseCase
 import com.example.fizyoapp.domain.usecase.note.DeleteNoteUseCase
 import com.example.fizyoapp.domain.usecase.note.GetNoteByIdUseCase
 import com.example.fizyoapp.domain.usecase.note.GetNotesByPhysiotherapistIdUseCase
 import com.example.fizyoapp.domain.usecase.note.UpdateNoteUpdateUseCase
+import com.example.fizyoapp.domain.usecase.note.notefile.DeleteNoteFileUseCase
+import com.example.fizyoapp.domain.usecase.note.notefile.UploadNoteDocumentUseCase
+import com.example.fizyoapp.domain.usecase.note.notefile.UploadNoteImageUseCase
 import com.example.fizyoapp.domain.usecase.notification.CreateNotificationUseCase
 import com.example.fizyoapp.domain.usecase.notification.DeleteNotificationUseCase
 import com.example.fizyoapp.domain.usecase.notification.GetNotificationsUseCase
@@ -91,6 +115,7 @@ import com.example.fizyoapp.domain.usecase.user_profile.CheckProfileCompletedUse
 import com.example.fizyoapp.domain.usecase.user_profile.GetUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UpdateUserProfileUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.UploadProfilePhotoUseCase
+import com.example.fizyoapp.presentation.appointment.calendar.CalenderUserDetailsViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.ExercisesExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.hip.HipExercisesOfExamplesViewModel
@@ -98,6 +123,7 @@ import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegEx
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesOfExamplesViewModel
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.shoulder.ShoulderExercisesOfExamplesViewModel
+import com.example.fizyoapp.presentation.user.rehabilitation.RehabilitationHistoryViewModel
 import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -677,6 +703,156 @@ object AppModule {
     ): ExerciseRepository {
         return exerciseRepositoryImpl
     }
+    @Provides
+    @Singleton
+    fun provideAppointmentRepository(): AppointmentRepository {
+        return AppointmentRepositoryImpl()
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetAvailableTimeSlotsUseCase(repository: AppointmentRepository): GetAvailableTimeSlotsUseCase {
+        return GetAvailableTimeSlotsUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCreateAppointmentUseCase(repository: AppointmentRepository): CreateAppointmentUseCase {
+        return CreateAppointmentUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetUserAppointmentsUseCase(repository: AppointmentRepository): GetUserAppointmentsUseCase {
+        return GetUserAppointmentsUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetPhysiotherapistAppointmentsUseCase(repository: AppointmentRepository): GetPhysiotherapistAppointmentsUseCase {
+        return GetPhysiotherapistAppointmentsUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBlockTimeSlotUseCase(repository: AppointmentRepository): BlockTimeSlotUseCase {
+        return BlockTimeSlotUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUnblockTimeSlotUseCase(repository: AppointmentRepository): UnblockTimeSlotUseCase {
+        return UnblockTimeSlotUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetCurrentPhysiotherapistUseCase(authRepository: AuthRepository): GetCurrentPhysiotherapistUseCase {
+        return GetCurrentPhysiotherapistUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCalenderUserDetailsViewModel(getUserProfileUseCase: GetUserProfileUseCase): CalenderUserDetailsViewModel {
+        return CalenderUserDetailsViewModel(getUserProfileUseCase)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateAppointmentNotesUseCase(repository: AppointmentRepository): UpdateAppointmentNotesUseCase {
+        return UpdateAppointmentNotesUseCase(repository)
+    }
 
 
+    @Provides
+    @Singleton
+    fun provideRehabilitationHistoryViewModel(
+        getUserAppointmentsUseCase: GetUserAppointmentsUseCase,
+        getPhysiotherapistByIdUseCase: GetPhysiotherapistByIdUseCase,
+        getCurrentUserUseCase: GetCurrentUseCase
+    ): RehabilitationHistoryViewModel {
+        return RehabilitationHistoryViewModel(
+            getUserAppointmentsUseCase,
+            getPhysiotherapistByIdUseCase,
+            getCurrentUserUseCase
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideSendEmailVerificationUseCase(authRepository: AuthRepository): SendEmailVerificationUseCase {
+        return SendEmailVerificationUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCheckEmailVerifiedUseCase(authRepository: AuthRepository): CheckEmailVerifiedUseCase {
+        return CheckEmailVerifiedUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSendPasswordResetEmailUseCase(authRepository: AuthRepository): SendPasswordResetEmailUseCase {
+        return SendPasswordResetEmailUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideVerifyPasswordResetCodeUseCase(authRepository: AuthRepository): VerifyPasswordResetCodeUseCase {
+        return VerifyPasswordResetCodeUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideResetPasswordUseCase(authRepository: AuthRepository): ResetPasswordUseCase {
+        return ResetPasswordUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNoteFileRepository(storage: FirebaseStorage): NoteFileRepository {
+        return NoteFileRepositoryImpl(storage)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUploadNoteImageUseCase(repository: NoteFileRepository): UploadNoteImageUseCase {
+        return UploadNoteImageUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUploadNoteDocumentUseCase(repository: NoteFileRepository): UploadNoteDocumentUseCase {
+        return UploadNoteDocumentUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteNoteFileUseCase(repository: NoteFileRepository): DeleteNoteFileUseCase {
+        return DeleteNoteFileUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddImageToNoteUseCase(repository: NoteRepository): AddImageToNoteUseCase {
+        return AddImageToNoteUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddDocumentToNoteUseCase(repository: NoteRepository): AddDocumentToNoteUseCase {
+        return AddDocumentToNoteUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddImageToNoteUpdateUseCase(repository: NoteRepository): AddImageToNoteUpdateUseCase {
+        return AddImageToNoteUpdateUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddDocumentToNoteUpdateUseCase(repository: NoteRepository): AddDocumentToNoteUpdateUseCase {
+        return AddDocumentToNoteUpdateUseCase(repository)
+    }
 }

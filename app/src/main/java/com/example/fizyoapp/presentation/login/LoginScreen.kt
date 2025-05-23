@@ -1,7 +1,5 @@
 package com.example.fizyoapp.presentation.login
 
-import android.util.Log
-import android.widget.Toast
 import com.example.fizyoapp.domain.model.auth.UserRole
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,7 +10,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -27,14 +24,13 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.collectAsState().value
-    val context = LocalContext.current
+
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
             try {
                 when (event) {
                     is LoginViewModel.UiEvent.NavigateBasedOnRole -> {
-                        Log.d("LoginScreen", "Navigating based on role: ${event.role}")
                         when (event.role) {
                             UserRole.PHYSIOTHERAPIST -> {
                                 navController.navigate(AppScreens.PhysiotherapistMainScreen.route) {
@@ -47,7 +43,6 @@ fun LoginScreen(
                                 }
                             }
                             else -> {
-                                Toast.makeText(context, "Bilinmeyen rol tipi", Toast.LENGTH_SHORT).show()
                                 navController.navigate(AppScreens.LoginScreen.route)
                             }
                         }
@@ -65,15 +60,11 @@ fun LoginScreen(
                             popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
                         }
                     }
+                    is LoginViewModel.UiEvent.NavigateToForgotPassword -> {
+                        navController.navigate(AppScreens.ForgotPasswordScreen.route)
+                    }
                 }
             } catch (e: Exception) {
-                Log.e("LoginScreen", "Navigation error", e)
-                Toast.makeText(
-                    context,
-                    "Navigasyon hatası: ${e.message}",
-                    Toast.LENGTH_LONG
-                ).show()
-
                 if (state.user?.role == UserRole.USER) {
                     navController.navigate(AppScreens.UserMainScreen.route) {
                         popUpTo(AppScreens.LoginScreen.route) { inclusive = true }
@@ -173,11 +164,22 @@ fun LoginScreen(
             }
         }
 
-        TextButton(
-            onClick = { viewModel.onEvent(LoginEvent.NavigateToRegister) },
-            modifier = Modifier.padding(top = 8.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Hesabınız yok mu? Kayıt Olun")
+            TextButton(
+                onClick = { viewModel.onEvent(LoginEvent.NavigateToRegister) }
+            ) {
+                Text("Hesabınız yok mu? Kayıt Olun")
+            }
+
+            TextButton(
+                onClick = { viewModel.onEvent(LoginEvent.NavigateToForgotPassword) }
+            ) {
+                Text("Şifremi Unuttum")
+            }
         }
     }
 }

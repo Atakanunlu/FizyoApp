@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.note.Note
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
+import com.example.fizyoapp.domain.usecase.note.notefile.UploadNoteDocumentUseCase
+import com.example.fizyoapp.domain.usecase.note.notefile.UploadNoteImageUseCase
 import com.example.fizyoapp.domain.usecase.note.CreateNoteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -19,7 +21,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AddNoteViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUseCase,
-    private val createNoteUseCase: CreateNoteUseCase
+    private val createNoteUseCase: CreateNoteUseCase,
+    private val uploadNoteImageUseCase: UploadNoteImageUseCase,
+    private val uploadNoteDocumentUseCase: UploadNoteDocumentUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddNoteState())
     val state: StateFlow<AddNoteState> = _state.asStateFlow()
@@ -71,6 +75,28 @@ class AddNoteViewModel @Inject constructor(
             is AddNoteEvent.ColorChanged -> {
                 _state.value = _state.value.copy(noteColor = event.color)
             }
+            is AddNoteEvent.AddImage -> {
+                _state.value = _state.value.copy(
+                    imageUris = _state.value.imageUris + event.uri,
+                    showImagePicker = false
+                )
+            }
+            is AddNoteEvent.RemoveImage -> {
+                _state.value = _state.value.copy(
+                    imageUris = _state.value.imageUris.filterIndexed { index, _ -> index != event.index }
+                )
+            }
+            is AddNoteEvent.AddDocument -> {
+                _state.value = _state.value.copy(
+                    documentUris = _state.value.documentUris + event.uri,
+                    showDocumentPicker = false
+                )
+            }
+            is AddNoteEvent.RemoveDocument -> {
+                _state.value = _state.value.copy(
+                    documentUris = _state.value.documentUris.filterIndexed { index, _ -> index != event.index }
+                )
+            }
             is AddNoteEvent.SaveNote -> {
                 saveNote()
             }
@@ -78,6 +104,12 @@ class AddNoteViewModel @Inject constructor(
                 viewModelScope.launch {
                     _uiEvent.send(UiEvent.NavigateBack(needsRefresh = false))
                 }
+            }
+            is AddNoteEvent.ShowImagePicker -> {
+                _state.value = _state.value.copy(showImagePicker = true)
+            }
+            is AddNoteEvent.ShowDocumentPicker -> {
+                _state.value = _state.value.copy(showDocumentPicker = true)
             }
         }
     }
@@ -100,36 +132,86 @@ class AddNoteViewModel @Inject constructor(
         }
 
         val physiotherapistId = currentState.physiotherapistId ?: return
-        val now = Date()
-        val note = Note(
-            physiotherapistId = physiotherapistId,
-            patientName = currentState.patientName,
-            title = currentState.title,
-            content = currentState.content,
-            creationDate = now,
-            updateDate = now,
-            color = currentState.noteColor,
-            updates = emptyList()
-        )
+        _state.value = _state.value.copy(isLoading = true)
 
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
-            createNoteUseCase(note).collect { result ->
-                when (result) {
-                    is Resource.Success -> {
-                        _state.value = _state.value.copy(isLoading = false)
-                        _uiEvent.send(UiEvent.NavigateBack(needsRefresh = true))
-                    }
-                    is Resource.Error -> {
-                        _state.value = _state.value.copy(
-                            error = "Not oluşturulurken bir hata oluştu",
-                            isLoading = false
-                        )
-                    }
-                    is Resource.Loading -> {
-                        _state.value = _state.value.copy(isLoading = true)
+            try {
+                val imageUrls = mutableListOf<String>()
+                for (imageUri in currentState.imageUris) {
+                    uploadNoteImageUseCase(imageUri, "notes/$physiotherapistId/images").collect { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                imageUrls.add(result.data)
+                            }
+                            is Resource.Error -> {
+                                _state.value = _state.value.copy(
+                                    error = "Görsel yüklenirken hata oluştu: ${result.message}",
+                                    isLoading = false
+                                )
+                                return@collect
+                            }
+                            is Resource.Loading -> {
+                            }
+                        }
                     }
                 }
+
+                val documentUrls = mutableListOf<String>()
+                for (documentUri in currentState.documentUris) {
+                    uploadNoteDocumentUseCase(documentUri, "notes/$physiotherapistId/documents").collect { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                documentUrls.add(result.data)
+                            }
+                            is Resource.Error -> {
+                                _state.value = _state.value.copy(
+                                    error = "Belge yüklenirken hata oluştu: ${result.message}",
+                                    isLoading = false
+                                )
+                                return@collect
+                            }
+                            is Resource.Loading -> {
+                            }
+                        }
+                    }
+                }
+
+                val now = Date()
+                val note = Note(
+                    physiotherapistId = physiotherapistId,
+                    patientName = currentState.patientName,
+                    title = currentState.title,
+                    content = currentState.content,
+                    creationDate = now,
+                    updateDate = now,
+                    color = currentState.noteColor,
+                    updates = emptyList(),
+                    images = imageUrls,
+                    documents = documentUrls
+                )
+
+                createNoteUseCase(note).collect { result ->
+                    when (result) {
+                        is Resource.Success -> {
+                            _state.value = _state.value.copy(isLoading = false)
+                            _uiEvent.send(UiEvent.NavigateBack(needsRefresh = true))
+                        }
+                        is Resource.Error -> {
+                            _state.value = _state.value.copy(
+                                error = "Not oluşturulurken bir hata oluştu",
+                                isLoading = false
+                            )
+                        }
+                        is Resource.Loading -> {
+                            _state.value = _state.value.copy(isLoading = true)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    error = "Not oluşturulurken bir hata oluştu: ${e.message}",
+                    isLoading = false
+                )
             }
         }
     }
