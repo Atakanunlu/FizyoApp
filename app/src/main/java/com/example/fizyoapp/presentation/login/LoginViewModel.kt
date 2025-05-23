@@ -1,12 +1,12 @@
 package com.example.fizyoapp.presentation.login
-
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.auth.UserRole
+import com.example.fizyoapp.domain.usecase.auth.CheckEmailVerifiedUseCase
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignInUseCase
+import com.example.fizyoapp.domain.usecase.auth.SignOutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,13 +23,14 @@ import kotlinx.coroutines.delay
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val signInUseCase: SignInUseCase,
+    private val signOutUseCase: SignOutUseCase,
     private val getCurrentUserUseCase: GetCurrentUseCase,
     private val checkProfileCompletedUseCase: CheckProfileCompletedUseCase,
-    private val checkPhysiotherapistProfileCompletedUseCase: CheckPhysiotherapistProfileCompletedUseCase
+    private val checkPhysiotherapistProfileCompletedUseCase: CheckPhysiotherapistProfileCompletedUseCase,
+    private val checkEmailVerifiedUseCase: CheckEmailVerifiedUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(LoginState())
     val state: StateFlow<LoginState> = _state.asStateFlow()
-
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
@@ -71,61 +72,71 @@ class LoginViewModel @Inject constructor(
     private fun onLoginSuccess(user: User) {
         viewModelScope.launch {
             try {
-                when (user.role) {
-                    UserRole.USER -> {
-                        Log.d("LoginViewModel", "User is a regular user, checking profile")
-
-                        checkProfileCompletedUseCase(user.id).collect { result ->
-                            when (result) {
-                                is Resource.Success -> {
-                                    val isProfileCompleted = result.data
-                                    Log.d("LoginViewModel", "User profile completed: $isProfileCompleted")
-                                    if (isProfileCompleted) {
+                checkEmailVerifiedUseCase().collect { verifiedResult ->
+                    when (verifiedResult) {
+                        is Resource.Success -> {
+                            if (verifiedResult.data) {
+                                when (user.role) {
+                                    UserRole.USER -> {
+                                        checkProfileCompletedUseCase(user.id).collect { result ->
+                                            when (result) {
+                                                is Resource.Success -> {
+                                                    val isProfileCompleted = result.data
+                                                    if (isProfileCompleted) {
+                                                        _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
+                                                    } else {
+                                                        _uiEvent.send(UiEvent.NavigateToProfileSetup)
+                                                    }
+                                                }
+                                                is Resource.Error -> {
+                                                    _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
+                                                }
+                                                is Resource.Loading -> {
+                                                }
+                                            }
+                                        }
+                                    }
+                                    UserRole.PHYSIOTHERAPIST -> {
+                                        checkPhysiotherapistProfileCompletedUseCase(user.id).collect { result ->
+                                            when (result) {
+                                                is Resource.Success -> {
+                                                    val isProfileCompleted = result.data
+                                                    if (isProfileCompleted) {
+                                                        _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
+                                                    } else {
+                                                        _uiEvent.send(UiEvent.NavigateToPhysiotherapistProfileSetup)
+                                                    }
+                                                }
+                                                is Resource.Error -> {
+                                                    _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
+                                                }
+                                                is Resource.Loading -> {
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else -> {
                                         _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
-                                    } else {
-                                        _uiEvent.send(UiEvent.NavigateToProfileSetup)
                                     }
                                 }
-                                is Resource.Error -> {
-                                    Log.e("LoginViewModel", "Error checking profile: ${result.message}")
-
-                                    _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
-                                }
-                                is Resource.Loading -> {
-                                }
+                            } else {
+                                _state.value = _state.value.copy(
+                                    errorMessage = "Hesabınızı kullanmadan önce e-posta adresinizi doğrulamanız gerekiyor. Lütfen e-postanızı kontrol edin."
+                                )
+                                signOutUseCase().collect {}
                             }
                         }
-                    }
-                    UserRole.PHYSIOTHERAPIST -> {
-                        Log.d("LoginViewModel", "User is a physiotherapist, checking profile")
-
-                        checkPhysiotherapistProfileCompletedUseCase(user.id).collect { result ->
-                            when (result) {
-                                is Resource.Success -> {
-                                    val isProfileCompleted = result.data
-                                    Log.d("LoginViewModel", "Physiotherapist profile completed: $isProfileCompleted")
-                                    if (isProfileCompleted) {
-                                        _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
-                                    } else {
-                                        _uiEvent.send(UiEvent.NavigateToPhysiotherapistProfileSetup)
-                                    }
-                                }
-                                is Resource.Error -> {
-                                    Log.e("LoginViewModel", "Error checking physiotherapist profile: ${result.message}")
-                                    _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
-                                }
-                                is Resource.Loading -> {
-                                }
-                            }
+                        is Resource.Error -> {
+                            _state.value = _state.value.copy(
+                                errorMessage = verifiedResult.message ?: "E-posta doğrulama durumu kontrol edilemedi"
+                            )
+                            _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
                         }
-                    }
-                    else -> {
-                        Log.d("LoginViewModel", "Unknown role, navigating to default screen")
-                        _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
+                        is Resource.Loading -> {
+                        }
                     }
                 }
             } catch (e: Exception) {
-                Log.e("LoginViewModel", "Exception during login navigation: ${e.message}", e)
                 _state.value = _state.value.copy(
                     isLoading = false,
                     errorMessage = "Giriş yapılırken bir hata oluştu: ${e.message}"
@@ -134,7 +145,6 @@ class LoginViewModel @Inject constructor(
             }
         }
     }
-
 
     fun onEvent(event: LoginEvent) {
         when (event) {
@@ -158,19 +168,21 @@ class LoginViewModel @Inject constructor(
             is LoginEvent.ResetState -> {
                 _state.value = LoginState()
             }
+            is LoginEvent.NavigateToForgotPassword -> {
+                viewModelScope.launch {
+                    _uiEvent.send(UiEvent.NavigateToForgotPassword)
+                }
+            }
         }
     }
 
     private fun signIn() {
         viewModelScope.launch {
             if (!validateInput()) return@launch
-
             _state.value = _state.value.copy(
                 isLoading = true,
                 errorMessage = null
             )
-
-
             val timeoutJob = launch {
                 delay(10000)
                 if (_state.value.isLoading) {
@@ -180,7 +192,6 @@ class LoginViewModel @Inject constructor(
                     )
                 }
             }
-
             try {
                 signInUseCase(
                     _state.value.email,
@@ -193,12 +204,34 @@ class LoginViewModel @Inject constructor(
                         }
                         is Resource.Success -> {
                             timeoutJob.cancel()
-                            _state.value = _state.value.copy(
-                                isLoading = false,
-                                isLoggedIn = true,
-                                user = result.data
-                            )
-                            onLoginSuccess(result.data)
+                            checkEmailVerifiedUseCase().collect { verifiedResult ->
+                                when (verifiedResult) {
+                                    is Resource.Success -> {
+                                        if (verifiedResult.data) {
+                                            _state.value = _state.value.copy(
+                                                isLoading = false,
+                                                isLoggedIn = true,
+                                                user = result.data
+                                            )
+                                            onLoginSuccess(result.data)
+                                        } else {
+                                            _state.value = _state.value.copy(
+                                                isLoading = false,
+                                                errorMessage = "Hesabınız doğrulanmamış. Lütfen e-posta adresinize gönderilen doğrulama bağlantısını tıklayın."
+                                            )
+                                            signOutUseCase().collect {}
+                                        }
+                                    }
+                                    is Resource.Error -> {
+                                        _state.value = _state.value.copy(
+                                            isLoading = false,
+                                            errorMessage = verifiedResult.message
+                                        )
+                                    }
+                                    is Resource.Loading -> {
+                                    }
+                                }
+                            }
                         }
                         is Resource.Error -> {
                             timeoutJob.cancel()
@@ -211,7 +244,6 @@ class LoginViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 timeoutJob.cancel()
-                Log.e("LoginViewModel", "Sign in exception", e)
                 _state.value = _state.value.copy(
                     isLoading = false,
                     errorMessage = "Giriş sırasında bir hata oluştu: ${e.message}"
@@ -241,7 +273,6 @@ class LoginViewModel @Inject constructor(
         data object NavigateToRegister : UiEvent()
         data object NavigateToProfileSetup : UiEvent()
         data object NavigateToPhysiotherapistProfileSetup : UiEvent()
-
-
+        data object NavigateToForgotPassword : UiEvent()
     }
 }
