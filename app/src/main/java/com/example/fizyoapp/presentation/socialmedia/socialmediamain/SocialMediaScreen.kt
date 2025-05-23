@@ -58,13 +58,11 @@ fun SocialMediaScreen(
         } ?: "Kullanıcı"
     }
 
-    // Ekran ilk açıldığında verileri yükle
     LaunchedEffect(key1 = Unit) {
         viewModel.initializeScreen()
     }
 
-    // Sayfa her görünür olduğunda takip durumlarını güncelle
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->

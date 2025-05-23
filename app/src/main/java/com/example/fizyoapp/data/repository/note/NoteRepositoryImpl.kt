@@ -1,6 +1,5 @@
 package com.example.fizyoapp.data.repository.note
 
-import com.example.fizyoapp.data.local.entity.auth.AuthResult
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.note.Note
 import com.example.fizyoapp.domain.model.note.NoteColor

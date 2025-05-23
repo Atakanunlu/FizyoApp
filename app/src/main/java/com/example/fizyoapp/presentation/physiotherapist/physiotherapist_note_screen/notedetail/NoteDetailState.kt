@@ -1,7 +1,7 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.notedetail
 
 import android.net.Uri
-import com.example.fizyoapp.domain.model.note.Note
+
 
 data class NoteDetailState(
     val note: com.example.fizyoapp.domain.model.note.Note? = null,
