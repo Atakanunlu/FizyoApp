@@ -13,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Comment
+import androidx.compose.material.icons.automirrored.filled.Feed
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -227,7 +229,7 @@ fun PhysiotherapistSocialProfileScreen(
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.Feed,
+                                            imageVector = Icons.AutoMirrored.Filled.Feed,
                                             contentDescription = null,
                                             modifier = Modifier.size(48.dp),
                                             tint = primaryColor.copy(alpha = 0.5f)
@@ -315,7 +317,7 @@ fun MessageButton(
         modifier = modifier
     ) {
         Icon(
-            imageVector = Icons.Default.Message,
+            imageVector = Icons.AutoMirrored.Filled.Message,
             contentDescription = "Mesaj Gönder",
             modifier = Modifier.size(18.dp)
         )

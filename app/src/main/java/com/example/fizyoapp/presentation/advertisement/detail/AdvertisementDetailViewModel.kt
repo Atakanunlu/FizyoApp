@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
-import com.example.fizyoapp.domain.model.advertisement.Advertisement
 import com.example.fizyoapp.domain.usecase.advertisement.GetAdvertisementByIdUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistByIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

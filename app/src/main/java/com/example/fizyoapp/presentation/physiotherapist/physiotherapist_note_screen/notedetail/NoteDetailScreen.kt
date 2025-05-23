@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -952,7 +953,7 @@ fun AttachmentsCard(
                                     )
                                 }
                                 Icon(
-                                    Icons.Default.OpenInNew,
+                                    Icons.AutoMirrored.Filled.OpenInNew,
                                     contentDescription = "Aç",
                                     tint = primaryColor,
                                     modifier = Modifier.size(20.dp)
@@ -1261,7 +1262,7 @@ fun NoteUpdateCard(
                                     color = textColor
                                 )
                                 Icon(
-                                    Icons.Default.OpenInNew,
+                                    Icons.AutoMirrored.Filled.OpenInNew,
                                     contentDescription = "Aç",
                                     tint = primaryColor,
                                     modifier = Modifier.size(16.dp)
