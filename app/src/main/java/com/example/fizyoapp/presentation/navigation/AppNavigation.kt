@@ -19,6 +19,7 @@ import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.ProfilS
 import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.SettingsScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.searchscreen.SearchScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MessagesScreen
+import com.example.fizyoapp.presentation.forgotpassword.ForgotPasswordScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_profile_screen.PhysiotherapistProfileSetupScreen
 import com.example.fizyoapp.presentation.splashscreen.SplashScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesScreen
@@ -349,6 +350,15 @@ fun AppNavigation() {
         composable(AppScreens.RehabilitationHistoryScreen.route) {
             RehabilitationHistoryScreen(navController = navController)
         }
+
+        composable(AppScreens.ForgotPasswordScreen.route) {
+            ForgotPasswordScreen(navController = navController)
+        }
+
+        composable(AppScreens.ForgotPasswordScreen.route) {
+            ForgotPasswordScreen(navController = navController)
+        }
+
 
 
     }

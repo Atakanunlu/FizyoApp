@@ -9,13 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.domain.model.auth.UserRole
 import com.example.fizyoapp.presentation.navigation.AppScreens
-
-
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -25,8 +24,8 @@ fun RegisterScreen(
 ) {
     val state = viewModel.state.collectAsState().value
 
-
     var showSuccessDialog by remember { mutableStateOf(false) }
+    var showVerificationDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
@@ -36,13 +35,15 @@ fun RegisterScreen(
                         popUpTo(AppScreens.RegisterScreen.route) { inclusive = true }
                     }
                 }
+                is RegisterViewModel.UiEvent.ShowEmailVerificationDialog -> {
+                    showVerificationDialog = true
+                }
                 is RegisterViewModel.UiEvent.ShowSuccessDialog -> {
                     showSuccessDialog = true
                 }
             }
         }
     }
-
 
     if (showSuccessDialog) {
         AlertDialog(
@@ -71,6 +72,39 @@ fun RegisterScreen(
         )
     }
 
+    if (showVerificationDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showVerificationDialog = false
+                viewModel.onEvent(RegisterEvent.ResetState)
+                navController.navigate(AppScreens.LoginScreen.route) {
+                    popUpTo(AppScreens.RegisterScreen.route) { inclusive = true }
+                }
+            },
+            title = { Text("E-posta Doğrulama") },
+            text = {
+                Column {
+                    Text("Kayıt işlemi başarıyla tamamlandı! E-posta adresinize bir doğrulama bağlantısı gönderdik.")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Lütfen hesabınızı aktifleştirmek için e-postanızı kontrol edin ve doğrulama bağlantısına tıklayın.")
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showVerificationDialog = false
+                        viewModel.onEvent(RegisterEvent.ResetState)
+                        navController.navigate(AppScreens.LoginScreen.route) {
+                            popUpTo(AppScreens.RegisterScreen.route) { inclusive = true }
+                        }
+                    }
+                ) {
+                    Text("Tamam")
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -83,7 +117,6 @@ fun RegisterScreen(
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 24.dp)
         )
-
 
         Text(text = "Rol Seçin", modifier = Modifier.padding(bottom = 8.dp))
         Row(
@@ -108,7 +141,6 @@ fun RegisterScreen(
             )
         }
 
-
         OutlinedTextField(
             value = state.email,
             onValueChange = { viewModel.onEvent(RegisterEvent.EmailChanged(it)) },
@@ -118,7 +150,6 @@ fun RegisterScreen(
                 .fillMaxWidth()
                 .padding(bottom = 8.dp)
         )
-
         OutlinedTextField(
             value = state.password,
             onValueChange = { viewModel.onEvent(RegisterEvent.PasswordChanged(it)) },
@@ -129,7 +160,6 @@ fun RegisterScreen(
                 .fillMaxWidth()
                 .padding(bottom = 8.dp)
         )
-
 
         OutlinedTextField(
             value = state.confirmPassword,
@@ -142,7 +172,6 @@ fun RegisterScreen(
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
         )
-
         if (state.passwordError) {
             Text(
                 text = "Şifreler eşleşmiyor!",
@@ -154,7 +183,6 @@ fun RegisterScreen(
             )
         }
 
-
         if (state.errorMessage != null) {
             Text(
                 text = state.errorMessage,
@@ -165,7 +193,6 @@ fun RegisterScreen(
                     .padding(bottom = 8.dp)
             )
         }
-
 
         Button(
             onClick = { viewModel.onEvent(RegisterEvent.SignUp) },
@@ -184,8 +211,6 @@ fun RegisterScreen(
                 Text("Kayıt Ol")
             }
         }
-
-        // Giriş ekranına dön butonu
         TextButton(
             onClick = { viewModel.onEvent(RegisterEvent.NavigateToLogin) },
             modifier = Modifier.padding(top = 8.dp)

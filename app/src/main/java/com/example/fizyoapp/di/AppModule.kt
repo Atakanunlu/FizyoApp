@@ -43,12 +43,17 @@ import com.example.fizyoapp.domain.usecase.appointment.GetPhysiotherapistAppoint
 import com.example.fizyoapp.domain.usecase.appointment.GetUserAppointmentsUseCase
 import com.example.fizyoapp.domain.usecase.appointment.UnblockTimeSlotUseCase
 import com.example.fizyoapp.domain.usecase.appointment.UpdateAppointmentNotesUseCase
+import com.example.fizyoapp.domain.usecase.auth.CheckEmailVerifiedUseCase
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentPhysiotherapistUseCase
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.example.fizyoapp.domain.usecase.auth.GetUserRoleUseCase
+import com.example.fizyoapp.domain.usecase.auth.ResetPasswordUseCase
+import com.example.fizyoapp.domain.usecase.auth.SendEmailVerificationUseCase
+import com.example.fizyoapp.domain.usecase.auth.SendPasswordResetEmailUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignInUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignOutUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignUpUseCase
+import com.example.fizyoapp.domain.usecase.auth.VerifyPasswordResetCodeUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.GetExerciseCategoriesUseCase
 import com.example.fizyoapp.domain.usecase.exercisesexamplesscreen.PopulateDatabaseUseCase
 import com.example.fizyoapp.domain.usecase.follow.FollowPhysiotherapistUseCase
@@ -755,5 +760,34 @@ object AppModule {
         )
     }
 
+    @Provides
+    @Singleton
+    fun provideSendEmailVerificationUseCase(authRepository: AuthRepository): SendEmailVerificationUseCase {
+        return SendEmailVerificationUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCheckEmailVerifiedUseCase(authRepository: AuthRepository): CheckEmailVerifiedUseCase {
+        return CheckEmailVerifiedUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSendPasswordResetEmailUseCase(authRepository: AuthRepository): SendPasswordResetEmailUseCase {
+        return SendPasswordResetEmailUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideVerifyPasswordResetCodeUseCase(authRepository: AuthRepository): VerifyPasswordResetCodeUseCase {
+        return VerifyPasswordResetCodeUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideResetPasswordUseCase(authRepository: AuthRepository): ResetPasswordUseCase {
+        return ResetPasswordUseCase(authRepository)
+    }
 
 }
