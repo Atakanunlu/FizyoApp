@@ -58,14 +58,13 @@ class UserExercisePlansViewModel @Inject constructor(
 
             Log.d("UserExercisePlansVM", "Egzersiz planları yükleniyor: $userId")
 
-            // Fizyoterapistin hastaya atadığı planları çek
+
             exerciseRepository.getExercisePlansByPatient(userId).collect { result ->
                 when (result) {
                     is Resource.Success -> {
                         val plans = result.data
                         Log.d("UserExercisePlansVM", "${plans.size} adet plan bulundu")
 
-                        // Planları tarihe göre sırala (en yeni plan en üstte)
                         val sortedPlans = plans.sortedByDescending { it.createdAt }
 
                         _state.update { it.copy(
@@ -89,7 +88,7 @@ class UserExercisePlansViewModel @Inject constructor(
         }
     }
 
-    // Planı yenileme işlevi - gerekirse kullanılabilir
+
     fun refreshPlans() {
         viewModelScope.launch {
             authRepository.getCurrentUser().collect { result ->

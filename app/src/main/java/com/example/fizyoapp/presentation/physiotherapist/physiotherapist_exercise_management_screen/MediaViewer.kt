@@ -51,18 +51,18 @@ fun MediaViewer(
                         modifier = Modifier
                             .fillMaxSize()
                             .clickable {
-                                // Harici video oynatıcı ile aç
+
                                 try {
                                     val intent = Intent(Intent.ACTION_VIEW)
                                     intent.setDataAndType(Uri.parse(mediaUrl), "video/*")
                                     context.startActivity(intent)
                                 } catch (e: Exception) {
-                                    // Video oynatıcı bulunamadı
+
                                 }
                             },
                         contentAlignment = Alignment.Center
                     ) {
-                        // Video önizleme
+
                         AsyncImage(
                             model = mediaUrl,
                             contentDescription = "Video",
@@ -70,7 +70,7 @@ fun MediaViewer(
                             modifier = Modifier.fillMaxSize()
                         )
 
-                        // Play butonu
+
                         Box(
                             modifier = Modifier
                                 .size(80.dp)
@@ -89,7 +89,7 @@ fun MediaViewer(
                     }
                 }
                 else -> {
-                    // Resim görüntüleyici
+
                     AsyncImage(
                         model = mediaUrl,
                         contentDescription = "Görsel",
@@ -99,7 +99,7 @@ fun MediaViewer(
                 }
             }
 
-            // Kapat butonu
+
             IconButton(
                 onClick = onDismiss,
                 modifier = Modifier

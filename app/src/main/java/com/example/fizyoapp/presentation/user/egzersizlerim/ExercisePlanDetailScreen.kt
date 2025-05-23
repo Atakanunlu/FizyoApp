@@ -1,4 +1,3 @@
-
 package com.example.fizyoapp.presentation.user.egzersizlerim
 
 import android.net.Uri
@@ -14,7 +13,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -45,6 +46,15 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val accentColor = Color(59, 62, 104)
+private val secondaryAccent = Color(97, 97, 177)
+private val textColor = Color.DarkGray
+private val lightGray = Color.Gray
+
 @OptIn(ExperimentalMaterial3Api::class)
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
@@ -58,30 +68,19 @@ fun ExercisePlanDetailScreen(
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
-    // Material3 renklerine daha uygun bir renk paleti
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val backgroundColor = MaterialTheme.colorScheme.background
-    val accentColor = MaterialTheme.colorScheme.secondary
-    val secondaryAccent = MaterialTheme.colorScheme.tertiary
-    val textColor = MaterialTheme.colorScheme.onBackground
-    val cardColor = MaterialTheme.colorScheme.surfaceVariant
-
     var currentExerciseIndex by remember { mutableStateOf(0) }
 
-    // ExoPlayer kurulumu
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
             repeatMode = Player.REPEAT_MODE_ONE
         }
     }
+
     var playerView by remember { mutableStateOf<PlayerView?>(null) }
     var showPlayer by remember { mutableStateOf(false) }
     var isPlaying by remember { mutableStateOf(true) }
-
-    // Medya tipi (video veya resim)
     var currentMediaType by remember { mutableStateOf("image") }
 
-    // Geri navigasyon fonksiyonu
     val navigateBack = {
         coroutineScope.launch {
             showPlayer = false
@@ -93,10 +92,8 @@ fun ExercisePlanDetailScreen(
         }
     }
 
-    // Back tuşu kontrolü
     BackHandler { navigateBack() }
 
-    // Player için temizleme
     DisposableEffect(Unit) {
         onDispose {
             exoPlayer.stop()
@@ -105,23 +102,20 @@ fun ExercisePlanDetailScreen(
         }
     }
 
-    // Planı yükle
     LaunchedEffect(planId) {
         viewModel.loadExercisePlan(planId)
     }
 
-    // Egzersiz değiştiğinde media içeriğini ayarla
     LaunchedEffect(currentExerciseIndex, state.plan) {
         if (state.plan != null && state.plan.exercises.isNotEmpty()) {
             val currentExercise = state.plan.exercises[currentExerciseIndex]
             if (currentExercise.mediaUrls.isNotEmpty()) {
                 val mediaUrl = currentExercise.mediaUrls.first()
 
-                // Video mu resim mi olduğunu kontrol et
                 currentMediaType = if (mediaUrl.contains("video") ||
                     mediaUrl.contains(".mp4") ||
                     mediaUrl.contains(".mov")) {
-                    // Video ise ExoPlayer'ı hazırla
+
                     showPlayer = true
                     val videoUri = Uri.parse(mediaUrl)
                     exoPlayer.stop()
@@ -131,7 +125,6 @@ fun ExercisePlanDetailScreen(
                     exoPlayer.playWhenReady = isPlaying
                     "video"
                 } else {
-                    // Resim ise player'ı gizle
                     showPlayer = false
                     "image"
                 }
@@ -143,13 +136,12 @@ fun ExercisePlanDetailScreen(
     }
 
     Scaffold(
-        containerColor = backgroundColor,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         state.plan?.title ?: "Egzersiz Planı",
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -158,7 +150,7 @@ fun ExercisePlanDetailScreen(
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Geri Dön",
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = Color.White
                         )
                     }
                 },
@@ -175,19 +167,18 @@ fun ExercisePlanDetailScreen(
                 .background(backgroundColor)
         ) {
             if (state.isLoading) {
-                LoadingView(accentColor)
+                LoadingViewRedesigned()
             } else if (state.errorMessage != null) {
-                ErrorView(state.errorMessage, accentColor) {
+                ErrorViewRedesigned(state.errorMessage) {
                     viewModel.loadExercisePlan(planId)
                 }
             } else if (state.plan == null) {
-                ErrorView("Plan bulunamadı", accentColor) {
+                ErrorViewRedesigned("Plan bulunamadı") {
                     viewModel.loadExercisePlan(planId)
                 }
             } else if (state.plan.exercises.isEmpty()) {
-                EmptyExercisesView()
+                EmptyExercisesViewRedesigned()
             } else {
-                // Plan detayları ve egzersizler
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -195,70 +186,95 @@ fun ExercisePlanDetailScreen(
                         .verticalScroll(scrollState),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Plan bilgileri
-                    PlanInfoCard(state.plan)
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Mevcut egzersiz göstergesi
                     Text(
-                        text = "Egzersiz ${currentExerciseIndex + 1} / ${state.plan.exercises.size}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = textColor,
-                        fontWeight = FontWeight.Bold
+                        text = "Egzersiz Detayları",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Egzersiz programınızı düzenli takip edin",
+                        fontSize = 16.sp,
+                        color = lightGray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
-                    // İlerleme göstergesi
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+
+                    PlanInfoCardRedesigned(state.plan)
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        for (i in state.plan.exercises.indices) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(horizontal = 4.dp)
-                                    .size(
-                                        width = if (i == currentExerciseIndex) 20.dp else 8.dp,
-                                        height = 8.dp
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(primaryColor.copy(alpha = 0.1f))
+                        )
+
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(
+                                    fraction = (currentExerciseIndex + 1).toFloat() / state.plan.exercises.size
+                                )
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(
+                                    brush = Brush.horizontalGradient(
+                                        colors = listOf(primaryColor, secondaryAccent)
                                     )
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(
-                                        if (i == currentExerciseIndex) accentColor
-                                        else accentColor.copy(alpha = 0.3f)
-                                    )
-                            )
-                        }
+                                )
+                                .align(Alignment.CenterStart)
+                        )
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                    // Medya bölümü (video veya resim)
-                    MediaContainer(
-                        currentExercise = state.plan.exercises[currentExerciseIndex],
-                        mediaType = currentMediaType,
-                        showPlayer = showPlayer,
-                        exoPlayer = exoPlayer,
-                        onPlayerViewCreated = { playerView = it },
-                        accentColor = accentColor,
-                        secondaryAccent = secondaryAccent,
-                        cardColor = cardColor
-                    )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Egzersiz detayları
-                    ExerciseDetailsCard(
-                        exercise = state.plan.exercises[currentExerciseIndex],
-                        cardColor = cardColor,
-                        textColor = textColor
+                    Text(
+                        text = "Egzersiz ${currentExerciseIndex + 1} / ${state.plan.exercises.size}",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor,
+                        textAlign = TextAlign.Center
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Kontrol butonları
-                    ExerciseControlButtons(
+
+                    MediaContainerRedesigned(
+                        currentExercise = state.plan.exercises[currentExerciseIndex],
+                        mediaType = currentMediaType,
+                        showPlayer = showPlayer,
+                        exoPlayer = exoPlayer,
+                        onPlayerViewCreated = { playerView = it }
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+
+                    ExerciseDetailsCardRedesigned(
+                        exercise = state.plan.exercises[currentExerciseIndex]
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+
+                    ExerciseControlButtonsRedesigned(
                         currentIndex = currentExerciseIndex,
                         totalExercises = state.plan.exercises.size,
                         isPlaying = isPlaying,
@@ -275,13 +291,44 @@ fun ExercisePlanDetailScreen(
                         onNext = {
                             currentExerciseIndex = (currentExerciseIndex + 1) % state.plan.exercises.size
                         },
-                        accentColor = accentColor,
-                        cardColor = cardColor,
-                        textColor = textColor,
                         showPlayPause = currentMediaType == "video" && showPlayer
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
+
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(230, 230, 250)
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 0.dp
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Description,
+                                contentDescription = null,
+                                tint = primaryColor,
+                                modifier = Modifier.size(24.dp)
+                            )
+
+                            Text(
+                                text = "Her egzersizi uygun duruş ve nefes tekniğiyle yaparak en iyi sonuçları alabilirsiniz.",
+                                fontSize = 14.sp,
+                                color = Color.DarkGray,
+                                modifier = Modifier.padding(start = 12.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
         }
@@ -289,7 +336,7 @@ fun ExercisePlanDetailScreen(
 }
 
 @Composable
-fun LoadingView(accentColor: Color) {
+fun LoadingViewRedesigned() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -298,16 +345,104 @@ fun LoadingView(accentColor: Color) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            CircularProgressIndicator(
-                color = accentColor,
-                modifier = Modifier.size(60.dp),
-                strokeWidth = 5.dp
-            )
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color(59, 62, 104, 20)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = primaryColor,
+                    strokeWidth = 4.dp,
+                    modifier = Modifier.size(60.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
+
             Text(
-                "Egzersiz planı yükleniyor...",
-                color = MaterialTheme.colorScheme.onBackground,
+                text = "Egzersiz planı yükleniyor...",
                 fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                color = primaryColor
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Lütfen bekleyin",
+                fontSize = 14.sp,
+                color = lightGray,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+fun ErrorViewRedesigned(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color(244, 67, 54, 20)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = null,
+                tint = Color(244, 67, 54),
+                modifier = Modifier.size(64.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Bir Hata Oluştu",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = primaryColor,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = message,
+            fontSize = 16.sp,
+            color = textColor,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = onRetry,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = primaryColor
+            ),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Refresh,
+                contentDescription = null
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Tekrar Dene",
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Medium
             )
         }
@@ -315,79 +450,91 @@ fun LoadingView(accentColor: Color) {
 }
 
 @Composable
-fun ErrorView(message: String, accentColor: Color, onRetry: () -> Unit) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+fun EmptyExercisesViewRedesigned() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(32.dp)
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color(59, 62, 104, 20)),
+            contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Info,
+                imageVector = Icons.Rounded.FitnessCenter,
                 contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                tint = MaterialTheme.colorScheme.error
+                tint = primaryColor,
+                modifier = Modifier.size(64.dp)
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = message,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Egzersiz Bulunamadı",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = primaryColor,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Bu planda henüz egzersiz bulunmuyor. Fizyoterapistinizle iletişime geçebilirsiniz.",
+            fontSize = 16.sp,
+            color = lightGray,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(230, 230, 250)
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 0.dp
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(
-                onClick = onRetry,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = accentColor
-                )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Tekrar Dene")
+                Icon(
+                    imageVector = Icons.Outlined.Description,
+                    contentDescription = null,
+                    tint = primaryColor,
+                    modifier = Modifier.size(24.dp)
+                )
+
+                Text(
+                    text = "Fizyoterapistinizden egzersiz planınıza egzersiz eklemesini isteyebilirsiniz.",
+                    fontSize = 14.sp,
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
             }
         }
     }
 }
 
 @Composable
-fun EmptyExercisesView() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(32.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.FitnessCenter,
-                contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = "Bu planda henüz egzersiz bulunmuyor",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-@Composable
-fun PlanInfoCard(plan: com.example.fizyoapp.domain.model.exercise.ExercisePlan) {
+fun PlanInfoCardRedesigned(plan: com.example.fizyoapp.domain.model.exercise.ExercisePlan) {
     val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = surfaceColor
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
@@ -399,235 +546,92 @@ fun PlanInfoCard(plan: com.example.fizyoapp.domain.model.exercise.ExercisePlan) 
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Plan başlığı
-            Text(
-                text = plan.title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Plan açıklaması
-            if (plan.description.isNotBlank()) {
-                Text(
-                    text = plan.description,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Tarih bilgisi
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 4.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                val dateText = if (plan.startDate != null && plan.endDate != null) {
-                    "${dateFormat.format(plan.startDate)} - ${dateFormat.format(plan.endDate)}"
-                } else {
-                    "Tarih belirtilmedi"
-                }
-                Text(
-                    text = dateText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            // Sıklık bilgisi
-            if (plan.frequency.isNotBlank()) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Repeat,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = plan.frequency,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            // Notlar
-            if (!plan.notes.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Notlar:",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = plan.notes,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                )
-            }
-        }
-    }
-}
-
-@androidx.annotation.OptIn(UnstableApi::class)
-@Composable
-fun MediaContainer(
-    currentExercise: ExercisePlanItem,
-    mediaType: String,
-    showPlayer: Boolean,
-    exoPlayer: ExoPlayer,
-    onPlayerViewCreated: (PlayerView) -> Unit,
-    accentColor: Color,
-    secondaryAccent: Color,
-    cardColor: Color
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(240.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(accentColor, secondaryAccent)
-                )
-            )
-            .padding(3.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(14.dp))
-                .background(cardColor)
-        ) {
-            when (mediaType) {
-                "video" -> {
-                    if (showPlayer) {
-                        AndroidView(
-                            factory = { ctx ->
-                                PlayerView(ctx).apply {
-                                    player = exoPlayer
-                                    useController = true
-                                    controllerShowTimeoutMs = 1500
-                                    setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
-                                    onPlayerViewCreated(this)
-                                }
-                            },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
-                "image" -> {
-                    if (currentExercise.mediaUrls.isNotEmpty()) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(currentExercise.mediaUrls.first())
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = currentExercise.exerciseTitle,
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
-                else -> {
-                    // Medya yoksa placeholder göster
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.FitnessCenter,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                            modifier = Modifier.size(80.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ExerciseDetailsCard(
-    exercise: ExercisePlanItem,
-    cardColor: Color,
-    textColor: Color
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = cardColor
-        ),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Egzersiz başlığı
-            Text(
-                text = exercise.exerciseTitle,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = textColor,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Egzersiz parametreleri
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                ExerciseParameter(
-                    label = "Set",
-                    value = exercise.sets.toString(),
-                    icon = Icons.Rounded.Repeat
-                )
 
-                ExerciseParameter(
-                    label = "Tekrar",
-                    value = exercise.repetitions.toString(),
-                    icon = Icons.Rounded.Numbers
-                )
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(59, 62, 104, 20)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.SportsGymnastics,
+                        contentDescription = null,
+                        tint = primaryColor,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
 
-                ExerciseParameter(
-                    label = "Süre (sn)",
-                    value = exercise.duration.toString(),
-                    icon = Icons.Rounded.Timer
-                )
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column {
+                    Text(
+                        text = plan.title,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor
+                    )
+
+                    if (plan.description.isNotBlank()) {
+                        Text(
+                            text = plan.description,
+                            fontSize = 14.sp,
+                            color = textColor.copy(alpha = 0.8f)
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+            Divider(color = Color(230, 230, 250))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Egzersiz notları
-            if (exercise.notes.isNotBlank()) {
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                PlanInfoItem(
+                    icon = Icons.Default.DateRange,
+                    title = "Tarih Aralığı",
+                    value = if (plan.startDate != null && plan.endDate != null) {
+                        "${dateFormat.format(plan.startDate)} - ${dateFormat.format(plan.endDate)}"
+                    } else {
+                        "Belirtilmedi"
+                    }
+                )
+
+                PlanInfoItem(
+                    icon = Icons.Default.Repeat,
+                    title = "Sıklık",
+                    value = plan.frequency
+                )
+            }
+
+
+            if (!plan.notes.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Divider(color = Color(230, 230, 250))
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
-                    text = exercise.notes,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = textColor,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 24.sp
+                    text = "Fizyoterapist Notları",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = plan.notes,
+                    fontSize = 14.sp,
+                    color = textColor.copy(alpha = 0.8f),
+                    lineHeight = 20.sp
                 )
             }
         }
@@ -635,119 +639,437 @@ fun ExerciseDetailsCard(
 }
 
 @Composable
-fun ExerciseParameter(
-    label: String,
-    value: String,
-    icon: ImageVector
+fun PlanInfoItem(
+    icon: ImageVector,
+    title: String,
+    value: String
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.Start
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = primaryColor,
+                modifier = Modifier.size(18.dp)
+            )
+
+            Spacer(modifier = Modifier.width(4.dp))
+
+            Text(
+                text = title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = primaryColor
+            )
+        }
 
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
             text = value,
-            style = MaterialTheme.typography.headlineSmall,
+            fontSize = 14.sp,
+            color = textColor.copy(alpha = 0.8f),
+            modifier = Modifier.padding(start = 22.dp)
+        )
+    }
+}
+
+@androidx.annotation.OptIn(UnstableApi::class)
+@Composable
+fun MediaContainerRedesigned(
+    currentExercise: ExercisePlanItem,
+    mediaType: String,
+    showPlayer: Boolean,
+    exoPlayer: ExoPlayer,
+    onPlayerViewCreated: (PlayerView) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = surfaceColor
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+
+            Text(
+                text = "Egzersiz Gösterimi",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = primaryColor,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(240.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        color = Color(230, 230, 250)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                when (mediaType) {
+                    "video" -> {
+                        if (showPlayer) {
+                            AndroidView(
+                                factory = { ctx ->
+                                    PlayerView(ctx).apply {
+                                        player = exoPlayer
+                                        useController = true
+                                        controllerShowTimeoutMs = 1500
+                                        setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
+                                        onPlayerViewCreated(this)
+                                    }
+                                },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+                    "image" -> {
+                        if (currentExercise.mediaUrls.isNotEmpty()) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(currentExercise.mediaUrls.first())
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = currentExercise.exerciseTitle,
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+                    else -> {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.FitnessCenter,
+                                contentDescription = null,
+                                tint = primaryColor.copy(alpha = 0.3f),
+                                modifier = Modifier.size(80.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                text = "Görsel içerik bulunamadı",
+                                color = textColor.copy(alpha = 0.5f),
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+            }
+
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                when (mediaType) {
+                    "video" -> {
+                        Icon(
+                            imageVector = Icons.Rounded.Videocam,
+                            contentDescription = null,
+                            tint = primaryColor,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Video gösterimi",
+                            fontSize = 14.sp,
+                            color = textColor
+                        )
+                    }
+                    "image" -> {
+                        Icon(
+                            imageVector = Icons.Rounded.Image,
+                            contentDescription = null,
+                            tint = primaryColor,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Görsel gösterimi",
+                            fontSize = 14.sp,
+                            color = textColor
+                        )
+                    }
+                    else -> {
+                        Icon(
+                            imageVector = Icons.Rounded.ImageNotSupported,
+                            contentDescription = null,
+                            tint = primaryColor,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Görsel içerik yok",
+                            fontSize = 14.sp,
+                            color = textColor
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ExerciseDetailsCardRedesigned(
+    exercise: ExercisePlanItem
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = surfaceColor
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Text(
+                text = exercise.exerciseTitle,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = primaryColor,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                ExerciseParameterRedesigned(
+                    label = "Set",
+                    value = exercise.sets.toString(),
+                    icon = Icons.Rounded.Repeat,
+                    color = Color(59, 62, 104)
+                )
+
+                ExerciseParameterRedesigned(
+                    label = "Tekrar",
+                    value = exercise.repetitions.toString(),
+                    icon = Icons.Rounded.Numbers,
+                    color = Color(76, 175, 80)
+                )
+
+                ExerciseParameterRedesigned(
+                    label = "Süre (sn)",
+                    value = exercise.duration.toString(),
+                    icon = Icons.Rounded.Timer,
+                    color = Color(255, 152, 0)
+                )
+            }
+
+
+            if (exercise.notes.isNotBlank()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Divider(color = Color(230, 230, 250))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Egzersiz Açıklaması",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = exercise.notes,
+                    fontSize = 15.sp,
+                    color = textColor,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ExerciseParameterRedesigned(
+    label: String,
+    value: String,
+    icon: ImageVector,
+    color: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(color.copy(alpha = 0.1f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = value,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = color
         )
 
         Text(
             text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            fontSize = 14.sp,
+            color = textColor.copy(alpha = 0.7f)
         )
     }
 }
 
 @Composable
-fun ExerciseControlButtons(
+fun ExerciseControlButtonsRedesigned(
     currentIndex: Int,
     totalExercises: Int,
     isPlaying: Boolean,
     onPrevious: () -> Unit,
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
-    accentColor: Color,
-    cardColor: Color,
-    textColor: Color,
     showPlayPause: Boolean
 ) {
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Önceki egzersiz butonu
-        AnimatedVisibility(
-            visible = totalExercises > 1,
-            enter = fadeIn() + scaleIn(),
-            exit = fadeOut() + scaleOut()
+        Text(
+            text = "Egzersiz Kontrolü",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = primaryColor,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
+
+            AnimatedVisibility(
+                visible = totalExercises > 1,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut()
+            ) {
+                FloatingActionButton(
+                    onClick = onPrevious,
+                    containerColor = Color(230, 230, 250),
+                    contentColor = primaryColor,
+                    shape = CircleShape,
+                    modifier = Modifier.size(56.dp),
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 2.dp,
+                        pressedElevation = 4.dp
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.SkipPrevious,
+                        contentDescription = "Önceki Egzersiz",
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+
+
+            AnimatedVisibility(
+                visible = showPlayPause,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut()
+            ) {
+                FloatingActionButton(
+                    onClick = onPlayPause,
+                    containerColor = primaryColor,
+                    contentColor = Color.White,
+                    shape = CircleShape,
+                    modifier = Modifier.size(72.dp),
+                    elevation = FloatingActionButtonDefaults.elevation(
+                        defaultElevation = 4.dp,
+                        pressedElevation = 8.dp
+                    )
+                ) {
+                    AnimatedContent(
+                        targetState = isPlaying
+                    ) { playing ->
+                        Icon(
+                            imageVector = if (playing)
+                                Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                            contentDescription = if (playing) "Duraklat" else "Oynat",
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                }
+            }
+
+
             FloatingActionButton(
-                onClick = onPrevious,
-                containerColor = cardColor,
-                contentColor = textColor,
+                onClick = onNext,
+                containerColor = primaryColor,
+                contentColor = Color.White,
                 shape = CircleShape,
-                modifier = Modifier.size(56.dp)
+                modifier = Modifier.size(56.dp),
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 4.dp,
+                    pressedElevation = 8.dp
+                )
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.SkipPrevious,
-                    contentDescription = "Önceki Egzersiz",
+                    imageVector = Icons.Rounded.SkipNext,
+                    contentDescription = "Sonraki Egzersiz",
                     modifier = Modifier.size(32.dp)
                 )
             }
         }
 
-        // Oynat/Duraklat butonu (sadece video varsa göster)
-        AnimatedVisibility(
-            visible = showPlayPause,
-            enter = fadeIn() + scaleIn(),
-            exit = fadeOut() + scaleOut()
-        ) {
-            FloatingActionButton(
-                onClick = onPlayPause,
-                containerColor = accentColor,
-                contentColor = Color.White,
-                shape = CircleShape,
-                modifier = Modifier.size(72.dp),
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 6.dp,
-                    pressedElevation = 8.dp
-                )
-            ) {
-                AnimatedContent(
-                    targetState = isPlaying
-                ) { playing ->
-                    Icon(
-                        imageVector = if (playing)
-                            Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                        contentDescription = if (playing) "Duraklat" else "Oynat",
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-            }
-        }
+        if (totalExercises > 1) {
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Sonraki egzersiz butonu
-        FloatingActionButton(
-            onClick = onNext,
-            containerColor = cardColor,
-            contentColor = textColor,
-            shape = CircleShape,
-            modifier = Modifier.size(56.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.SkipNext,
-                contentDescription = "Sonraki Egzersiz",
-                modifier = Modifier.size(32.dp)
+            Text(
+                text = "Sonraki egzersiz için sağa kaydırın",
+                fontSize = 14.sp,
+                color = textColor.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center
             )
         }
     }

@@ -1,4 +1,3 @@
-// presentation/user/egzersizlerim/ExercisePlanDetailViewModel.kt
 package com.example.fizyoapp.presentation.user.egzersizlerim
 
 import android.util.Log

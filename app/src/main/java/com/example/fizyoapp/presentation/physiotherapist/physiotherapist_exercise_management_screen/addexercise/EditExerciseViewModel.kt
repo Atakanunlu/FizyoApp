@@ -1,14 +1,10 @@
-// presentation/physiotherapist/exercise/EditExerciseViewModel.kt
 package com.example.fizyoapp.presentation.physiotherapist.exercise
-
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.repository.exercisemanagescreen.ExerciseRepository
 import com.example.fizyoapp.data.util.Resource
-import com.example.fizyoapp.domain.model.exercise.DEFAULT_EXERCISE_CATEGORIES
 import com.example.fizyoapp.domain.model.exercise.Exercise
 import com.example.fizyoapp.domain.model.exercise.ExerciseDifficulty
 import com.example.fizyoapp.domain.model.exercise.ExerciseType
@@ -27,10 +23,8 @@ class EditExerciseViewModel @Inject constructor(
     private val exerciseRepository: ExerciseRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(EditExerciseState())
     val state: StateFlow<EditExerciseState> = _state
-
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
@@ -46,7 +40,6 @@ class EditExerciseViewModel @Inject constructor(
     fun loadExercise(exerciseId: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-
             exerciseRepository.getExerciseById(exerciseId).collect { result ->
                 when (result) {
                     is Resource.Success -> {
@@ -116,19 +109,16 @@ class EditExerciseViewModel @Inject constructor(
             is EditExerciseEvent.UpdateExercise -> {
                 updateExercise()
             }
-
             else -> {}
         }
     }
 
     private fun updateExercise() {
         val state = _state.value
-
         if (state.title.isBlank()) {
             _state.update { it.copy(titleError = "Başlık boş olamaz") }
             return
         }
-
         if (state.category.isBlank()) {
             sendUiEvent(UiEvent.ShowError("Lütfen bir kategori seçin"))
             return
@@ -137,7 +127,6 @@ class EditExerciseViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
-            // Önceki medya dosyalarını ve yeni seçilenleri ayrı tut
             val mediaUrls = state.mediaUris
             val mediaTypes = mediaUrls.associateWith { uri ->
                 if (uri.contains("video")) ExerciseType.VIDEO else ExerciseType.IMAGE

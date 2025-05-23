@@ -1,27 +1,43 @@
 package com.example.fizyoapp.presentation.user.egzersizlerim
 
-import android.util.Log
-import android.widget.Toast
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.FitnessCenter
+import androidx.compose.material.icons.rounded.DirectionsRun
+import androidx.compose.material.icons.rounded.FitnessCenter
+import androidx.compose.material.icons.rounded.NotStarted
+import androidx.compose.material.icons.rounded.SportsGymnastics
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.domain.model.exercise.ExercisePlan
 import com.example.fizyoapp.domain.model.exercise.ExercisePlanStatus
 import java.text.SimpleDateFormat
 import java.util.*
+
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val accentColor = Color(59, 62, 104)
+private val textColor = Color.DarkGray
+private val lightGray = Color.Gray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,13 +47,6 @@ fun UserExercisePlansScreen(
 ) {
     val state = viewModel.state.collectAsState().value
     val context = LocalContext.current
-
-    // Hata mesajını göster
-    LaunchedEffect(state.error) {
-        if (state.error != null) {
-            Toast.makeText(context, state.error, Toast.LENGTH_LONG).show()
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -52,17 +61,16 @@ fun UserExercisePlansScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
                 ),
                 actions = {
-                    // Yenileme butonu
                     IconButton(onClick = { viewModel.refreshPlans() }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Yenile",
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = Color.White
                         )
                     }
                 }
@@ -72,6 +80,7 @@ fun UserExercisePlansScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(backgroundColor)
                 .padding(paddingValues)
         ) {
             if (state.isLoading) {
@@ -79,88 +88,118 @@ fun UserExercisePlansScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = primaryColor)
                 }
             } else if (state.exercisePlans.isEmpty()) {
-                EmptyPlansView()
+                EmptyPlansViewRedesigned()
             } else {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+
                     Text(
-                        text = "Aktif Planlarınız",
-                        style = MaterialTheme.typography.titleLarge,
+                        text = "Egzersiz Programınız",
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        color = primaryColor,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        textAlign = TextAlign.Center
                     )
 
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    Text(
+                        text = "Fizyoterapistiniz tarafından size özel hazırlanan egzersiz programları",
+                        fontSize = 16.sp,
+                        color = lightGray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp)
+                    )
+
+
+                    val groupedPlans = state.exercisePlans.groupBy { it.status }
+
+
+                    val activePlans = groupedPlans[ExercisePlanStatus.ACTIVE] ?: emptyList()
+                    if (activePlans.isNotEmpty()) {
+                        ExerciseStatusGroup(
+                            title = "Aktif Egzersiz Planları",
+                            description = "Devam etmekte olan egzersiz programlarınız",
+                            icon = Icons.Rounded.DirectionsRun,
+                            plans = activePlans,
+                            navController = navController
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+
+                    val completedPlans = groupedPlans[ExercisePlanStatus.COMPLETED] ?: emptyList()
+                    if (completedPlans.isNotEmpty()) {
+                        ExerciseStatusGroup(
+                            title = "Tamamlanan Egzersiz Planları",
+                            description = "Başarıyla tamamladığınız programlar",
+                            icon = Icons.Rounded.SportsGymnastics,
+                            plans = completedPlans,
+                            navController = navController
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+
+                    val cancelledPlans = groupedPlans[ExercisePlanStatus.CANCELLED] ?: emptyList()
+                    if (cancelledPlans.isNotEmpty()) {
+                        ExerciseStatusGroup(
+                            title = "İptal Edilen Planlar",
+                            description = "Çeşitli nedenlerle iptal edilmiş programlar",
+                            icon = Icons.Rounded.NotStarted,
+                            plans = cancelledPlans,
+                            navController = navController
+                        )
+                    }
+
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(230, 230, 250)
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 0.dp
+                        )
                     ) {
-                        // Planları grupla: Önce aktif planlar, sonra tamamlanan, en son iptal edilenler
-                        val groupedPlans = state.exercisePlans.groupBy { it.status }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Description,
+                                contentDescription = null,
+                                tint = primaryColor,
+                                modifier = Modifier.size(24.dp)
+                            )
 
-                        // Aktif planlar
-                        val activePlans = groupedPlans[ExercisePlanStatus.ACTIVE] ?: emptyList()
-                        if (activePlans.isNotEmpty()) {
-                            items(activePlans) { plan ->
-                                ExercisePlanCard(
-                                    plan = plan,
-                                    onClick = {
-                                        // Plan detaylarına git
-                                        navController.navigate("exercise_plan_detail_screen/${plan.id}")
-                                    }
-                                )
-                            }
-                        }
-
-                        // Tamamlanan planlar
-                        val completedPlans = groupedPlans[ExercisePlanStatus.COMPLETED] ?: emptyList()
-                        if (completedPlans.isNotEmpty()) {
-                            item {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Tamamlanan Planlar",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-                            items(completedPlans) { plan ->
-                                ExercisePlanCard(
-                                    plan = plan,
-                                    onClick = {
-                                        navController.navigate("exercise_plan_details/${plan.id}")
-                                    }
-                                )
-                            }
-                        }
-
-                        // İptal edilen planlar
-                        val cancelledPlans = groupedPlans[ExercisePlanStatus.CANCELLED] ?: emptyList()
-                        if (cancelledPlans.isNotEmpty()) {
-                            item {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "İptal Edilen Planlar",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-                            items(cancelledPlans) { plan ->
-                                ExercisePlanCard(
-                                    plan = plan,
-                                    onClick = {
-                                        navController.navigate("exercise_plan_details/${plan.id}")
-                                    }
-                                )
-                            }
+                            Text(
+                                text = "Egzersiz planlarınızı düzenli olarak takip etmek iyileşme sürecinizi hızlandırır.",
+                                fontSize = 14.sp,
+                                color = Color.DarkGray,
+                                modifier = Modifier.padding(start = 12.dp)
+                            )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
             }
         }
@@ -168,42 +207,66 @@ fun UserExercisePlansScreen(
 }
 
 @Composable
-fun EmptyPlansView() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+fun ExerciseStatusGroup(
+    title: String,
+    description: String,
+    icon: ImageVector,
+    plans: List<ExercisePlan>,
+    navController: NavController
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(32.dp)
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.FitnessCenter,
+                imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                tint = primaryColor,
+                modifier = Modifier.size(28.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Henüz egzersiz planınız bulunmuyor",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column {
+                Text(
+                    text = title,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor
+                )
+
+                Text(
+                    text = description,
+                    fontSize = 14.sp,
+                    color = lightGray
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+
+        plans.forEach { plan ->
+            ExercisePlanCardRedesigned(
+                plan = plan,
+                onClick = {
+                    navController.navigate("exercise_plan_detail_screen/${plan.id}")
+                }
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Fizyoterapistiniz size egzersiz planı atadığında burada görüntülenecektir",
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
+
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
 
 @Composable
-fun ExercisePlanCard(
+fun ExercisePlanCardRedesigned(
     plan: ExercisePlan,
     onClick: () -> Unit
 ) {
@@ -211,152 +274,259 @@ fun ExercisePlanCard(
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = surfaceColor
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
+        shape = RoundedCornerShape(16.dp),
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Başlık ve durum
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
-                Text(
-                    text = plan.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
 
-                // Durum göstergesi
-                val (color, text) = when (plan.status) {
-                    ExercisePlanStatus.ACTIVE -> Pair(MaterialTheme.colorScheme.primary, "Aktif")
-                    ExercisePlanStatus.COMPLETED -> Pair(MaterialTheme.colorScheme.tertiary, "Tamamlandı")
-                    ExercisePlanStatus.CANCELLED -> Pair(MaterialTheme.colorScheme.error, "İptal Edildi")
-                }
-
-                Surface(
-                    color = color.copy(alpha = 0.1f),
-                    shape = MaterialTheme.shapes.small
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(59, 62, 104, 20)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = text,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = color,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    Icon(
+                        imageVector = Icons.Outlined.FitnessCenter,
+                        contentDescription = null,
+                        tint = primaryColor,
+                        modifier = Modifier.size(32.dp)
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Açıklama
-            if (plan.description.isNotBlank()) {
-                Text(
-                    text = plan.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            // Tarih aralığı
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-
-                val dateText = if (plan.startDate != null && plan.endDate != null) {
-                    "${dateFormat.format(plan.startDate)} - ${dateFormat.format(plan.endDate)}"
-                } else if (plan.startDate != null) {
-                    "${dateFormat.format(plan.startDate)}'den itibaren"
-                } else {
-                    "Tarih belirtilmedi"
-                }
-
-                Text(
-                    text = dateText,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Egzersiz sayısı ve sıklık
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.FitnessCenter,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "${plan.exercises.size} egzersiz",
-                    style = MaterialTheme.typography.bodySmall
-                )
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                Icon(
-                    imageVector = Icons.Default.Repeat,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = plan.frequency,
-                    style = MaterialTheme.typography.bodySmall
-                )
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = plan.title,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryColor
+                        )
+
+
+                        val (color, text) = when (plan.status) {
+                            ExercisePlanStatus.ACTIVE -> Pair(Color(0, 150, 136), "Aktif")
+                            ExercisePlanStatus.COMPLETED -> Pair(Color(76, 175, 80), "Tamamlandı")
+                            ExercisePlanStatus.CANCELLED -> Pair(Color(244, 67, 54), "İptal")
+                        }
+
+                        Surface(
+                            color = color.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = text,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = color,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    if (plan.description.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = plan.description,
+                            fontSize = 14.sp,
+                            color = textColor.copy(alpha = 0.7f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        InfoIcon(
+                            icon = Icons.Default.DateRange,
+                            text = if (plan.startDate != null && plan.endDate != null) {
+                                "${dateFormat.format(plan.startDate)} - ${dateFormat.format(plan.endDate)}"
+                            } else {
+                                "Tarih belirtilmedi"
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        InfoIcon(
+                            icon = Icons.Default.FitnessCenter,
+                            text = "${plan.exercises.size} egzersiz"
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        InfoIcon(
+                            icon = Icons.Default.Repeat,
+                            text = plan.frequency
+                        )
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        InfoIcon(
+                            icon = Icons.Default.Event,
+                            text = "Oluşturulma: ${dateFormat.format(plan.createdAt)}"
+                        )
+                    }
+                }
             }
 
-            // Oluşturulma tarihi
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Event,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "Oluşturulma: ${dateFormat.format(plan.createdAt)}",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
 
-            // Görüntüle butonu
             Button(
                 onClick = onClick,
-                modifier = Modifier.align(Alignment.End),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                    containerColor = primaryColor
+                ),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Visibility,
                     contentDescription = "Görüntüle"
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Görüntüle")
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Plan Detaylarını Görüntüle",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun InfoIcon(
+    icon: ImageVector,
+    text: String
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = primaryColor,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            color = textColor.copy(alpha = 0.7f)
+        )
+    }
+}
+
+@Composable
+fun EmptyPlansViewRedesigned() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color(59, 62, 104, 20)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.FitnessCenter,
+                contentDescription = null,
+                tint = primaryColor,
+                modifier = Modifier.size(64.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Egzersiz Planı Bulunamadı",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = primaryColor,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Fizyoterapistiniz size egzersiz planı atadığında burada görüntülenecektir.",
+            fontSize = 16.sp,
+            color = lightGray,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(230, 230, 250)
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 0.dp
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Description,
+                    contentDescription = null,
+                    tint = primaryColor,
+                    modifier = Modifier.size(24.dp)
+                )
+
+                Text(
+                    text = "Fizyoterapistinizden egzersiz planınızı oluşturmasını isteyebilirsiniz.",
+                    fontSize = 14.sp,
+                    color = Color.DarkGray,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
             }
         }
     }

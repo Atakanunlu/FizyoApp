@@ -1,6 +1,4 @@
-// presentation/physiotherapist/exercise/EditExerciseScreen.kt
 package com.example.fizyoapp.presentation.physiotherapist.exercise
-
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -63,17 +61,14 @@ fun EditExerciseScreen(
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
-    // Load exercise when screen is created
     LaunchedEffect(key1 = exerciseId) {
         viewModel.loadExercise(exerciseId)
     }
 
-    // Media viewer state
     var showMediaViewer by remember { mutableStateOf(false) }
     var selectedMediaUrl by remember { mutableStateOf("") }
     var selectedMediaType by remember { mutableStateOf("") }
 
-    // Image picker
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -82,7 +77,6 @@ fun EditExerciseScreen(
         }
     }
 
-    // Video picker
     val videoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -91,10 +85,7 @@ fun EditExerciseScreen(
         }
     }
 
-    // Category selection dialog
     var showCategoryDialog by remember { mutableStateOf(false) }
-
-    // Difficulty selection dialog
     var showDifficultyDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = true) {
@@ -125,7 +116,6 @@ fun EditExerciseScreen(
                         )
                     }
                 }
-
                 else -> {}
             }
         }
@@ -199,7 +189,6 @@ fun EditExerciseScreen(
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Title
                     ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -223,7 +212,6 @@ fun EditExerciseScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // Title field
                             OutlinedTextField(
                                 value = state.title,
                                 onValueChange = { viewModel.onEvent(EditExerciseEvent.TitleChanged(it)) },
@@ -256,7 +244,6 @@ fun EditExerciseScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // Category selection
                             OutlinedTextField(
                                 value = state.category,
                                 onValueChange = { },
@@ -288,10 +275,8 @@ fun EditExerciseScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Description and Instructions
                     ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -315,7 +300,6 @@ fun EditExerciseScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // Description
                             OutlinedTextField(
                                 value = state.description,
                                 onValueChange = { viewModel.onEvent(EditExerciseEvent.DescriptionChanged(it)) },
@@ -341,7 +325,6 @@ fun EditExerciseScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // Detailed instructions
                             OutlinedTextField(
                                 value = state.instructions,
                                 onValueChange = { viewModel.onEvent(EditExerciseEvent.InstructionsChanged(it)) },
@@ -364,10 +347,8 @@ fun EditExerciseScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Zorluk Seviyesi
                     ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -391,7 +372,6 @@ fun EditExerciseScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // Sadece zorluk seviyesi seçimini bırakalım
                             OutlinedTextField(
                                 value = when (state.difficulty) {
                                     ExerciseDifficulty.EASY -> "Kolay"
@@ -427,10 +407,8 @@ fun EditExerciseScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Media section
                     ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -460,7 +438,6 @@ fun EditExerciseScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // Media buttons
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -477,7 +454,6 @@ fun EditExerciseScreen(
                                 )
                             }
 
-                            // Preview of selected media
                             AnimatedVisibility(
                                 visible = state.mediaUris.isNotEmpty(),
                                 enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
@@ -513,10 +489,8 @@ fun EditExerciseScreen(
                             }
                         }
                     }
-
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Save button
                     ElevatedButton(
                         onClick = { viewModel.onEvent(EditExerciseEvent.UpdateExercise) },
                         modifier = Modifier
@@ -555,11 +529,9 @@ fun EditExerciseScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(32.dp))
                 }
 
-                // Category selection dialog
                 if (showCategoryDialog) {
                     AlertDialog(
                         onDismissRequest = { showCategoryDialog = false },
@@ -631,7 +603,6 @@ fun EditExerciseScreen(
                     )
                 }
 
-                // Difficulty selection dialog
                 if (showDifficultyDialog) {
                     AlertDialog(
                         onDismissRequest = { showDifficultyDialog = false },
@@ -688,7 +659,6 @@ fun EditExerciseScreen(
                     )
                 }
 
-                // Media viewer dialog
                 if (showMediaViewer && selectedMediaUrl.isNotEmpty()) {
                     MediaViewer(
                         mediaUrl = selectedMediaUrl,
@@ -781,7 +751,6 @@ fun MediaPreviewItem(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Gradient overlay for better icon visibility
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -797,7 +766,6 @@ fun MediaPreviewItem(
                 )
         )
 
-        // Remove button
         IconButton(
             onClick = onRemove,
             modifier = Modifier
@@ -817,7 +785,6 @@ fun MediaPreviewItem(
             )
         }
 
-        // File type indicator
         if (uri.contains("video")) {
             Surface(
                 modifier = Modifier

@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexercise
-
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,17 +24,13 @@ class AddExerciseViewModel @Inject constructor(
     private val exerciseRepository: ExerciseRepository,
     private val getCurrentUserUseCase: GetCurrentUseCase
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(AddExerciseState())
     val state: StateFlow<AddExerciseState> = _state.asStateFlow()
-
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
-
     private var currentUser: User? = null
 
     init {
-        // İlk başta isLoading'i false olarak ayarla
         _state.value = _state.value.copy(isLoading = false)
         getCurrentUser()
     }
@@ -43,25 +38,22 @@ class AddExerciseViewModel @Inject constructor(
     private fun getCurrentUser() {
         viewModelScope.launch {
             try {
-                _state.value = _state.value.copy(isLoading = true) // Yükleniyor durumunu başlat
-
+                _state.value = _state.value.copy(isLoading = true)
                 getCurrentUserUseCase().collect { result ->
                     when (result) {
                         is Resource.Success -> {
                             currentUser = result.data
-                            _state.value = _state.value.copy(isLoading = false) // Yükleme tamamlandı - başarılı
+                            _state.value = _state.value.copy(isLoading = false)
                         }
                         is Resource.Error -> {
-                            _state.value = _state.value.copy(isLoading = false) // Yükleme tamamlandı - hata
+                            _state.value = _state.value.copy(isLoading = false)
                             _uiEvent.send(UiEvent.ShowError("Kullanıcı bilgisi alınamadı"))
                         }
-                        is Resource.Loading -> {
-                            // Yükleniyor durumu zaten ayarlandı
-                        }
+                        is Resource.Loading -> {}
                     }
                 }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false) // Hata durumunda yüklemeyi kapat
+                _state.value = _state.value.copy(isLoading = false)
                 _uiEvent.send(UiEvent.ShowError("Kullanıcı bilgisi alınamadı: ${e.message}"))
             }
         }
@@ -130,7 +122,7 @@ class AddExerciseViewModel @Inject constructor(
     private fun saveExercise() {
         val userId = currentUser?.id ?: run {
             viewModelScope.launch {
-                _state.value = _state.value.copy(isLoading = false) // Yükleme durumunu kapat
+                _state.value = _state.value.copy(isLoading = false)
                 _uiEvent.send(UiEvent.ShowError("Kullanıcı bilgisi alınamadı"))
             }
             return
@@ -140,7 +132,7 @@ class AddExerciseViewModel @Inject constructor(
         if (title.isBlank()) {
             _state.value = _state.value.copy(
                 titleError = "Egzersiz adı boş olamaz",
-                isLoading = false // Yükleme durumunu kapat
+                isLoading = false
             )
             return
         }
@@ -148,19 +140,16 @@ class AddExerciseViewModel @Inject constructor(
         val category = _state.value.category
         if (category.isBlank()) {
             viewModelScope.launch {
-                _state.value = _state.value.copy(isLoading = false) // Yükleme durumunu kapat
+                _state.value = _state.value.copy(isLoading = false)
                 _uiEvent.send(UiEvent.ShowError("Lütfen bir kategori seçin"))
             }
             return
         }
 
-        _state.value = _state.value.copy(
-            isLoading = true
-        )
+        _state.value = _state.value.copy(isLoading = true)
 
         viewModelScope.launch {
             try {
-                // Process media files first
                 val mediaUrls = mutableListOf<String>()
                 val mediaTypes = mutableMapOf<String, ExerciseType>()
 
@@ -168,32 +157,24 @@ class AddExerciseViewModel @Inject constructor(
                     for (mediaUri in _state.value.mediaUris) {
                         val uri = Uri.parse(mediaUri)
                         val fileName = "exercise_media_${UUID.randomUUID()}"
-
                         exerciseRepository.uploadExerciseMedia(uri, userId, fileName).collect { result ->
                             when (result) {
                                 is Resource.Success -> {
                                     val downloadUrl = result.data
                                     mediaUrls.add(downloadUrl)
-
-                                    // Determine media type from uri
                                     val mediaType = when {
                                         mediaUri.contains("image") -> ExerciseType.IMAGE
                                         mediaUri.contains("video") -> ExerciseType.VIDEO
                                         else -> ExerciseType.IMAGE
                                     }
-
                                     mediaTypes[downloadUrl] = mediaType
                                 }
                                 is Resource.Error -> {
-                                    _state.value = _state.value.copy(
-                                        isLoading = false
-                                    )
+                                    _state.value = _state.value.copy(isLoading = false)
                                     _uiEvent.send(UiEvent.ShowError("Medya yüklenemedi: ${result.message}"))
                                     return@collect
                                 }
-                                is Resource.Loading -> {
-                                    // Already showing loading state
-                                }
+                                is Resource.Loading -> {}
                             }
                         }
                     }
@@ -220,20 +201,14 @@ class AddExerciseViewModel @Inject constructor(
                     exerciseRepository.createExercise(exercise).collect { result ->
                         when (result) {
                             is Resource.Success -> {
-                                _state.value = _state.value.copy(
-                                    isLoading = false
-                                )
+                                _state.value = _state.value.copy(isLoading = false)
                                 _uiEvent.send(UiEvent.NavigateBack())
                             }
                             is Resource.Error -> {
-                                _state.value = _state.value.copy(
-                                    isLoading = false
-                                )
+                                _state.value = _state.value.copy(isLoading = false)
                                 _uiEvent.send(UiEvent.ShowError("Egzersiz kaydedilemedi: ${result.message}"))
                             }
-                            is Resource.Loading -> {
-                                // Already showing loading state
-                            }
+                            is Resource.Loading -> {}
                         }
                     }
                 } catch (e: Exception) {
@@ -241,13 +216,12 @@ class AddExerciseViewModel @Inject constructor(
                     _uiEvent.send(UiEvent.ShowError("Egzersiz kaydetme hatası: ${e.message}"))
                 }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false
-                )
+                _state.value = _state.value.copy(isLoading = false)
                 _uiEvent.send(UiEvent.ShowError("Beklenmeyen bir hata oluştu: ${e.message}"))
             }
         }
     }
+
     sealed class UiEvent {
         data class NavigateBack(val refresh: Boolean = true) : UiEvent()
         data class ShowError(val message: String) : UiEvent()
@@ -265,7 +239,7 @@ data class AddExerciseState(
     val duration: String = "",
     val difficulty: ExerciseDifficulty = ExerciseDifficulty.MEDIUM,
     val mediaUris: List<String> = emptyList(),
-    val isLoading: Boolean = false,  // false olduğundan emin olun
+    val isLoading: Boolean = false,
     val saveSuccess: Boolean = false
 )
 
