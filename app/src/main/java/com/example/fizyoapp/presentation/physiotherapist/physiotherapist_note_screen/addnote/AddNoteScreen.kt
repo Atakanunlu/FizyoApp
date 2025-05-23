@@ -7,17 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -25,46 +15,31 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AddPhotoAlternate
-import androidx.compose.material.icons.filled.AttachFile
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.note.NoteColor
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
+
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -128,18 +103,26 @@ fun AddNoteScreen(
                     IconButton(onClick = { viewModel.onEvent(AddNoteEvent.NavigateBack) }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Geri")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                )
             )
         }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(backgroundColor)
                 .padding(paddingValues)
         ) {
             if (state.isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
+                    color = primaryColor,
+                    strokeWidth = 4.dp
                 )
             } else {
                 Column(
@@ -148,19 +131,20 @@ fun AddNoteScreen(
                         .padding(16.dp)
                         .verticalScroll(scrollState)
                 ) {
-                    // Hasta Bilgileri Kartı
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 16.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = surfaceColor)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
                                 text = "Hasta Bilgileri",
-                                style = MaterialTheme.typography.titleMedium,
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = primaryColor
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             OutlinedTextField(
@@ -169,8 +153,19 @@ fun AddNoteScreen(
                                 label = { Text("Hasta Adı Soyadı") },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
-                                leadingIcon = { Icon(Icons.Default.Person, "Hasta") },
-                                shape = RoundedCornerShape(12.dp)
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Person,
+                                        "Hasta",
+                                        tint = primaryColor
+                                    )
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = primaryColor,
+                                    focusedLabelColor = primaryColor,
+                                    cursorColor = primaryColor
+                                )
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             OutlinedTextField(
@@ -179,26 +174,37 @@ fun AddNoteScreen(
                                 label = { Text("Başlangıç Tarihi") },
                                 modifier = Modifier.fillMaxWidth(),
                                 readOnly = true,
-                                leadingIcon = { Icon(Icons.Default.CalendarToday, "Tarih") },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.CalendarToday,
+                                        "Tarih",
+                                        tint = primaryColor
+                                    )
+                                },
                                 enabled = false,
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    disabledBorderColor = primaryColor.copy(alpha = 0.5f),
+                                    disabledLabelColor = primaryColor.copy(alpha = 0.7f)
+                                )
                             )
                         }
                     }
 
-                    // Not Bilgileri Kartı
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 16.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = surfaceColor)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
                                 text = "Not Bilgileri",
-                                style = MaterialTheme.typography.titleMedium,
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = primaryColor
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             OutlinedTextField(
@@ -208,13 +214,18 @@ fun AddNoteScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
                                 placeholder = { Text("Örn: İlk Muayene") },
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = primaryColor,
+                                    focusedLabelColor = primaryColor,
+                                    cursorColor = primaryColor
+                                )
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "Not Rengi",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
+                                color = textColor
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(
@@ -232,19 +243,24 @@ fun AddNoteScreen(
                                     .fillMaxWidth()
                                     .height(200.dp),
                                 placeholder = { Text("Hastaya ait notları buraya yazabilirsiniz...") },
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = primaryColor,
+                                    focusedLabelColor = primaryColor,
+                                    cursorColor = primaryColor
+                                )
                             )
                         }
                     }
 
-                    // Dosya Ekleme Kartı - Daha Belirgin
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 16.dp),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                            containerColor = primaryColor.copy(alpha = 0.1f)
                         )
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -255,32 +271,29 @@ fun AddNoteScreen(
                                 Icon(
                                     Icons.Default.AttachFile,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = primaryColor,
                                     modifier = Modifier.size(28.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Dosya Ekle",
-                                    style = MaterialTheme.typography.titleMedium,
+                                    fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = primaryColor
                                 )
                             }
-
                             Text(
                                 text = "Hasta ile ilgili görsel ve belgeleri buradan ekleyebilirsiniz.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(bottom = 16.dp)
+                                color = textColor
                             )
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                            // Görseller Bölümü
                             Text(
                                 text = "Görseller",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
+                                color = primaryColor
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-
                             if (state.imageUris.isNotEmpty()) {
                                 LazyRow(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -293,11 +306,11 @@ fun AddNoteScreen(
                                         Box(
                                             modifier = Modifier
                                                 .size(120.dp)
-                                                .clip(RoundedCornerShape(8.dp))
+                                                .clip(RoundedCornerShape(12.dp))
                                                 .border(
                                                     1.dp,
-                                                    MaterialTheme.colorScheme.outline,
-                                                    RoundedCornerShape(8.dp)
+                                                    primaryColor.copy(alpha = 0.3f),
+                                                    RoundedCornerShape(12.dp)
                                                 )
                                         ) {
                                             AsyncImage(
@@ -312,14 +325,14 @@ fun AddNoteScreen(
                                                     .align(Alignment.TopEnd)
                                                     .size(32.dp)
                                                     .background(
-                                                        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
+                                                        Color(0xFFB71C1C).copy(alpha = 0.7f),
                                                         CircleShape
                                                     )
                                             ) {
                                                 Icon(
                                                     Icons.Default.Close,
                                                     contentDescription = "Kaldır",
-                                                    tint = MaterialTheme.colorScheme.onErrorContainer
+                                                    tint = Color.White
                                                 )
                                             }
                                         }
@@ -328,13 +341,13 @@ fun AddNoteScreen(
                                         Box(
                                             modifier = Modifier
                                                 .size(120.dp)
-                                                .clip(RoundedCornerShape(8.dp))
+                                                .clip(RoundedCornerShape(12.dp))
                                                 .border(
                                                     1.dp,
-                                                    MaterialTheme.colorScheme.primary,
-                                                    RoundedCornerShape(8.dp)
+                                                    primaryColor,
+                                                    RoundedCornerShape(12.dp)
                                                 )
-                                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+                                                .background(primaryColor.copy(alpha = 0.1f))
                                                 .clickable { viewModel.onEvent(AddNoteEvent.ShowImagePicker) },
                                             contentAlignment = Alignment.Center
                                         ) {
@@ -345,14 +358,13 @@ fun AddNoteScreen(
                                                 Icon(
                                                     Icons.Default.AddPhotoAlternate,
                                                     contentDescription = "Görsel Ekle",
-                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    tint = primaryColor,
                                                     modifier = Modifier.size(36.dp)
                                                 )
                                                 Spacer(modifier = Modifier.height(4.dp))
                                                 Text(
                                                     "Görsel Ekle",
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.primary
+                                                    color = primaryColor
                                                 )
                                             }
                                         }
@@ -364,9 +376,9 @@ fun AddNoteScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(48.dp),
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(12.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary
+                                        containerColor = primaryColor
                                     )
                                 ) {
                                     Icon(
@@ -380,14 +392,12 @@ fun AddNoteScreen(
 
                             Spacer(modifier = Modifier.height(24.dp))
 
-                            // Belgeler Bölümü
                             Text(
                                 text = "Belgeler",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
+                                color = primaryColor
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-
                             if (state.documentUris.isNotEmpty()) {
                                 Column(
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -401,11 +411,13 @@ fun AddNoteScreen(
                                             onRemove = { viewModel.onEvent(AddNoteEvent.RemoveDocument(index)) }
                                         )
                                     }
-
                                     Button(
                                         onClick = { viewModel.onEvent(AddNoteEvent.ShowDocumentPicker) },
                                         modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(8.dp)
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = primaryColor
+                                        )
                                     ) {
                                         Icon(
                                             Icons.Default.AttachFile,
@@ -421,9 +433,9 @@ fun AddNoteScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(48.dp),
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(12.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary
+                                        containerColor = primaryColor
                                     )
                                 ) {
                                     Icon(
@@ -446,12 +458,16 @@ fun AddNoteScreen(
                                 state.patientName.isNotBlank() &&
                                 state.title.isNotBlank() &&
                                 state.content.isNotBlank(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = primaryColor,
+                            disabledContainerColor = primaryColor.copy(alpha = 0.5f)
+                        )
                     ) {
                         if (state.isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color = Color.White
                             )
                         } else {
                             Text(
@@ -464,12 +480,31 @@ fun AddNoteScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     if (state.error != null) {
-                        Text(
-                            text = state.error,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFFFEBEE)
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Error,
+                                    contentDescription = null,
+                                    tint = Color(0xFFB71C1C)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = state.error,
+                                    color = Color(0xFFB71C1C)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -480,19 +515,19 @@ fun AddNoteScreen(
 @Composable
 private fun NoteColorOptions(selectedColor: NoteColor, viewModel: AddNoteViewModel) {
     ColorOption(
-        color = androidx.compose.ui.graphics.Color.White,
+        color = Color.White,
         selected = selectedColor == NoteColor.WHITE,
         label = "Beyaz",
         onSelect = { viewModel.onEvent(AddNoteEvent.ColorChanged(NoteColor.WHITE)) }
     )
     ColorOption(
-        color = androidx.compose.ui.graphics.Color(0xFFFFF9C4),
+        color = Color(0xFFFFF9C4),
         selected = selectedColor == NoteColor.LIGHT_YELLOW,
         label = "Sarı",
         onSelect = { viewModel.onEvent(AddNoteEvent.ColorChanged(NoteColor.LIGHT_YELLOW)) }
     )
     ColorOption(
-        color = androidx.compose.ui.graphics.Color(0xFFFFE0B2),
+        color = Color(0xFFFFE0B2),
         selected = selectedColor == NoteColor.ORANGE,
         label = "Turuncu",
         onSelect = { viewModel.onEvent(AddNoteEvent.ColorChanged(NoteColor.ORANGE)) }
@@ -501,7 +536,7 @@ private fun NoteColorOptions(selectedColor: NoteColor, viewModel: AddNoteViewMod
 
 @Composable
 fun ColorOption(
-    color: androidx.compose.ui.graphics.Color,
+    color: Color,
     selected: Boolean,
     label: String,
     onSelect: () -> Unit
@@ -514,7 +549,7 @@ fun ColorOption(
                 .background(color)
                 .border(
                     width = if (selected) 3.dp else 1.dp,
-                    color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                    color = if (selected) primaryColor else Color.LightGray,
                     shape = CircleShape
                 )
                 .clickable(onClick = onSelect)
@@ -522,8 +557,7 @@ fun ColorOption(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            color = if (selected) primaryColor else textColor
         )
     }
 }
@@ -542,9 +576,9 @@ fun DocumentItem(uri: Uri, onRemove: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp)),
-        color = MaterialTheme.colorScheme.surface
+            .clip(RoundedCornerShape(12.dp))
+            .border(1.dp, primaryColor.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
+        color = surfaceColor
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -553,22 +587,20 @@ fun DocumentItem(uri: Uri, onRemove: () -> Unit) {
             Icon(
                 Icons.Default.Description,
                 contentDescription = "Belge",
-                tint = MaterialTheme.colorScheme.primary,
+                tint = primaryColor,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = filename,
-                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "PDF Belgesi",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = textColor.copy(alpha = 0.6f)
                 )
             }
             IconButton(
@@ -578,7 +610,7 @@ fun DocumentItem(uri: Uri, onRemove: () -> Unit) {
                 Icon(
                     Icons.Default.Close,
                     contentDescription = "Kaldır",
-                    tint = MaterialTheme.colorScheme.error
+                    tint = Color(0xFFB71C1C)
                 )
             }
         }

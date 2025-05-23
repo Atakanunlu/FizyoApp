@@ -38,6 +38,11 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import android.util.Log
 
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val textColor = Color.DarkGray
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SocialMediaScreen(
@@ -48,6 +53,7 @@ fun SocialMediaScreen(
     val currentUser by viewModel.currentUser.collectAsState()
     val currentRoute = navController.currentBackStackEntry?.destination?.route ?: ""
     val isPhysiotherapist = currentUser?.role == UserRole.PHYSIOTHERAPIST
+
     val userFullName = if (isPhysiotherapist) {
         viewModel.physiotherapistProfile.collectAsState().value?.let {
             "${it.firstName} ${it.lastName}"
@@ -62,8 +68,7 @@ fun SocialMediaScreen(
         viewModel.initializeScreen()
     }
 
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-
+    val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -71,9 +76,7 @@ fun SocialMediaScreen(
                 viewModel.checkAllFollowStates()
             }
         }
-
         lifecycleOwner.lifecycle.addObserver(observer)
-
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
@@ -87,11 +90,12 @@ fun SocialMediaScreen(
                         Text(
                             "Merhaba,",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            color = Color.White.copy(alpha = 0.8f)
                         )
                         Text(
                             userFullName,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
                         )
                     }
                 },
@@ -109,26 +113,17 @@ fun SocialMediaScreen(
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Geri"
+                            contentDescription = "Geri",
+                            tint = Color.White
                         )
                     }
                 },
-                actions = {
-                    if (isPhysiotherapist) {
-                        FilledTonalIconButton(
-                            onClick = { navController.navigate(AppScreens.CreatePostScreen.route) },
-                            modifier = Modifier.padding(end = 8.dp),
-                            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Paylaşım Yap"
-                            )
-                        }
-                    }
-                }
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
+                )
             )
         },
         bottomBar = {
@@ -142,12 +137,13 @@ fun SocialMediaScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(backgroundColor)
                 .padding(paddingValues)
         ) {
             if (state.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.primary
+                    color = primaryColor
                 )
             } else if (state.posts.isEmpty()) {
                 Column(
@@ -158,12 +154,13 @@ fun SocialMediaScreen(
                         imageVector = Icons.AutoMirrored.Outlined.Feed,
                         contentDescription = null,
                         modifier = Modifier.size(80.dp),
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        tint = primaryColor.copy(alpha = 0.5f)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Henüz gönderi paylaşılmamış",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = textColor
                     )
                 }
             } else {
@@ -192,18 +189,21 @@ fun SocialMediaScreen(
                             }
                         )
                     }
+
                     item {
                         Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
             }
+
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    containerColor = Color(0xFFB71C1C),
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(state.error!!)
                 }
@@ -231,8 +231,9 @@ fun PostItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClickDetail() },
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = surfaceColor)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -245,7 +246,7 @@ fun PostItem(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                        .background(primaryColor.copy(alpha = 0.2f))
                 ) {
                     if (post.userPhotoUrl.isNotEmpty()) {
                         AsyncImage(
@@ -261,26 +262,30 @@ fun PostItem(
                             modifier = Modifier
                                 .size(24.dp)
                                 .align(Alignment.Center),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = primaryColor
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.width(12.dp))
+
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
                         text = post.userName,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
                     )
                     Text(
                         text = if (post.userRole == "PHYSIOTHERAPIST") "Fizyoterapist" else "Kullanıcı",
                         style = MaterialTheme.typography.bodySmall,
                         color = if (post.userRole == "PHYSIOTHERAPIST")
-                            MaterialTheme.colorScheme.primary else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            primaryColor else
+                            textColor.copy(alpha = 0.6f)
                     )
                 }
+
                 if (canFollow) {
                     FollowButton(
                         isFollowing = isFollowingAuthor,
@@ -288,26 +293,32 @@ fun PostItem(
                         onClick = onFollow
                     )
                 }
+
                 Spacer(modifier = Modifier.width(8.dp))
+
                 Text(
                     text = dateFormat.format(post.timestamp),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = textColor.copy(alpha = 0.6f)
                 )
             }
+
             Spacer(modifier = Modifier.height(12.dp))
+
             Text(
                 text = post.content,
-                style = MaterialTheme.typography.bodyLarge,
-                lineHeight = 24.sp
+                lineHeight = 24.sp,
+                color = textColor
             )
+
             if (post.mediaUrls.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(12.dp))
                 ) {
                     AsyncImage(
                         model = post.mediaUrls.first(),
@@ -315,6 +326,7 @@ fun PostItem(
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
+
                     if (post.mediaUrls.size > 1) {
                         Box(
                             modifier = Modifier
@@ -336,7 +348,9 @@ fun PostItem(
                     }
                 }
             }
+
             Spacer(modifier = Modifier.height(12.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -350,38 +364,35 @@ fun PostItem(
                             Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Beğen",
                         tint = if (isLikedByCurrentUser) Color.Red else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            textColor.copy(alpha = 0.6f)
                     )
                 }
+
                 Text(
                     text = "${post.likeCount} beğeni",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = textColor.copy(alpha = 0.6f)
                 )
+
                 Spacer(modifier = Modifier.width(16.dp))
+
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Comment,
                     contentDescription = "Yorum",
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    tint = textColor.copy(alpha = 0.6f),
                     modifier = Modifier.size(20.dp)
                 )
+
                 Spacer(modifier = Modifier.width(4.dp))
+
                 Text(
                     text = "${post.commentCount} yorum",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = textColor.copy(alpha = 0.6f)
                 )
+
                 Spacer(modifier = Modifier.weight(1f))
-                FilledTonalButton(
-                    onClick = { onClickDetail() },
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Detaylar")
-                }
+
             }
         }
     }
@@ -395,14 +406,15 @@ fun FollowButton(
 ) {
     val backgroundColor by animateColorAsState(
         targetValue = if (isFollowing)
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            primaryColor.copy(alpha = 0.1f)
         else
-            MaterialTheme.colorScheme.primary,
+            primaryColor,
         label = "backgroundColor"
     )
+
     val contentColor by animateColorAsState(
         targetValue = if (isFollowing)
-            MaterialTheme.colorScheme.primary
+            primaryColor
         else
             Color.White,
         label = "contentColor"

@@ -21,7 +21,6 @@ class AdvertisementDetailViewModel @Inject constructor(
     private val getPhysiotherapistByIdUseCase: GetPhysiotherapistByIdUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(AdvertisementDetailState())
     val state: StateFlow<AdvertisementDetailState> = _state.asStateFlow()
 
@@ -50,8 +49,6 @@ class AdvertisementDetailViewModel @Inject constructor(
                                 error = null
                             )
                         }
-
-                        // Load physiotherapist details
                         loadPhysiotherapistDetails(result.data.physiotherapistId)
                     }
                     is Resource.Error -> {
@@ -83,22 +80,10 @@ class AdvertisementDetailViewModel @Inject constructor(
                             )
                         }
                     }
-                    is Resource.Error -> {
-                        // Don't update error state, as the advertisement is still loaded
-                    }
-                    is Resource.Loading -> {
-                        // Don't show loading for physiotherapist details
-                    }
+                    is Resource.Error -> {}
+                    is Resource.Loading -> {}
                 }
             }
         }
     }
 }
-
-data class AdvertisementDetailState(
-    val isLoading: Boolean = true,
-    val advertisement: Advertisement? = null,
-    val physiotherapistName: String? = null,
-    val physiotherapistImageUrl: String? = null,
-    val error: String? = null
-)

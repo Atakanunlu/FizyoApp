@@ -28,6 +28,11 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.fizyoapp.presentation.navigation.AppScreens
 
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val textColor = Color.DarkGray
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateAdvertisementScreen(
@@ -36,7 +41,6 @@ fun CreateAdvertisementScreen(
 ) {
     val state = viewModel.state.collectAsState().value
     val context = LocalContext.current
-
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var description by remember { mutableStateOf("") }
 
@@ -48,7 +52,6 @@ fun CreateAdvertisementScreen(
 
     LaunchedEffect(key1 = state.hasActiveAdvertisement) {
         if (state.hasActiveAdvertisement) {
-            // Show dialog or navigate
         }
     }
 
@@ -63,150 +66,185 @@ fun CreateAdvertisementScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Reklam Oluştur") },
+                title = {
+                    Text(
+                        "Reklam Oluştur",
+                        color = Color.White
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Geri")
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Geri",
+                            tint = Color.White
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                )
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(backgroundColor)
                 .padding(paddingValues)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Reklam Görselinizi ve Açıklamanızı Ekleyin",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
-
-            // Image selection
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clickable { galleryLauncher.launch("image/*") },
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (selectedImageUri != null) {
-                    Image(
-                        painter = rememberAsyncImagePainter(
-                            ImageRequest.Builder(context)
-                                .data(data = selectedImageUri)
-                                .build()
-                        ),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                Text(
+                    text = "Reklam Görselinizi ve Açıklamanızı Ekleyin",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = surfaceColor
                     )
-                } else {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { galleryLauncher.launch("image/*") },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Image,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        if (selectedImageUri != null) {
+                            Image(
+                                painter = rememberAsyncImagePainter(
+                                    ImageRequest.Builder(context)
+                                        .data(data = selectedImageUri)
+                                        .build()
+                                ),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Image,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp),
+                                    tint = primaryColor
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Reklam Görseli Seçin",
+                                    color = textColor
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Reklam Açıklaması") },
+                    placeholder = { Text("Reklamınız için kısa bir açıklama yazın...") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    maxLines = 5,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = primaryColor,
+                        focusedLabelColor = primaryColor,
+                        cursorColor = primaryColor,
+                        unfocusedBorderColor = primaryColor.copy(alpha = 0.5f),
+                        unfocusedLabelColor = primaryColor.copy(alpha = 0.7f)
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = primaryColor.copy(alpha = 0.1f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Reklam Bilgisi",
+                            fontWeight = FontWeight.Bold,
+                            color = primaryColor
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "- Reklamınız 24 saat boyunca aktif kalır",
+                            color = textColor
                         )
                         Text(
-                            text = "Reklam Görseli Seçin",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp)
+                            text = "- Kullanıcılara ana ekranda gösterilir",
+                            color = textColor
+                        )
+                        Text(
+                            text = "- Reklam ücreti: 50₺",
+                            fontWeight = FontWeight.Bold,
+                            color = primaryColor
                         )
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.weight(1f))
 
-            // Description
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Reklam Açıklaması") },
-                placeholder = { Text("Reklamınız için kısa bir açıklama yazın...") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp),
-                maxLines = 5
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Info about payment
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "Reklam Bilgisi",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                Button(
+                    onClick = { viewModel.onContinueClicked() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    enabled = selectedImageUri != null && description.isNotBlank() && !state.isLoading,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = primaryColor,
+                        disabledContainerColor = primaryColor.copy(alpha = 0.5f)
                     )
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White
+                        )
+                    } else {
+                        Text("Devam Et - 50₺")
+                    }
+                }
+
+                if (state.error != null) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "- Reklamınız 24 saat boyunca aktif kalır",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "- Kullanıcılara ana ekranda gösterilir",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "- Reklam ücreti: 50₺",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
+                        text = state.error,
+                        color = Color(0xFFB71C1C),
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Continue button
-            Button(
-                onClick = { viewModel.onContinueClicked() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = selectedImageUri != null && description.isNotBlank() && !state.isLoading
-            ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = Color.White
-                    )
-                } else {
-                    Text("Devam Et - 50₺")
-                }
-            }
-
-            if (state.error != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = state.error,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
             }
         }
     }

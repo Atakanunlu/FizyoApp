@@ -6,22 +6,11 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -31,55 +20,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddPhotoAlternate
-import androidx.compose.material.icons.filled.AttachFile
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.OpenInNew
-import androidx.compose.material.icons.filled.Update
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -91,6 +46,11 @@ import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_sc
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.Locale
+
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,7 +66,6 @@ fun NoteDetailScreen(
     var showAddUpdateDialog by remember { mutableStateOf(false) }
     var showDeleteUpdateDialog by remember { mutableStateOf<Int?>(null) }
     val context = LocalContext.current
-
     var showFullScreenImage by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf("") }
 
@@ -204,7 +163,7 @@ fun NoteDetailScreen(
                         showDeleteDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
+                        containerColor = Color(0xFFB71C1C)
                     )
                 ) {
                     Icon(Icons.Default.Delete, null, Modifier.padding(end = 8.dp))
@@ -216,7 +175,7 @@ fun NoteDetailScreen(
                     Text("İptal")
                 }
             },
-            icon = { Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error) },
+            icon = { Icon(Icons.Default.Warning, null, tint = Color(0xFFB71C1C)) },
             shape = RoundedCornerShape(16.dp)
         )
     }
@@ -233,7 +192,7 @@ fun NoteDetailScreen(
                         showDeleteUpdateDialog = null
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
+                        containerColor = Color(0xFFB71C1C)
                     )
                 ) {
                     Text("Sil")
@@ -258,7 +217,7 @@ fun NoteDetailScreen(
                     .fillMaxWidth()
                     .wrapContentHeight(),
                 shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surface
+                color = surfaceColor
             ) {
                 Column(
                     modifier = Modifier
@@ -267,11 +226,11 @@ fun NoteDetailScreen(
                 ) {
                     Text(
                         text = "Yeni Ek Not",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
                     OutlinedTextField(
                         value = state.updateText,
                         onValueChange = { viewModel.onEvent(NoteDetailEvent.UpdateTextChanged(it)) },
@@ -280,36 +239,35 @@ fun NoteDetailScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(120.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = primaryColor,
+                            focusedLabelColor = primaryColor,
+                            cursorColor = primaryColor
+                        )
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            containerColor = primaryColor.copy(alpha = 0.1f)
                         )
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
                                 text = "Ekler",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = primaryColor
                             )
-
                             Spacer(modifier = Modifier.height(12.dp))
-
                             if (state.tempImageUris.isNotEmpty()) {
                                 Text(
                                     "Eklenecek Görseller (${state.tempImageUris.size})",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
+                                    color = textColor
                                 )
-
                                 Spacer(modifier = Modifier.height(8.dp))
-
                                 LazyRow(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.fillMaxWidth()
@@ -322,7 +280,7 @@ fun NoteDetailScreen(
                                                 .clip(RoundedCornerShape(8.dp))
                                                 .border(
                                                     1.dp,
-                                                    MaterialTheme.colorScheme.outline,
+                                                    primaryColor.copy(alpha = 0.3f),
                                                     RoundedCornerShape(8.dp)
                                                 )
                                         ) {
@@ -338,33 +296,29 @@ fun NoteDetailScreen(
                                                     .align(Alignment.TopEnd)
                                                     .size(24.dp)
                                                     .background(
-                                                        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
+                                                        Color(0xFFB71C1C).copy(alpha = 0.7f),
                                                         CircleShape
                                                     )
                                             ) {
                                                 Icon(
                                                     Icons.Default.Close,
                                                     contentDescription = "Kaldır",
-                                                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                                                    tint = Color.White,
                                                     modifier = Modifier.size(16.dp)
                                                 )
                                             }
                                         }
                                     }
                                 }
-
                                 Spacer(modifier = Modifier.height(16.dp))
                             }
-
                             if (state.tempDocumentUris.isNotEmpty()) {
                                 Text(
                                     "Eklenecek Belgeler (${state.tempDocumentUris.size})",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
+                                    color = textColor
                                 )
-
                                 Spacer(modifier = Modifier.height(8.dp))
-
                                 Column(
                                     verticalArrangement = Arrangement.spacedBy(4.dp),
                                     modifier = Modifier.fillMaxWidth()
@@ -375,28 +329,27 @@ fun NoteDetailScreen(
                                             cursor.moveToFirst()
                                             cursor.getString(nameIndex)
                                         } ?: "Belge"
-
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .clip(RoundedCornerShape(4.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                                                .background(primaryColor.copy(alpha = 0.05f))
                                                 .padding(8.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Icon(
                                                 Icons.Default.Description,
                                                 contentDescription = "Belge",
-                                                tint = MaterialTheme.colorScheme.primary,
+                                                tint = primaryColor,
                                                 modifier = Modifier.size(16.dp)
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
                                             Text(
                                                 text = filename,
-                                                style = MaterialTheme.typography.bodySmall,
                                                 modifier = Modifier.weight(1f),
                                                 maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis
+                                                overflow = TextOverflow.Ellipsis,
+                                                color = textColor
                                             )
                                             IconButton(
                                                 onClick = { viewModel.onEvent(NoteDetailEvent.RemoveTempDocument(index)) },
@@ -405,17 +358,15 @@ fun NoteDetailScreen(
                                                 Icon(
                                                     Icons.Default.Close,
                                                     contentDescription = "Kaldır",
-                                                    tint = MaterialTheme.colorScheme.error,
+                                                    tint = Color(0xFFB71C1C),
                                                     modifier = Modifier.size(16.dp)
                                                 )
                                             }
                                         }
                                     }
                                 }
-
                                 Spacer(modifier = Modifier.height(16.dp))
                             }
-
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -423,7 +374,10 @@ fun NoteDetailScreen(
                                 Button(
                                     onClick = { viewModel.onEvent(NoteDetailEvent.ShowUpdateImagePicker) },
                                     modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(8.dp)
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = primaryColor
+                                    )
                                 ) {
                                     Icon(
                                         Icons.Default.AddPhotoAlternate,
@@ -432,11 +386,13 @@ fun NoteDetailScreen(
                                     )
                                     Text("Görsel Ekle")
                                 }
-
                                 Button(
                                     onClick = { viewModel.onEvent(NoteDetailEvent.ShowUpdateDocumentPicker) },
                                     modifier = Modifier.weight(1f),
-                                    shape = RoundedCornerShape(8.dp)
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = primaryColor
+                                    )
                                 ) {
                                     Icon(
                                         Icons.Default.AttachFile,
@@ -448,26 +404,30 @@ fun NoteDetailScreen(
                             }
                         }
                     }
-
                     Spacer(modifier = Modifier.height(20.dp))
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End
                     ) {
                         TextButton(
                             onClick = { showAddUpdateDialog = false },
-                            modifier = Modifier.padding(end = 8.dp)
+                            modifier = Modifier.padding(end = 8.dp),
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = primaryColor
+                            )
                         ) {
                             Text("İptal")
                         }
-
                         Button(
                             onClick = {
                                 viewModel.onEvent(NoteDetailEvent.AddUpdate)
                                 showAddUpdateDialog = false
                             },
-                            enabled = state.updateText.isNotBlank()
+                            enabled = state.updateText.isNotBlank(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = primaryColor,
+                                disabledContainerColor = primaryColor.copy(alpha = 0.5f)
+                            )
                         ) {
                             Text("Ekle")
                         }
@@ -491,13 +451,17 @@ fun NoteDetailScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = primaryColor,
+                            focusedLabelColor = primaryColor,
+                            cursorColor = primaryColor
+                        )
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Notu düzenlediğinizde güncelleme tarihi otomatik olarak değiştirilecektir.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        color = textColor.copy(alpha = 0.6f)
                     )
                 }
             },
@@ -505,7 +469,10 @@ fun NoteDetailScreen(
                 Button(
                     onClick = { viewModel.onEvent(NoteDetailEvent.SaveUpdateEdit) },
                     enabled = state.updateText.isNotBlank(),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = primaryColor
+                    )
                 ) {
                     Text("Kaydet")
                 }
@@ -529,20 +496,25 @@ fun NoteDetailScreen(
                     Column {
                         Text(
                             text = state.note?.title ?: "Not Detayı",
-                            maxLines = 1
+                            maxLines = 1,
+                            color = Color.White
                         )
                         state.note?.patientName?.let { name ->
                             Text(
                                 text = name,
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                color = Color.White.copy(alpha = 0.7f)
                             )
                         }
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Geri")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            "Geri",
+                            tint = Color.White
+                        )
                     }
                 },
                 actions = {
@@ -550,10 +522,16 @@ fun NoteDetailScreen(
                         Icon(
                             Icons.Default.Delete,
                             "Sil",
-                            tint = MaterialTheme.colorScheme.error
+                            tint = Color.White
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
+                )
             )
         },
         floatingActionButton = {
@@ -561,36 +539,39 @@ fun NoteDetailScreen(
                 onClick = { showAddUpdateDialog = true },
                 icon = { Icon(Icons.Default.Add, "Not Ekle") },
                 text = { Text("Ek Not") },
-                expanded = scrollState.value == 0
+                expanded = scrollState.value == 0,
+                containerColor = primaryColor,
+                contentColor = Color.White
             )
         }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(backgroundColor)
                 .padding(paddingValues)
         ) {
             if (state.isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
+                    color = primaryColor,
+                    strokeWidth = 4.dp
                 )
             } else {
                 state.note?.let { note ->
-                    val backgroundColor = when (note.color) {
-                        NoteColor.WHITE -> MaterialTheme.colorScheme.surface
+                    val noteBackgroundColor = when (note.color) {
+                        NoteColor.WHITE -> surfaceColor
                         NoteColor.LIGHT_YELLOW -> Color(0xFFFFF9C4)
                         NoteColor.ORANGE -> Color(0xFFFFE0B2)
                     }
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(backgroundColor)
                             .padding(16.dp)
                             .verticalScroll(scrollState)
                     ) {
                         DateInfoCard(note, dateFormatter)
-                        MainNoteCard(note)
-
+                        MainNoteCard(note, noteBackgroundColor)
                         AttachmentsCard(
                             images = note.images,
                             documents = note.documents,
@@ -602,7 +583,6 @@ fun NoteDetailScreen(
                             },
                             context = context
                         )
-
                         if (note.updates.isNotEmpty()) {
                             Row(
                                 modifier = Modifier
@@ -613,14 +593,15 @@ fun NoteDetailScreen(
                                 Icon(
                                     Icons.AutoMirrored.Filled.List,
                                     null,
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = primaryColor,
                                     modifier = Modifier.size(24.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Ek Notlar (${note.updates.size})",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = primaryColor
                                 )
                             }
                             NoteUpdatesList(
@@ -643,20 +624,21 @@ fun NoteDetailScreen(
                     }
                 }
             }
+
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    containerColor = Color(0xFFB71C1C),
+                    contentColor = Color.White,
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             Icons.Default.Error,
                             null,
-                            tint = MaterialTheme.colorScheme.error,
+                            tint = Color.White,
                             modifier = Modifier.padding(end = 8.dp)
                         )
                         Text(text = state.error)
@@ -674,7 +656,7 @@ private fun DateInfoCard(note: com.example.fizyoapp.domain.model.note.Note, date
             .fillMaxWidth()
             .padding(bottom = 16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            containerColor = primaryColor.copy(alpha = 0.1f)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         shape = RoundedCornerShape(16.dp)
@@ -694,7 +676,7 @@ private fun DateInfoCard(note: com.example.fizyoapp.domain.model.note.Note, date
                 modifier = Modifier
                     .height(36.dp)
                     .width(1.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                color = textColor.copy(alpha = 0.1f)
             )
             DateColumn(
                 icon = Icons.Default.Update,
@@ -706,37 +688,40 @@ private fun DateInfoCard(note: com.example.fizyoapp.domain.model.note.Note, date
 }
 
 @Composable
-private fun DateColumn(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, date: String) {
+private fun DateColumn(icon: ImageVector, title: String, date: String) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
             icon, null,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = primaryColor,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = title,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            fontSize = 12.sp,
+            color = textColor.copy(alpha = 0.6f)
         )
         Text(
             text = date,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            color = textColor
         )
     }
 }
 
 @Composable
-private fun MainNoteCard(note: com.example.fizyoapp.domain.model.note.Note) {
+private fun MainNoteCard(note: com.example.fizyoapp.domain.model.note.Note, backgroundColor: Color) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 24.dp),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor
+        )
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(
@@ -746,21 +731,21 @@ private fun MainNoteCard(note: com.example.fizyoapp.domain.model.note.Note) {
                 Icon(
                     Icons.Default.Description,
                     null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = primaryColor,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     "Ana Not",
-                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = primaryColor
                 )
             }
             Text(
                 text = note.content,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = textColor
             )
         }
     }
@@ -780,10 +765,11 @@ fun AttachmentsCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            )
+                containerColor = primaryColor.copy(alpha = 0.1f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -792,30 +778,26 @@ fun AttachmentsCard(
                 Icon(
                     Icons.Default.AttachFile,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = primaryColor,
                     modifier = Modifier
                         .size(48.dp)
                         .padding(bottom = 8.dp)
                 )
-
                 Text(
                     text = "Görsel ve Belge Ekle",
-                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = primaryColor
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 Text(
                     text = "Bu nota hasta ile ilgili fotoğraflar ve belgeler ekleyebilirsiniz.",
-                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = textColor
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -823,7 +805,10 @@ fun AttachmentsCard(
                     Button(
                         onClick = onAddImage,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = primaryColor
+                        )
                     ) {
                         Icon(
                             Icons.Default.AddPhotoAlternate,
@@ -832,11 +817,13 @@ fun AttachmentsCard(
                         )
                         Text("Görsel Ekle")
                     }
-
                     Button(
                         onClick = onAddDocument,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = primaryColor
+                        )
                     ) {
                         Icon(
                             Icons.Default.AttachFile,
@@ -853,7 +840,11 @@ fun AttachmentsCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = surfaceColor
+            )
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(
@@ -863,27 +854,25 @@ fun AttachmentsCard(
                     Icon(
                         Icons.Default.AttachFile,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = primaryColor,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Dosya Ekleri",
-                        style = MaterialTheme.typography.titleMedium,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = primaryColor
                     )
                 }
-
                 if (images.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         "Görseller (${images.size})",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = textColor
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -893,11 +882,11 @@ fun AttachmentsCard(
                             Box(
                                 modifier = Modifier
                                     .size(120.dp)
-                                    .clip(RoundedCornerShape(8.dp))
+                                    .clip(RoundedCornerShape(12.dp))
                                     .border(
                                         1.dp,
-                                        MaterialTheme.colorScheme.outline,
-                                        RoundedCornerShape(8.dp)
+                                        primaryColor.copy(alpha = 0.3f),
+                                        RoundedCornerShape(12.dp)
                                     )
                                     .clickable {
                                         onImageClick(imageUrl)
@@ -913,16 +902,14 @@ fun AttachmentsCard(
                         }
                     }
                 }
-
                 if (documents.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         "Belgeler (${documents.size})",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = textColor
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -931,17 +918,13 @@ fun AttachmentsCard(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
+                                    .clip(RoundedCornerShape(12.dp))
                                     .border(
                                         1.dp,
-                                        MaterialTheme.colorScheme.outline,
-                                        RoundedCornerShape(8.dp)
+                                        primaryColor.copy(alpha = 0.3f),
+                                        RoundedCornerShape(12.dp)
                                     )
-                                    .background(
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(
-                                            alpha = 0.3f
-                                        )
-                                    )
+                                    .background(primaryColor.copy(alpha = 0.05f))
                                     .padding(12.dp)
                                     .clickable {
                                         val intent = Intent(Intent.ACTION_VIEW)
@@ -953,33 +936,31 @@ fun AttachmentsCard(
                                 Icon(
                                     Icons.Default.Description,
                                     contentDescription = "Belge",
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = primaryColor,
                                     modifier = Modifier.size(24.dp)
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "Belge ${index + 1}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.Medium,
+                                        color = textColor
                                     )
                                     Text(
                                         text = "PDF Belgesi",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                        color = textColor.copy(alpha = 0.6f)
                                     )
                                 }
                                 Icon(
                                     Icons.Default.OpenInNew,
                                     contentDescription = "Aç",
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = primaryColor,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -988,7 +969,10 @@ fun AttachmentsCard(
                     Button(
                         onClick = onAddImage,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = primaryColor
+                        )
                     ) {
                         Icon(
                             Icons.Default.AddPhotoAlternate,
@@ -997,11 +981,13 @@ fun AttachmentsCard(
                         )
                         Text("Görsel Ekle")
                     }
-
                     Button(
                         onClick = onAddDocument,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = primaryColor
+                        )
                     ) {
                         Icon(
                             Icons.Default.AttachFile,
@@ -1032,7 +1018,7 @@ private fun NoteUpdatesList(
             .fillMaxWidth()
             .padding(bottom = 16.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            .background(primaryColor.copy(alpha = 0.05f))
             .padding(12.dp)
     ) {
         updates.forEachIndexed { index, update ->
@@ -1061,7 +1047,11 @@ private fun EmptyUpdatesCard(onAddClick: () -> Unit) {
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = surfaceColor
+            )
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
@@ -1071,26 +1061,29 @@ private fun EmptyUpdatesCard(onAddClick: () -> Unit) {
                     Icons.AutoMirrored.Filled.NoteAdd,
                     null,
                     modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                    tint = primaryColor.copy(alpha = 0.6f)
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     "Henüz Ek Not Bulunmuyor",
-                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = primaryColor
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     "Sağ alttaki '+ Ek Not' butonuna tıklayarak hastanızla ilgili yeni bir not ekleyebilirsiniz.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    color = textColor.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = onAddClick,
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = primaryColor
+                    )
                 ) {
                     Icon(
                         Icons.Default.Add,
@@ -1121,7 +1114,10 @@ fun NoteUpdateCard(
             .fillMaxWidth()
             .padding(bottom = 12.dp),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = surfaceColor
+        )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -1132,23 +1128,22 @@ fun NoteUpdateCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
                         modifier = Modifier.size(32.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer,
+                        color = primaryColor.copy(alpha = 0.2f),
                         shape = CircleShape
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
                                 (index + 1).toString(),
-                                style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                color = primaryColor
                             )
                         }
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         dateFormatter.format(update.updateDate),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = textColor
                     )
                 }
                 Row {
@@ -1156,45 +1151,42 @@ fun NoteUpdateCard(
                         Icon(
                             Icons.Default.Edit,
                             "Düzenle",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = primaryColor
                         )
                     }
                     IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                         Icon(
                             Icons.Default.Delete,
                             "Sil",
-                            tint = MaterialTheme.colorScheme.error
+                            tint = Color(0xFFB71C1C)
                         )
                     }
                 }
             }
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                color = primaryColor.copy(alpha = 0.1f)
             )
             Text(
                 update.updateText,
-                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp)
+                    .padding(vertical = 4.dp),
+                color = textColor
             )
 
             if (update.images.isNotEmpty() || update.documents.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                )
+                HorizontalDivider(color = primaryColor.copy(alpha = 0.1f))
                 Spacer(modifier = Modifier.height(12.dp))
 
                 if (update.images.isNotEmpty()) {
                     Text(
                         "Görseller",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = textColor
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -1204,11 +1196,11 @@ fun NoteUpdateCard(
                             Box(
                                 modifier = Modifier
                                     .size(100.dp)
-                                    .clip(RoundedCornerShape(8.dp))
+                                    .clip(RoundedCornerShape(12.dp))
                                     .border(
                                         1.dp,
-                                        MaterialTheme.colorScheme.outline,
-                                        RoundedCornerShape(8.dp)
+                                        primaryColor.copy(alpha = 0.3f),
+                                        RoundedCornerShape(12.dp)
                                     )
                                     .clickable {
                                         onImageClick(imageUrl)
@@ -1229,11 +1221,10 @@ fun NoteUpdateCard(
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         "Belgeler",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = textColor
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -1245,14 +1236,10 @@ fun NoteUpdateCard(
                                     .clip(RoundedCornerShape(8.dp))
                                     .border(
                                         1.dp,
-                                        MaterialTheme.colorScheme.outline,
+                                        primaryColor.copy(alpha = 0.3f),
                                         RoundedCornerShape(8.dp)
                                     )
-                                    .background(
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(
-                                            alpha = 0.3f
-                                        )
-                                    )
+                                    .background(primaryColor.copy(alpha = 0.05f))
                                     .padding(8.dp)
                                     .clickable {
                                         val intent = Intent(Intent.ACTION_VIEW)
@@ -1264,19 +1251,19 @@ fun NoteUpdateCard(
                                 Icon(
                                     Icons.Default.Description,
                                     contentDescription = "Belge",
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = primaryColor,
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Belge ${docIndex + 1}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
+                                    color = textColor
                                 )
                                 Icon(
                                     Icons.Default.OpenInNew,
                                     contentDescription = "Aç",
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = primaryColor,
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
@@ -1293,32 +1280,75 @@ fun NoteUpdateCard(
                 OutlinedButton(
                     onClick = onAddImage,
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, primaryColor),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                 ) {
                     Icon(
                         Icons.Default.AddPhotoAlternate,
                         contentDescription = "Görsel Ekle",
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
+                        tint = primaryColor
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Görsel Ekle", style = MaterialTheme.typography.bodySmall)
+                    Text("Görsel Ekle", color = primaryColor)
                 }
-
                 OutlinedButton(
                     onClick = onAddDocument,
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, primaryColor),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                 ) {
                     Icon(
                         Icons.Default.AttachFile,
                         contentDescription = "Belge Ekle",
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
+                        tint = primaryColor
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Belge Ekle", style = MaterialTheme.typography.bodySmall)
+                    Text("Belge Ekle", color = primaryColor)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun NoteFullScreenImageViewer(
+    imageUrl: String,
+    onDismiss: () -> Unit
+) {
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.9f)),
+        color = Color.Transparent
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "Tam ekran görsel",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Kapat",
+                    tint = Color.White
+                )
             }
         }
     }

@@ -34,6 +34,11 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import kotlinx.coroutines.flow.collectLatest
 
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val textColor = Color.DarkGray
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditPostScreen(
@@ -79,7 +84,6 @@ fun EditPostScreen(
                     navController.popBackStack()
                 }
                 is EditPostViewModel.UiEvent.ShowError -> {
-
                 }
             }
         }
@@ -88,12 +92,18 @@ fun EditPostScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Gönderiyi Düzenle") },
+                title = {
+                    Text(
+                        "Gönderiyi Düzenle",
+                        color = Color.White
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Geri"
+                            contentDescription = "Geri",
+                            tint = Color.White
                         )
                     }
                 },
@@ -105,179 +115,215 @@ fun EditPostScreen(
                         Text(
                             text = "Kaydet",
                             color = if (!state.isLoading && state.content.isNotBlank())
-                                MaterialTheme.colorScheme.primary
+                                Color.White
                             else
-                                Color.Gray
+                                Color.White.copy(alpha = 0.5f)
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
+                )
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(backgroundColor)
                 .padding(paddingValues)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-                ) {
-                    if (state.userPhotoUrl.isNotEmpty()) {
-                        AsyncImage(
-                            model = state.userPhotoUrl,
-                            contentDescription = "Profil fotoğrafı",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .align(Alignment.Center),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column {
-                    Text(
-                        text = state.userName,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                    Text(
-                        text = "Fizyoterapist",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = state.content,
-                onValueChange = { viewModel.onEvent(EditPostEvent.ContentChanged(it)) },
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = 120.dp),
-                placeholder = { Text("Düşüncelerinizi paylaşın...") },
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            val allMediaUris = state.existingMediaUrls + state.newMediaUris
-
-            if (allMediaUris.isNotEmpty()) {
-                Text(
-                    text = "Mevcut Medyalar",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                LazyRow(
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(containerColor = surfaceColor)
                 ) {
-                    items(allMediaUris) { uri ->
-                        val isExistingMedia = state.existingMediaUrls.contains(uri)
-
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            AsyncImage(
-                                model = uri,
-                                contentDescription = "Medya",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-
-                            IconButton(
-                                onClick = {
-                                    if (isExistingMedia) {
-                                        viewModel.onEvent(EditPostEvent.ExistingMediaRemoved(uri))
-                                    } else {
-                                        viewModel.onEvent(EditPostEvent.NewMediaRemoved(uri))
-                                    }
-                                },
+                            Box(
                                 modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .size(24.dp)
+                                    .size(48.dp)
                                     .clip(CircleShape)
-                                    .background(Color.Black.copy(alpha = 0.5f))
+                                    .background(primaryColor.copy(alpha = 0.2f))
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Kaldır",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
+                                if (state.userPhotoUrl.isNotEmpty()) {
+                                    AsyncImage(
+                                        model = state.userPhotoUrl,
+                                        contentDescription = "Profil fotoğrafı",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .align(Alignment.Center),
+                                        tint = primaryColor
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = state.userName,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = textColor
+                                )
+                                Text(
+                                    text = "Fizyoterapist",
+                                    fontSize = 14.sp,
+                                    color = primaryColor
                                 )
                             }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = state.content,
+                            onValueChange = { viewModel.onEvent(EditPostEvent.ContentChanged(it)) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .defaultMinSize(minHeight = 120.dp),
+                            placeholder = { Text("Düşüncelerinizi paylaşın...") },
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                focusedBorderColor = Color.Transparent,
+                                unfocusedBorderColor = Color.Transparent,
+                                containerColor = surfaceColor,
+                                cursorColor = primaryColor
+                            ),
+                            maxLines = 10
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        val allMediaUris = state.existingMediaUrls + state.newMediaUris
+                        if (allMediaUris.isNotEmpty()) {
+                            Text(
+                                text = "Mevcut Medyalar",
+                                fontWeight = FontWeight.Bold,
+                                color = primaryColor
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(allMediaUris) { uri ->
+                                    val isExistingMedia = state.existingMediaUrls.contains(uri)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(100.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .border(1.dp, primaryColor.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                                    ) {
+                                        AsyncImage(
+                                            model = uri,
+                                            contentDescription = "Medya",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        IconButton(
+                                            onClick = {
+                                                if (isExistingMedia) {
+                                                    viewModel.onEvent(EditPostEvent.ExistingMediaRemoved(uri))
+                                                } else {
+                                                    viewModel.onEvent(EditPostEvent.NewMediaRemoved(uri))
+                                                }
+                                            },
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .size(24.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.Black.copy(alpha = 0.5f))
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "Kaldır",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+
+                        Button(
+                            onClick = { showMediaOptions = true },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = primaryColor.copy(alpha = 0.1f),
+                                contentColor = primaryColor
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Medya Ekle"
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Medya Ekle")
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            Button(
-                onClick = { showMediaOptions = true },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                    contentColor = MaterialTheme.colorScheme.primary
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Medya Ekle"
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Medya Ekle")
-            }
-
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+                if (state.isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = primaryColor)
+                    }
                 }
-            }
 
-            state.error?.let { errorMessage ->
-                Text(
-                    text = errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
+                state.error?.let { errorMessage ->
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Error,
+                                contentDescription = null,
+                                tint = Color(0xFFB71C1C)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = errorMessage,
+                                color = Color(0xFFB71C1C)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
-
 
     if (showMediaOptions) {
         AlertDialog(
@@ -285,13 +331,13 @@ fun EditPostScreen(
             title = { Text("Medya Ekle") },
             text = {
                 Column {
-
                     DropdownMenuItem(
                         text = { Text("Fotoğraf Ekle") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.PhotoLibrary,
-                                contentDescription = "Fotoğraf"
+                                contentDescription = "Fotoğraf",
+                                tint = primaryColor
                             )
                         },
                         onClick = {
@@ -300,7 +346,6 @@ fun EditPostScreen(
                             } else {
                                 Manifest.permission.READ_EXTERNAL_STORAGE
                             }
-
                             if (ContextCompat.checkSelfPermission(
                                     context,
                                     permission
@@ -314,13 +359,13 @@ fun EditPostScreen(
                         }
                     )
 
-
                     DropdownMenuItem(
                         text = { Text("Video Ekle") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Videocam,
-                                contentDescription = "Video"
+                                contentDescription = "Video",
+                                tint = primaryColor
                             )
                         },
                         onClick = {
@@ -329,7 +374,6 @@ fun EditPostScreen(
                             } else {
                                 Manifest.permission.READ_EXTERNAL_STORAGE
                             }
-
                             if (ContextCompat.checkSelfPermission(
                                     context,
                                     permission
@@ -346,9 +390,11 @@ fun EditPostScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showMediaOptions = false }) {
-                    Text("İptal")
+                    Text("İptal", color = primaryColor)
                 }
-            }
+            },
+            containerColor = surfaceColor,
+            shape = RoundedCornerShape(16.dp)
         )
     }
 }

@@ -37,7 +37,6 @@ class PaymentRepositoryImpl @Inject constructor() : PaymentRepository {
                 request.locale = Locale.TR.toString()
                 request.conversationId = UUID.randomUUID().toString()
 
-                // String'den BigDecimal'a çevirme
                 request.price = BigDecimal(amount.toString())
                 request.paidPrice = BigDecimal(amount.toString())
 
@@ -47,7 +46,6 @@ class PaymentRepositoryImpl @Inject constructor() : PaymentRepository {
                 request.paymentChannel = PaymentChannel.WEB.name
                 request.paymentGroup = PaymentGroup.PRODUCT.name
 
-                // Kart bilgileri
                 val paymentCard = PaymentCard()
                 paymentCard.cardHolderName = cardHolderName
                 paymentCard.cardNumber = cardNumber
@@ -57,21 +55,19 @@ class PaymentRepositoryImpl @Inject constructor() : PaymentRepository {
                 paymentCard.registerCard = 0
                 request.paymentCard = paymentCard
 
-                // Alıcı bilgileri
                 val buyer = Buyer()
                 buyer.id = "BY_${physiotherapistId}"
                 buyer.name = "Fizyoterapist"
                 buyer.surname = "Kullanıcı"
                 buyer.email = "fizyoterapist@example.com"
-                buyer.identityNumber = "74300864791" // Örnek TC kimlik numarası
+                buyer.identityNumber = "74300864791"
                 buyer.registrationAddress = "İstanbul, Türkiye"
-                buyer.ip = "85.34.78.112" // Örnek IP adresi
+                buyer.ip = "85.34.78.112"
                 buyer.city = "Istanbul"
                 buyer.country = "Turkey"
                 buyer.zipCode = "34000"
                 request.buyer = buyer
 
-                // Adres bilgileri
                 val billingAddress = Address()
                 billingAddress.contactName = "Fizyoterapist Kullanıcı"
                 billingAddress.city = "Istanbul"
@@ -88,7 +84,6 @@ class PaymentRepositoryImpl @Inject constructor() : PaymentRepository {
                 shippingAddress.zipCode = "34000"
                 request.shippingAddress = shippingAddress
 
-                // Sepet öğeleri
                 val basketItems = ArrayList<BasketItem>()
                 val item = BasketItem()
                 item.id = "ADV${System.currentTimeMillis()}"
@@ -97,13 +92,11 @@ class PaymentRepositoryImpl @Inject constructor() : PaymentRepository {
                 item.category2 = "Dijital"
                 item.itemType = BasketItemType.VIRTUAL.name
 
-                // String'den BigDecimal'a çevirme
                 item.price = BigDecimal(amount.toString())
 
                 basketItems.add(item)
                 request.basketItems = basketItems
 
-                // Ödeme isteği gönder
                 Payment.create(request, options)
             }
 

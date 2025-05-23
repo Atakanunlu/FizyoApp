@@ -25,15 +25,12 @@ class AdvertisementPaymentViewModel @Inject constructor(
     private val getCurrentPhysiotherapistUseCase: GetCurrentPhysiotherapistUseCase,
     private val advertisementDataRepository: AdvertisementDataRepository
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(PaymentState())
     val state: StateFlow<PaymentState> = _state.asStateFlow()
-
     private val _eventChannel = Channel<UIEvent>()
     val eventFlow = _eventChannel.receiveAsFlow()
 
     init {
-        // For testing purposes, prefill with test card data
         _state.update {
             it.copy(
                 cardHolderName = "Test User",
@@ -43,7 +40,6 @@ class AdvertisementPaymentViewModel @Inject constructor(
                 cvc = "123"
             )
         }
-
         validateForm()
     }
 
@@ -53,11 +49,8 @@ class AdvertisementPaymentViewModel @Inject constructor(
     }
 
     fun onCardNumberChanged(value: String) {
-        // Remove spaces and non-numeric characters
         val filteredValue = value.replace("[^0-9]".toRegex(), "")
-        // Limit to 16 digits
         val limitedValue = filteredValue.take(16)
-
         _state.update { it.copy(cardNumber = limitedValue) }
         validateForm()
     }
@@ -82,23 +75,20 @@ class AdvertisementPaymentViewModel @Inject constructor(
 
     private fun validateForm() {
         val isFormValid = state.value.cardHolderName.isNotBlank() &&
-                state.value.cardNumber.length == 16 &&
+                state.value.cardNumber.length >= 16 &&
                 state.value.expireMonth.length == 2 &&
                 state.value.expireYear.length == 4 &&
                 state.value.cvc.length == 3
-
         _state.update { it.copy(isFormValid = isFormValid) }
     }
 
     fun onPayClicked() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
-
             getCurrentPhysiotherapistUseCase().collect { userResult ->
                 when (userResult) {
                     is Resource.Success -> {
                         val physiotherapistId = userResult.data.id
-
                         makePaymentUseCase(
                             cardHolderName = state.value.cardHolderName,
                             cardNumber = state.value.cardNumber,
@@ -112,7 +102,6 @@ class AdvertisementPaymentViewModel @Inject constructor(
                                 is Resource.Success -> {
                                     when (val result = paymentResult.data) {
                                         is PaymentResult.Success -> {
-                                            // Payment successful, create advertisement
                                             createAdvertisement(
                                                 physiotherapistId = physiotherapistId,
                                                 paymentId = result.paymentId
@@ -165,7 +154,6 @@ class AdvertisementPaymentViewModel @Inject constructor(
         viewModelScope.launch {
             val imageUri = advertisementDataRepository.imageUri.value
             val description = advertisementDataRepository.description.value ?: ""
-
             if (imageUri == null) {
                 _state.update {
                     it.copy(
@@ -175,7 +163,6 @@ class AdvertisementPaymentViewModel @Inject constructor(
                 }
                 return@launch
             }
-
             createAdvertisementUseCase(
                 physiotherapistId = physiotherapistId,
                 imageUri = imageUri,
@@ -185,7 +172,6 @@ class AdvertisementPaymentViewModel @Inject constructor(
                 when (result) {
                     is Resource.Success -> {
                         _state.update { it.copy(isLoading = false) }
-                        // Başarılı olduğunda verileri temizle
                         advertisementDataRepository.clear()
                         _eventChannel.send(UIEvent.NavigateToSuccess)
                     }
@@ -210,13 +196,3 @@ class AdvertisementPaymentViewModel @Inject constructor(
     }
 }
 
-data class PaymentState(
-    val cardHolderName: String = "",
-    val cardNumber: String = "",
-    val expireMonth: String = "",
-    val expireYear: String = "",
-    val cvc: String = "",
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val isFormValid: Boolean = false
-)

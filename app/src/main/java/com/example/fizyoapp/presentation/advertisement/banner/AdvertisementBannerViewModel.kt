@@ -1,6 +1,5 @@
 package com.example.fizyoapp.presentation.advertisement.banner
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
@@ -20,10 +19,8 @@ import javax.inject.Inject
 class AdvertisementBannerViewModel @Inject constructor(
     private val getActiveAdvertisementsUseCase: GetActiveAdvertisementsUseCase
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(AdvertisementBannerState())
     val state: StateFlow<AdvertisementBannerState> = _state.asStateFlow()
-
     private var refreshJob: Job? = null
     private var autoScrollJob: Job? = null
 
@@ -34,17 +31,12 @@ class AdvertisementBannerViewModel @Inject constructor(
 
     fun loadActiveAdvertisements() {
         viewModelScope.launch {
-            Log.d("AdvertisementBanner", "Reklamlar yükleniyor...")
-
             getActiveAdvertisementsUseCase().collect { result ->
                 when (result) {
                     is Resource.Success -> {
                         val advertisements = result.data
-                        Log.d("AdvertisementBanner", "Reklamlar başarıyla yüklendi: ${advertisements.size}")
-
                         if (advertisements.isNotEmpty()) {
-                            // Tüm reklamları kaydediyoruz
-                            val adList = advertisements.take(10) // En fazla 10 reklam gösteriyoruz
+                            val adList = advertisements.take(10)
                             _state.update {
                                 it.copy(
                                     isLoading = false,
@@ -53,9 +45,8 @@ class AdvertisementBannerViewModel @Inject constructor(
                                     error = null
                                 )
                             }
-                            startAutoScroll() // Otomatik kaydırmayı başlat
+                            startAutoScroll()
                         } else {
-                            Log.d("AdvertisementBanner", "Aktif reklam bulunamadı")
                             _state.update {
                                 it.copy(
                                     isLoading = false,
@@ -66,7 +57,6 @@ class AdvertisementBannerViewModel @Inject constructor(
                         }
                     }
                     is Resource.Error -> {
-                        Log.e("AdvertisementBanner", "Reklam yükleme hatası: ${result.message}")
                         _state.update {
                             it.copy(
                                 isLoading = false,
@@ -86,8 +76,7 @@ class AdvertisementBannerViewModel @Inject constructor(
         refreshJob?.cancel()
         refreshJob = viewModelScope.launch {
             while (true) {
-                delay(60 * 1000L) // 1 dakikada bir reklamları yenile
-                Log.d("AdvertisementBanner", "Reklamlar yenileniyor...")
+                delay(60 * 1000L)
                 loadActiveAdvertisements()
             }
         }
@@ -97,14 +86,11 @@ class AdvertisementBannerViewModel @Inject constructor(
         autoScrollJob?.cancel()
         autoScrollJob = viewModelScope.launch {
             while (true) {
-                delay(3000L) // 3 saniyede bir sonraki reklama geç
+                delay(3000L)
                 val currentAds = _state.value.advertisements
                 if (currentAds.isNotEmpty()) {
                     val currentIndex = _state.value.currentIndex
                     val nextIndex = (currentIndex + 1) % currentAds.size
-
-                    Log.d("AdvertisementBanner", "Otomatik kaydırma: $currentIndex -> $nextIndex")
-
                     _state.update {
                         it.copy(currentIndex = nextIndex)
                     }
@@ -118,7 +104,6 @@ class AdvertisementBannerViewModel @Inject constructor(
         autoScrollJob = null
     }
 
-    // Kullanıcı manuel olarak bir reklama geçiş yaparsa
     fun moveToNextAd() {
         val currentAds = _state.value.advertisements
         if (currentAds.isNotEmpty()) {
@@ -141,7 +126,6 @@ class AdvertisementBannerViewModel @Inject constructor(
         }
     }
 
-    // Kullanıcı belirli bir reklama geçiş yaparsa
     fun moveToAd(index: Int) {
         val currentAds = _state.value.advertisements
         if (currentAds.isNotEmpty() && index in currentAds.indices) {
@@ -155,16 +139,6 @@ class AdvertisementBannerViewModel @Inject constructor(
         super.onCleared()
         refreshJob?.cancel()
         autoScrollJob?.cancel()
-        Log.d("AdvertisementBanner", "ViewModel temizlendi, tüm job'lar iptal edildi")
     }
 }
 
-data class AdvertisementBannerState(
-    val isLoading: Boolean = true,
-    val advertisements: List<Advertisement> = emptyList(),
-    val currentIndex: Int = 0,
-    val error: String? = null
-) {
-    val currentAdvertisement: Advertisement?
-        get() = advertisements.getOrNull(currentIndex)
-}

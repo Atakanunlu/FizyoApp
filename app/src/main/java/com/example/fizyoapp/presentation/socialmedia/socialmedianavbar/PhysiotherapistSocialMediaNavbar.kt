@@ -27,6 +27,10 @@ import androidx.navigation.NavController
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.socialmedia.notification.NotificationCountViewModel
 
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+
 @Composable
 fun PhysiotherapistSocialMediaNavbar(
     navController: NavController,
@@ -36,13 +40,17 @@ fun PhysiotherapistSocialMediaNavbar(
     val unreadCount by notificationViewModel.unreadNotificationsCount.collectAsState()
 
     Surface(
-        modifier = Modifier.fillMaxWidth().height(70.dp),
-        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(70.dp),
+        color = surfaceColor,
         shadowElevation = 8.dp,
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -56,6 +64,7 @@ fun PhysiotherapistSocialMediaNavbar(
                     }
                 }
             )
+
             NavBarItem(
                 icon = Icons.Default.Search,
                 title = "Ara",
@@ -64,6 +73,7 @@ fun PhysiotherapistSocialMediaNavbar(
                     navController.navigate(AppScreens.SocialMediaSearchScreen.route)
                 }
             )
+
             NavBarItem(
                 icon = Icons.Default.Add,
                 title = "Paylaş",
@@ -87,11 +97,13 @@ fun PhysiotherapistSocialMediaNavbar(
                     Badge(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .offset(x = (-5).dp, y = 5.dp)
+                            .offset(x = (-5).dp, y = 5.dp),
+                        containerColor = Color(0xFFB71C1C)
                     ) {
                         Text(
                             text = if (unreadCount > 99) "99+" else unreadCount.toString(),
-                            fontSize = 10.sp
+                            fontSize = 10.sp,
+                            color = Color.White
                         )
                     }
                 }
@@ -139,7 +151,7 @@ fun NavBarItem(
                 .clip(CircleShape)
                 .background(
                     if (isSelected)
-                        MaterialTheme.colorScheme.primaryContainer
+                        primaryColor.copy(alpha = 0.2f)
                     else
                         Color.Transparent
                 ),
@@ -149,9 +161,9 @@ fun NavBarItem(
                 imageVector = icon,
                 contentDescription = title,
                 tint = if (isSelected)
-                    MaterialTheme.colorScheme.primary
+                    primaryColor
                 else
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    Color.Gray,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -161,7 +173,7 @@ fun NavBarItem(
                 text = title,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.primary,
+                color = primaryColor,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 4.dp)
             )

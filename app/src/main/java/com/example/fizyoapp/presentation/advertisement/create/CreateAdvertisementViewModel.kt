@@ -21,7 +21,6 @@ class CreateAdvertisementViewModel @Inject constructor(
     private val checkActiveAdvertisementByPhysiotherapistUseCase: CheckActiveAdvertisementByPhysiotherapistUseCase,
     private val advertisementDataRepository: AdvertisementDataRepository
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(CreateAdvertisementState())
     val state: StateFlow<CreateAdvertisementState> = _state.asStateFlow()
 
@@ -32,7 +31,6 @@ class CreateAdvertisementViewModel @Inject constructor(
     private fun checkCurrentUser() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-
             getCurrentPhysiotherapistUseCase().collect { result ->
                 when (result) {
                     is Resource.Success -> {
@@ -96,11 +94,3 @@ class CreateAdvertisementViewModel @Inject constructor(
         advertisementDataRepository.setDescription(description)
     }
 }
-
-data class CreateAdvertisementState(
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val hasActiveAdvertisement: Boolean = false,
-    val navigateToPayment: Boolean = false,
-    val physiotherapistId: String = ""
-)

@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -27,6 +28,11 @@ import com.example.fizyoapp.presentation.navigation.AppScreens
 import java.text.SimpleDateFormat
 import java.util.*
 
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val textColor = Color.DarkGray
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvertisementDetailScreen(
@@ -39,23 +45,39 @@ fun AdvertisementDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Reklam Detayı") },
+                title = {
+                    Text(
+                        "Reklam Detayı",
+                        color = Color.White
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Geri")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Geri",
+                            tint = Color.White
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                )
             )
         }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(backgroundColor)
                 .padding(paddingValues)
         ) {
             if (state.isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
+                    color = primaryColor
                 )
             } else if (state.advertisement != null) {
                 Column(
@@ -64,35 +86,39 @@ fun AdvertisementDetailScreen(
                         .verticalScroll(scrollState)
                         .padding(16.dp)
                 ) {
-                    // Reklam görseli
-                    AsyncImage(
-                        model = state.advertisement.imageUrl,
-                        contentDescription = null,
+
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(250.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
-                    )
+                            .height(250.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        AsyncImage(
+                            model = state.advertisement.imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Reklam veren fizyoterapist bilgileri
                     if (state.physiotherapistName != null) {
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                containerColor = surfaceColor
                             )
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        // Fizyoterapist profiline git
                                         navController.navigate(
                                             AppScreens.PhysiotherapistSocialProfile.createRoute(
                                                 state.advertisement.physiotherapistId
@@ -102,12 +128,11 @@ fun AdvertisementDetailScreen(
                                     .padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Profil fotoğrafı
                                 Box(
                                     modifier = Modifier
                                         .size(60.dp)
                                         .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                                        .background(primaryColor.copy(alpha = 0.1f)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (state.physiotherapistImageUrl != null) {
@@ -121,7 +146,7 @@ fun AdvertisementDetailScreen(
                                         Icon(
                                             imageVector = Icons.Default.Person,
                                             contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
+                                            tint = primaryColor,
                                             modifier = Modifier.size(30.dp)
                                         )
                                     }
@@ -132,53 +157,63 @@ fun AdvertisementDetailScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = state.physiotherapistName,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        color = textColor
                                     )
                                     Text(
                                         text = "Fizyoterapist",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = primaryColor
                                     )
                                 }
 
                                 Icon(
                                     imageVector = Icons.Default.ChevronRight,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                    tint = textColor.copy(alpha = 0.5f)
                                 )
                             }
                         }
                     }
 
-                    // Reklam açıklaması
                     Text(
                         text = "Reklam Detayı",
-                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
+                        color = primaryColor,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
 
-                    Text(
-                        text = state.advertisement.description,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(bottom = 24.dp)
-                    )
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = surfaceColor
+                        )
+                    ) {
+                        Text(
+                            text = state.advertisement.description,
+                            color = textColor,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
 
-                    // Tarih bilgileri
                     val dateFormat = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault())
 
                     Card(
                         modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            containerColor = primaryColor.copy(alpha = 0.1f)
                         )
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
                                 text = "Reklam Bilgileri",
-                                style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
+                                color = primaryColor,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
 
@@ -190,13 +225,14 @@ fun AdvertisementDetailScreen(
                                     imageVector = Icons.Default.CalendarToday,
                                     contentDescription = null,
                                     modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = primaryColor
                                 )
+
                                 Spacer(modifier = Modifier.width(8.dp))
+
                                 Text(
                                     text = "Yayınlanma: ${dateFormat.format(state.advertisement.createdAt.toDate())}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = textColor
                                 )
                             }
 
@@ -210,13 +246,14 @@ fun AdvertisementDetailScreen(
                                     imageVector = Icons.Default.Timer,
                                     contentDescription = null,
                                     modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = primaryColor
                                 )
+
                                 Spacer(modifier = Modifier.width(8.dp))
+
                                 Text(
                                     text = "Bitiş: ${dateFormat.format(state.advertisement.expiresAt.toDate())}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = textColor
                                 )
                             }
                         }
@@ -234,22 +271,25 @@ fun AdvertisementDetailScreen(
                         imageVector = Icons.Default.Error,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.error
+                        tint = Color(0xFFB71C1C)
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
                         text = state.error,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error,
+                        color = Color(0xFFB71C1C),
                         textAlign = TextAlign.Center
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = { navController.popBackStack() }
+                        onClick = { navController.popBackStack() },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = primaryColor
+                        )
                     ) {
                         Text("Geri Dön")
                     }
