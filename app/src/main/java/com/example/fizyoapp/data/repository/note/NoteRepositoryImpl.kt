@@ -1,6 +1,5 @@
 package com.example.fizyoapp.data.repository.note
 
-
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.note.Note
 import com.example.fizyoapp.domain.model.note.NoteColor
@@ -42,7 +41,7 @@ class NoteRepositoryImpl @Inject constructor() : NoteRepository {
                 val note = docToNote(docSnapshot)
                 emit(Resource.Success(note ?: throw Exception("Not alırken hata oluştu")))
             } else {
-                emit(Resource.Error("Not bukulanamdı"))
+                emit(Resource.Error("Not bulunamadı"))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.message ?: "Notlar alınırken hata oluştu", e))
@@ -76,8 +75,8 @@ class NoteRepositoryImpl @Inject constructor() : NoteRepository {
 
             val existingUpdates = getUpdatesFromDoc(noteDoc)
             val newUpdates = existingUpdates + update
-
             val now = Date()
+
             notesCollection.document(noteId).update(
                 "updates", updatesToMapList(newUpdates),
                 "updateDate", now
@@ -112,8 +111,8 @@ class NoteRepositoryImpl @Inject constructor() : NoteRepository {
             }
 
             existingUpdates[updateIndex] = newUpdate
-
             val now = Date()
+
             notesCollection.document(noteId).update(
                 "updates", updatesToMapList(existingUpdates),
                 "updateDate", now
@@ -138,18 +137,131 @@ class NoteRepositoryImpl @Inject constructor() : NoteRepository {
             }
 
             existingUpdates.removeAt(updateIndex)
-
             val now = Date()
+
             notesCollection.document(noteId).update(
                 "updates", updatesToMapList(existingUpdates),
                 "updateDate", now
             ).await()
 
             val updatedNoteDoc = notesCollection.document(noteId).get().await()
-            emit(Resource.Success(docToNote(updatedNoteDoc) ?: throw Exception("Error updating note")))
+            emit(Resource.Success(docToNote(updatedNoteDoc) ?: throw Exception("Not güncellenemedi")))
         } catch (e: Exception) {
             emit(Resource.Error(e.message ?: "Güncelleme silinirken bir hata oluştu", e))
         }
+    }
+
+    override fun addImageToNote(noteId: String, imageUrl: String): Flow<Resource<Note>> = flow {
+        try {
+            emit(Resource.Loading())
+            val noteDoc = notesCollection.document(noteId).get().await()
+            if (!noteDoc.exists()) {
+                emit(Resource.Error("Not bulunamadı"))
+                return@flow
+            }
+
+            val existingImages = noteDoc.get("images") as? List<String> ?: emptyList()
+            val newImages = existingImages + imageUrl
+
+            notesCollection.document(noteId).update("images", newImages).await()
+
+            val updatedNoteDoc = notesCollection.document(noteId).get().await()
+            emit(Resource.Success(docToNote(updatedNoteDoc) ?: throw Exception("Not güncellenemedi")))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Görsel nota eklenirken hata oluştu", e))
+        }
+    }
+
+    override fun addDocumentToNote(noteId: String, documentUrl: String): Flow<Resource<Note>> = flow {
+        try {
+            emit(Resource.Loading())
+            val noteDoc = notesCollection.document(noteId).get().await()
+            if (!noteDoc.exists()) {
+                emit(Resource.Error("Not bulunamadı"))
+                return@flow
+            }
+
+            val existingDocuments = noteDoc.get("documents") as? List<String> ?: emptyList()
+            val newDocuments = existingDocuments + documentUrl
+
+            notesCollection.document(noteId).update("documents", newDocuments).await()
+
+            val updatedNoteDoc = notesCollection.document(noteId).get().await()
+            emit(Resource.Success(docToNote(updatedNoteDoc) ?: throw Exception("Not güncellenemedi")))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Belge nota eklenirken hata oluştu", e))
+        }
+    }
+
+    override fun addImageToNoteUpdate(noteId: String, updateIndex: Int, imageUrl: String): Flow<Resource<Note>> = flow {
+        try {
+            emit(Resource.Loading())
+            val noteDoc = notesCollection.document(noteId).get().await()
+            val existingUpdates = getUpdatesFromDoc(noteDoc).toMutableList()
+
+            if (updateIndex < 0 || updateIndex >= existingUpdates.size) {
+                emit(Resource.Error("Geçersiz güncelleme indeksi"))
+                return@flow
+            }
+
+            val update = existingUpdates[updateIndex]
+            val updatedImages = update.images + imageUrl
+
+            existingUpdates[updateIndex] = update.copy(images = updatedImages)
+
+            notesCollection.document(noteId).update(
+                "updates", updatesToMapList(existingUpdates),
+                "updateDate", Date()
+            ).await()
+
+            val updatedNoteDoc = notesCollection.document(noteId).get().await()
+            emit(Resource.Success(docToNote(updatedNoteDoc) ?: throw Exception("Not güncellenemedi")))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Görsel güncellemeye eklenirken hata oluştu", e))
+        }
+    }
+
+    override fun addDocumentToNoteUpdate(noteId: String, updateIndex: Int, documentUrl: String): Flow<Resource<Note>> = flow {
+        try {
+            emit(Resource.Loading())
+            val noteDoc = notesCollection.document(noteId).get().await()
+            val existingUpdates = getUpdatesFromDoc(noteDoc).toMutableList()
+
+            if (updateIndex < 0 || updateIndex >= existingUpdates.size) {
+                emit(Resource.Error("Geçersiz güncelleme indeksi"))
+                return@flow
+            }
+
+            val update = existingUpdates[updateIndex]
+            val updatedDocuments = update.documents + documentUrl
+
+            existingUpdates[updateIndex] = update.copy(documents = updatedDocuments)
+
+            notesCollection.document(noteId).update(
+                "updates", updatesToMapList(existingUpdates),
+                "updateDate", Date()
+            ).await()
+
+            val updatedNoteDoc = notesCollection.document(noteId).get().await()
+            emit(Resource.Success(docToNote(updatedNoteDoc) ?: throw Exception("Not güncellenemedi")))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Belge güncellemeye eklenirken hata oluştu", e))
+        }
+    }
+
+    private fun noteToMap(note: Note): Map<String, Any> {
+        return mapOf(
+            "physiotherapistId" to note.physiotherapistId,
+            "patientName" to note.patientName,
+            "title" to note.title,
+            "content" to note.content,
+            "creationDate" to note.creationDate,
+            "updateDate" to note.updateDate,
+            "color" to note.color.name,
+            "updates" to updatesToMapList(note.updates),
+            "images" to note.images,
+            "documents" to note.documents
+        )
     }
 
     private fun docToNote(doc: DocumentSnapshot): Note? {
@@ -167,10 +279,23 @@ class NoteRepositoryImpl @Inject constructor() : NoteRepository {
             } catch (e: Exception) {
                 NoteColor.WHITE
             }
-
             val updates = getUpdatesFromDoc(doc)
+            val images = doc.get("images") as? List<String> ?: emptyList()
+            val documents = doc.get("documents") as? List<String> ?: emptyList()
 
-            Note(id, physiotherapistId, patientName, title, content, creationDate, updateDate, color, updates)
+            Note(
+                id,
+                physiotherapistId,
+                patientName,
+                title,
+                content,
+                creationDate,
+                updateDate,
+                color,
+                updates,
+                images,
+                documents
+            )
         } catch (e: Exception) {
             null
         }
@@ -182,28 +307,20 @@ class NoteRepositoryImpl @Inject constructor() : NoteRepository {
             val updateText = updateMap["updateText"] as? String ?: ""
             val updateDateTimestamp = updateMap["updateDate"] as? Timestamp
             val updateDate = updateDateTimestamp?.toDate() ?: Date()
-            NoteUpdate(updateText, updateDate)
-        }
-    }
+            val images = updateMap["images"] as? List<String> ?: emptyList()
+            val documents = updateMap["documents"] as? List<String> ?: emptyList()
 
-    private fun noteToMap(note: Note): Map<String, Any> {
-        return mapOf(
-            "physiotherapistId" to note.physiotherapistId,
-            "patientName" to note.patientName,
-            "title" to note.title,
-            "content" to note.content,
-            "creationDate" to note.creationDate,
-            "updateDate" to note.updateDate,
-            "color" to note.color.name,
-            "updates" to updatesToMapList(note.updates)
-        )
+            NoteUpdate(updateText, updateDate, images, documents)
+        }
     }
 
     private fun updatesToMapList(updates: List<NoteUpdate>): List<Map<String, Any>> {
         return updates.map { update ->
             mapOf(
                 "updateText" to update.updateText,
-                "updateDate" to update.updateDate
+                "updateDate" to update.updateDate,
+                "images" to update.images,
+                "documents" to update.documents
             )
         }
     }

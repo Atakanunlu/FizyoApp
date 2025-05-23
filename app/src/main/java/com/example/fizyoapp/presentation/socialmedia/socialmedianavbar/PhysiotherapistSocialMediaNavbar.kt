@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.socialmedia
+package com.example.fizyoapp.presentation.socialmedia.socialmedianavbar
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState

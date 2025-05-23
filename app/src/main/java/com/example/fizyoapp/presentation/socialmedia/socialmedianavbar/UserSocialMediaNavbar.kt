@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.socialmedia
+package com.example.fizyoapp.presentation.socialmedia.socialmedianavbar
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.socialmedia
+package com.example.fizyoapp.presentation.socialmedia.editpost
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
