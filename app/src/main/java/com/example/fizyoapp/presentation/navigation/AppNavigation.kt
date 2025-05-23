@@ -37,8 +37,13 @@ import com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms.Eval
 import com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms.FormResponseDetailScreen
 import com.example.fizyoapp.presentation.user.illnessrecord.medicalrecord.MedicalReportScreen
 import com.example.fizyoapp.presentation.user.illnessrecord.radyologicalimagesadd.RadyolojikGoruntulerScreen
-import com.example.fizyoapp.presentation.socialmedia.*
+import com.example.fizyoapp.presentation.socialmedia.createpost.CreatePostScreen
+import com.example.fizyoapp.presentation.socialmedia.editpost.EditPostScreen
 import com.example.fizyoapp.presentation.socialmedia.notification.NotificationScreen
+import com.example.fizyoapp.presentation.socialmedia.physiotherapistsocialprofile.PhysiotherapistSocialProfileScreen
+import com.example.fizyoapp.presentation.socialmedia.postdetail.PostDetailScreen
+import com.example.fizyoapp.presentation.socialmedia.socialmediamain.SocialMediaScreen
+import com.example.fizyoapp.presentation.socialmedia.socialmediasearch.SocialMediaSearchScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesScreen

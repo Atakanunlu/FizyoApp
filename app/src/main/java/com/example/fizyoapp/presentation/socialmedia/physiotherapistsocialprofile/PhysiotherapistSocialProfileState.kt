@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.socialmedia
+package com.example.fizyoapp.presentation.socialmedia.physiotherapistsocialprofile
 
 import com.example.fizyoapp.domain.model.follow.FollowRelation
 import com.example.fizyoapp.domain.model.physiotherapist_profile.PhysiotherapistProfile

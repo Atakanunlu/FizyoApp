@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.socialmedia
+package com.example.fizyoapp.presentation.socialmedia.physiotherapistsocialprofile
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -32,6 +32,7 @@ import com.example.fizyoapp.domain.model.physiotherapist_profile.Physiotherapist
 import com.example.fizyoapp.domain.model.socialmedia.Post
 import com.example.fizyoapp.domain.model.user_profile.UserProfile
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.PhysiotherapistSocialMediaNavbar
 import java.text.SimpleDateFormat
 import java.util.*
 

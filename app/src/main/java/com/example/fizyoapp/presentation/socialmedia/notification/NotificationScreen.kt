@@ -28,7 +28,7 @@ import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.notification.NotificationType
 import com.example.fizyoapp.domain.model.notification.SocialMediaNotification
 import com.example.fizyoapp.presentation.navigation.AppScreens
-import com.example.fizyoapp.presentation.socialmedia.PhysiotherapistSocialMediaNavbar
+import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.PhysiotherapistSocialMediaNavbar
 import java.text.SimpleDateFormat
 import java.util.*
 

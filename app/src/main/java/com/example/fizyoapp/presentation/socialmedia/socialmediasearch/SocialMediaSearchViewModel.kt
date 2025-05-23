@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.socialmedia
+package com.example.fizyoapp.presentation.socialmedia.socialmediasearch
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

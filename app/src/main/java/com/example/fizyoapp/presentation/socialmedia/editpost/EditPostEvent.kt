@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.socialmedia
+package com.example.fizyoapp.presentation.socialmedia.editpost
 
 sealed class EditPostEvent {
     data class ContentChanged(val content: String) : EditPostEvent()

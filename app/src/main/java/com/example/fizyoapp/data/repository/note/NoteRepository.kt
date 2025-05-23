@@ -15,4 +15,9 @@ interface NoteRepository {
 
     fun updateNoteUpdate(noteId: String, updateIndex: Int, newUpdate: NoteUpdate): Flow<Resource<Note>>
     fun deleteNoteUpdate(noteId: String, updateIndex: Int): Flow<Resource<Note>>
+
+    fun addImageToNote(noteId: String, imageUrl: String): Flow<Resource<Note>>
+    fun addDocumentToNote(noteId: String, documentUrl: String): Flow<Resource<Note>>
+    fun addImageToNoteUpdate(noteId: String, updateIndex: Int, imageUrl: String): Flow<Resource<Note>>
+    fun addDocumentToNoteUpdate(noteId: String, updateIndex: Int, documentUrl: String): Flow<Resource<Note>>
 }

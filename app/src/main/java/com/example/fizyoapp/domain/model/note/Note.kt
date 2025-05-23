@@ -11,5 +11,7 @@ data class Note(
     val creationDate: Date = Date(),
     val updateDate: Date = Date(),
     val color: NoteColor = NoteColor.WHITE,
-    val updates: List<NoteUpdate> = emptyList()
+    val updates: List<NoteUpdate> = emptyList(),
+    val images: List<String> = emptyList(),
+    val documents: List<String> = emptyList()
 )
