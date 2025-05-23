@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.socialmedia
+package com.example.fizyoapp.presentation.socialmedia.physiotherapistsocialprofile
 
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle

@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.socialmedia
+package com.example.fizyoapp.presentation.socialmedia.socialmediamain
 
 import com.example.fizyoapp.domain.model.socialmedia.Post
 

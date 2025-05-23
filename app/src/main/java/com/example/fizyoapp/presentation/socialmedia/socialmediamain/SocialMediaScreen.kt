@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.socialmedia
+package com.example.fizyoapp.presentation.socialmedia.socialmediamain
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -13,7 +13,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Comment
 import androidx.compose.material.icons.automirrored.outlined.Feed
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.Feed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,17 +20,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.auth.UserRole
 import com.example.fizyoapp.domain.model.socialmedia.Post
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.PhysiotherapistSocialMediaNavbar
+import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.UserSocialMediaNavbar
 import java.text.SimpleDateFormat
 import java.util.Locale
+import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,13 +58,24 @@ fun SocialMediaScreen(
         } ?: "Kullanıcı"
     }
 
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(key1 = Unit) {
         viewModel.initializeScreen()
     }
 
-    LaunchedEffect(key1 = state.posts) {
-        if (state.posts.isNotEmpty()) {
-            viewModel.checkAllFollowStates()
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                Log.d("SocialMediaScreen", "Screen resumed, refreshing follow states")
+                viewModel.checkAllFollowStates()
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -159,6 +175,7 @@ fun SocialMediaScreen(
                     items(state.posts) { post ->
                         val isFollowingAuthor = viewModel.followStateMap.collectAsState().value[post.userId] ?: false
                         val isFollowLoading = viewModel.followLoadingMap.collectAsState().value[post.userId] ?: false
+
                         PostItem(
                             post = post,
                             currentUserId = currentUser?.id,
@@ -209,6 +226,7 @@ fun PostItem(
     val isLikedByCurrentUser = post.likedBy.contains(currentUserId)
     val isCurrentUserPost = post.userId == currentUserId
     val canFollow = post.userRole == "PHYSIOTHERAPIST" && !isCurrentUserPost
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -389,6 +407,7 @@ fun FollowButton(
             Color.White,
         label = "contentColor"
     )
+
     Button(
         onClick = onClick,
         enabled = !isLoading,

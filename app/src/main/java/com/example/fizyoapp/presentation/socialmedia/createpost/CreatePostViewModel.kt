@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.socialmedia
+package com.example.fizyoapp.presentation.socialmedia.createpost
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -168,7 +168,11 @@ class CreatePostViewModel @Inject constructor(
                                 isLoading = false,
                                 error = result.message ?: "Gönderi oluşturulamadı"
                             )
-                            _uiEvent.send(UiEvent.ShowError(result.message ?: "Gönderi oluşturulamadı"))
+                            _uiEvent.send(
+                                UiEvent.ShowError(
+                                    result.message ?: "Gönderi oluşturulamadı"
+                                )
+                            )
                         }
                         is Resource.Loading -> {
                             _state.value = _state.value.copy(

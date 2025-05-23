@@ -1,5 +1,5 @@
 // presentation/socialmedia/SocialMediaSearchScreen.kt
-package com.example.fizyoapp.presentation.socialmedia
+package com.example.fizyoapp.presentation.socialmedia.socialmediasearch
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,6 +9,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,6 +30,8 @@ import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.auth.UserRole
 import com.example.fizyoapp.domain.model.physiotherapist_profile.PhysiotherapistProfile
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.PhysiotherapistSocialMediaNavbar
+import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.UserSocialMediaNavbar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,12 +45,10 @@ fun SocialMediaSearchScreen(
     val isPhysiotherapist = currentUser?.role == UserRole.PHYSIOTHERAPIST
     val focusRequester = remember { FocusRequester() }
 
-    // Ekran açıldığında arama çubuğuna otomatik focus
     LaunchedEffect(Unit) {
         try {
             focusRequester.requestFocus()
         } catch (e: Exception) {
-            // Hata durumunda devam et
         }
     }
 
@@ -62,7 +64,7 @@ fun SocialMediaSearchScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Geri"
                         )
                     }
@@ -95,7 +97,6 @@ fun SocialMediaSearchScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
-            // Arama Çubuğu
             OutlinedTextField(
                 value = state.searchQuery,
                 onValueChange = { viewModel.onSearchQueryChange(it) },
@@ -132,7 +133,6 @@ fun SocialMediaSearchScreen(
                 shape = RoundedCornerShape(24.dp)
             )
 
-            // İçerik Alanı
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -144,7 +144,7 @@ fun SocialMediaSearchScreen(
                     )
                 } else {
                     LazyColumn {
-                        // Arama yapıldığında ve sonuçlar varsa
+
                         if (state.hasSearched && state.searchResults.isNotEmpty()) {
                             item {
                                 Row(
@@ -174,7 +174,6 @@ fun SocialMediaSearchScreen(
                                 }
                             }
 
-                            // Arama sonuçları listesi
                             items(state.searchResults) { physiotherapist ->
                                 PhysiotherapistItem(
                                     physiotherapist = physiotherapist,
@@ -187,7 +186,7 @@ fun SocialMediaSearchScreen(
                                 )
                             }
                         }
-                        // Arama yapıldı ama sonuç yoksa
+
                         else if (state.hasSearched && state.searchResults.isEmpty()) {
                             item {
                                 Box(
@@ -215,7 +214,6 @@ fun SocialMediaSearchScreen(
                             }
                         }
 
-                        // Arama Geçmişi (arama yapılmadığında göster)
                         if (state.searchHistory.isNotEmpty() && !state.hasSearched) {
                             item {
                                 Row(
@@ -239,7 +237,6 @@ fun SocialMediaSearchScreen(
                                 }
                             }
 
-                            // Geçmiş aramaları listele
                             items(state.searchHistory) { physiotherapist ->
                                 PhysiotherapistItem(
                                     physiotherapist = physiotherapist,
@@ -254,14 +251,12 @@ fun SocialMediaSearchScreen(
                             }
                         }
 
-                        // Alt boşluk
                         item {
                             Spacer(modifier = Modifier.height(50.dp))
                         }
                     }
                 }
 
-                // Hata gösterimi
                 if (state.error != null) {
                     Box(
                         modifier = Modifier
@@ -299,7 +294,7 @@ fun PhysiotherapistItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Profil Fotoğrafı
+
             Box(
                 modifier = Modifier
                     .size(50.dp)
@@ -327,7 +322,7 @@ fun PhysiotherapistItem(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // İsim ve Soyisim
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -350,12 +345,11 @@ fun PhysiotherapistItem(
                 }
             }
 
-            // İkon
             Icon(
                 imageVector = if (showHistoryIcon)
                     Icons.Default.History
                 else
-                    Icons.Default.ArrowForward,
+                    Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
                 tint = if (showHistoryIcon)
                     Color.Gray

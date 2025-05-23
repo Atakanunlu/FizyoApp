@@ -28,6 +28,8 @@ import com.example.fizyoapp.data.repository.messagesscreen.MessageRepositoryImpl
 import com.example.fizyoapp.data.repository.messagesscreen.MessagesRepository
 import com.example.fizyoapp.data.repository.note.NoteRepository
 import com.example.fizyoapp.data.repository.note.NoteRepositoryImpl
+import com.example.fizyoapp.data.repository.note.notefile.NoteFileRepository
+import com.example.fizyoapp.data.repository.note.notefile.NoteFileRepositoryImpl
 import com.example.fizyoapp.data.repository.notification.NotificationRepository
 import com.example.fizyoapp.data.repository.notification.NotificationRepositoryImpl
 import com.example.fizyoapp.data.repository.physiotherapist_profile.PhysiotherapistProfileRepository
@@ -72,12 +74,19 @@ import com.example.fizyoapp.domain.usecase.messagesscreen.GetChatThreadsUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.GetMessagesUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.MarkMessagesAsReadUseCase
 import com.example.fizyoapp.domain.usecase.messagesscreen.SendMessageUseCase
+import com.example.fizyoapp.domain.usecase.note.AddDocumentToNoteUpdateUseCase
+import com.example.fizyoapp.domain.usecase.note.AddDocumentToNoteUseCase
+import com.example.fizyoapp.domain.usecase.note.AddImageToNoteUpdateUseCase
+import com.example.fizyoapp.domain.usecase.note.AddImageToNoteUseCase
 import com.example.fizyoapp.domain.usecase.note.AddUpdateToNoteUseCase
 import com.example.fizyoapp.domain.usecase.note.CreateNoteUseCase
 import com.example.fizyoapp.domain.usecase.note.DeleteNoteUseCase
 import com.example.fizyoapp.domain.usecase.note.GetNoteByIdUseCase
 import com.example.fizyoapp.domain.usecase.note.GetNotesByPhysiotherapistIdUseCase
 import com.example.fizyoapp.domain.usecase.note.UpdateNoteUpdateUseCase
+import com.example.fizyoapp.domain.usecase.note.notefile.DeleteNoteFileUseCase
+import com.example.fizyoapp.domain.usecase.note.notefile.UploadNoteDocumentUseCase
+import com.example.fizyoapp.domain.usecase.note.notefile.UploadNoteImageUseCase
 import com.example.fizyoapp.domain.usecase.notification.CreateNotificationUseCase
 import com.example.fizyoapp.domain.usecase.notification.DeleteNotificationUseCase
 import com.example.fizyoapp.domain.usecase.notification.GetNotificationsUseCase
@@ -790,4 +799,51 @@ object AppModule {
         return ResetPasswordUseCase(authRepository)
     }
 
+    @Provides
+    @Singleton
+    fun provideNoteFileRepository(storage: FirebaseStorage): NoteFileRepository {
+        return NoteFileRepositoryImpl(storage)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUploadNoteImageUseCase(repository: NoteFileRepository): UploadNoteImageUseCase {
+        return UploadNoteImageUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUploadNoteDocumentUseCase(repository: NoteFileRepository): UploadNoteDocumentUseCase {
+        return UploadNoteDocumentUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteNoteFileUseCase(repository: NoteFileRepository): DeleteNoteFileUseCase {
+        return DeleteNoteFileUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddImageToNoteUseCase(repository: NoteRepository): AddImageToNoteUseCase {
+        return AddImageToNoteUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddDocumentToNoteUseCase(repository: NoteRepository): AddDocumentToNoteUseCase {
+        return AddDocumentToNoteUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddImageToNoteUpdateUseCase(repository: NoteRepository): AddImageToNoteUpdateUseCase {
+        return AddImageToNoteUpdateUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddDocumentToNoteUpdateUseCase(repository: NoteRepository): AddDocumentToNoteUpdateUseCase {
+        return AddDocumentToNoteUpdateUseCase(repository)
+    }
 }
