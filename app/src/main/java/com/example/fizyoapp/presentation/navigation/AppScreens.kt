@@ -7,6 +7,7 @@ sealed class AppScreens(val route: String) {
     object RegisterScreen: AppScreens("register_screen")
 
 
+
     object PhysiotherapistMainScreen: AppScreens("physiotherapist_main_screen")
     object UserMainScreen: AppScreens("user_main_screen")
 
@@ -18,7 +19,12 @@ sealed class AppScreens(val route: String) {
     object PhysiotherapistDetailScreen: AppScreens("physiotherapist_detail_screen")
     object ProfilScreen: AppScreens("profil_screen")
 
+    object ExerciseManagementScreen :AppScreens("exercise_management_screen")
+    object AddExerciseScreen : AppScreens("add_exercise_screen")
+    object ExerciseCategoriesScreen : AppScreens("category_exercises_screen/{categoryId}")
+    object CreateExercisePlanScreen : AppScreens("create_exercise_plan_screen")
 
+    object ExercisePlanDetailScreen : AppScreens("exercise_plan_detail_screen/{planId}")
 
     object OrnekEgzersizler: AppScreens("ornek_egzersizler")
     object ExercisesScreen: AppScreens("exercises_screen")
@@ -29,12 +35,14 @@ sealed class AppScreens(val route: String) {
     object CoreExercisesScreen: AppScreens("core_exercises")
     object HipExercisesScreen: AppScreens("hip_exercises")
 
+    object  UserExercisePlansScreen: AppScreens("user_exercise_plan")
     object NotesScreen: AppScreens("notes_screen")
     object NoteDetailScreen: AppScreens("note_detail_screen/{noteId}") {
         fun createRoute(noteId: String): String {
             return "note_detail_screen/$noteId"
         }
     }
+    object EditExerciseScreen : AppScreens("edit_exercise_screen/{exerciseId}")
     object AddNoteScreen: AppScreens("add_note_screen")
 
     object MessagesScreen: AppScreens("messages_screen")
@@ -111,4 +119,6 @@ sealed class AppScreens(val route: String) {
             return "edit_post_screen/$postId"
         }
     }
+    object EditExercisePlanScreen : AppScreens("edit_exercise_plan_screen/{planId}")
+
 }

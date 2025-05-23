@@ -228,6 +228,56 @@ fun PhysiotherapistMainScreen(
                             )
                         }
                     }
+                    // PhysiotherapistMainScreen.kt'ya eklenecek buton
+                    ElevatedButton(
+                        onClick = {
+                            navController.navigate(AppScreens.ExerciseManagementScreen.route)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.elevatedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FitnessCenter, // Egzersiz ikonu
+                                contentDescription = "Egzersiz Yönetimi",
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .padding(end = 16.dp)
+                            )
+                            Column(
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text(
+                                    text = "Egzersiz Yönetimi",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Egzersizleri yönetin ve hastalara egzersiz planları oluşturun",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
+                            Spacer(modifier = Modifier.weight(1f))
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            )
+                        }
+                    }
 
                     state.errorMessage?.let {
                         Text(

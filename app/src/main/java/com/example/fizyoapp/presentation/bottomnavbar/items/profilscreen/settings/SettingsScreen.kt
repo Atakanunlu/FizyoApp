@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen
+package com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.fizyoapp.domain.model.auth.User
+import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,6 +24,7 @@ import com.example.fizyoapp.presentation.user.usermainscreen.UserViewModel
 fun SettingsScreen( navController: NavController,
                     viewModel: UserViewModel = hiltViewModel()
 ) {
+
 
     val state = viewModel.state.collectAsState().value
     Scaffold(
@@ -49,11 +50,7 @@ fun SettingsScreen( navController: NavController,
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            ProfileSection(
-                name = "${state.userProfile?.firstName} ${state.userProfile?.lastName}",
-                email = state.email,
-                onClick = { navController.navigate("profile_settings") }
-            )
+
 
             Divider(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
 
@@ -63,56 +60,15 @@ fun SettingsScreen( navController: NavController,
                 icon = Icons.Filled.Person,
                 title = "Profil ve Hesap Ayarları",
                 subtitle = "Kişisel bilgiler, doğum tarihi",
-                onClick = { navController.navigate("profile_settings") }
+                onClick = { navController.navigate(AppScreens.UserInformationScreen.route) }
             )
 
-            SettingsItem(
-                icon = Icons.Filled.Notifications,
-                title = "Bildirim Ayarları",
-                subtitle = "İlaç hatırlatıcıları, randevu hatırlatmaları",
-                onClick = { navController.navigate("notification_settings") }
-            )
-
-            SettingsItem(
-                icon = Icons.Filled.Lock,
-                title = "Gizlilik ve Güvenlik",
-                subtitle = "Veri paylaşımı, doktor erişimi, uygulama kilidi",
-                onClick = { navController.navigate("privacy_settings") }
-            )
-
-            Divider(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-
-            SettingsSectionTitle(title = "Uygulama Ayarları")
-
-
-            SettingsItem(
-                icon = Icons.Filled.Palette,
-                title = "Görünüm ve Kişiselleştirme",
-                subtitle = "Karanlık-Aydınlık Tema",
-                onClick = {},
-                endContent = {
-                    ThemeSwitch()
-                }
-            )
-
-            SettingsItem(
-                icon = Icons.Filled.Language,
-                title = "Dil ve Bölge Ayarları",
-                subtitle = "Uygulama dili, tarih ve saat formatı",
-                onClick = { navController.navigate("language_settings") }
-            )
 
 
             Divider(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
 
             SettingsSectionTitle(title = "Destek ve Bilgi")
 
-            SettingsItem(
-                icon = Icons.Filled.Help,
-                title = "Yardım ve Destek",
-                subtitle = "SSS, video eğitimler, müşteri desteği",
-                onClick = { navController.navigate("support") }
-            )
 
             SettingsItem(
                 icon = Icons.Filled.Info,
@@ -122,7 +78,7 @@ fun SettingsScreen( navController: NavController,
             )
 
             Button(
-                onClick = { /* Çıkış işlemleri */ },
+                onClick = { },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
@@ -266,12 +222,3 @@ fun SettingsItem(
     }
 }
 
-@Composable
-fun ThemeSwitch() {
-    var darkMode by remember { mutableStateOf(false) }
-
-    Switch(
-        checked = darkMode,
-        onCheckedChange = { darkMode = it }
-    )
-}

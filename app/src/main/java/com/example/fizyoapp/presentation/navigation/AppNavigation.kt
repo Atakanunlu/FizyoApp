@@ -14,9 +14,14 @@ import com.example.fizyoapp.presentation.register.RegisterScreen
 import com.example.fizyoapp.presentation.user.usermainscreen.UserMainScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.paylasimlarscreen.PaylasimlarScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.ProfilScreen
-import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.SettingsScreen
+import com.example.fizyoapp.presentation.bottomnavbar.items.profilscreen.settings.SettingsScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.searchscreen.SearchScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MessagesScreen
+import com.example.fizyoapp.presentation.physiotherapist.exercise.EditExerciseScreen
+import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexercise.AddExerciseScreen
+import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexerciseplan.CreateExercisePlanScreen
+import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.exercisemanagement.ExerciseManagementScreen
+import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexerciseplan.EditExercisePlanScreen
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_profile_screen.PhysiotherapistProfileSetupScreen
 import com.example.fizyoapp.presentation.splashscreen.SplashScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.core.CoreExercisesScreen
@@ -36,6 +41,8 @@ import com.example.fizyoapp.presentation.user.illnessrecord.medicalrecord.Medica
 import com.example.fizyoapp.presentation.user.illnessrecord.radyologicalimagesadd.RadyolojikGoruntulerScreen
 import com.example.fizyoapp.presentation.socialmedia.*
 import com.example.fizyoapp.presentation.socialmedia.notification.NotificationScreen
+import com.example.fizyoapp.presentation.user.egzersizlerim.ExercisePlanDetailScreen
+import com.example.fizyoapp.presentation.user.egzersizlerim.UserExercisePlansScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.leg.LegExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.lowerback.LowerBackExercisesScreen
 import com.example.fizyoapp.presentation.user.ornekegzersizler.buttons.neck.NeckExercisesScreen
@@ -167,6 +174,11 @@ fun AppNavigation() {
                     notesViewModel.onEvent(NotesEvent.Refresh)
                 }
             )
+        }
+        composable(
+            route=AppScreens.ExerciseManagementScreen.route
+        ){
+            ExerciseManagementScreen(navController=navController)
         }
 
 
@@ -332,6 +344,55 @@ fun AppNavigation() {
         }
 
 
+        composable(route = AppScreens.ExerciseManagementScreen.route) {
+            ExerciseManagementScreen(navController = navController)
+        }
+
+        composable(route = AppScreens.AddExerciseScreen.route) {
+            AddExerciseScreen(navController = navController)
+        }
+
+        composable(route = AppScreens.ExerciseCategoriesScreen.route) {
+            // This can be implemented later if needed
+            ExerciseManagementScreen(navController = navController)
+        }
+
+        composable(route = AppScreens.CreateExercisePlanScreen.route) {
+            CreateExercisePlanScreen(navController = navController)
+        }
+        composable(
+            route = AppScreens.EditExerciseScreen.route,
+            arguments = listOf(navArgument("exerciseId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val exerciseId = backStackEntry.arguments?.getString("exerciseId") ?: ""
+            EditExerciseScreen(
+                navController = navController,
+                exerciseId = exerciseId
+            )
+        }
+
+        composable(route = AppScreens.UserExercisePlansScreen.route) {
+            UserExercisePlansScreen(navController = navController)
+        }
+
+        composable(
+            route = AppScreens.EditExercisePlanScreen.route,
+            arguments = listOf(navArgument("planId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val planId = backStackEntry.arguments?.getString("planId") ?: ""
+            EditExercisePlanScreen(navController = navController, planId = planId)
+        }
+
+        composable(
+            route = AppScreens.ExercisePlanDetailScreen.route,
+            arguments = listOf(navArgument("planId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val planId = backStackEntry.arguments?.getString("planId") ?: ""
+            ExercisePlanDetailScreen(
+                navController = navController,
+                planId = planId
+            )
+        }
 
     }
 }

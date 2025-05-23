@@ -1,6 +1,5 @@
 package com.example.fizyoapp.presentation.user.illnessrecord.medicalrecord
 
-
 import android.content.Intent
 import android.net.Uri
 import android.util.Log

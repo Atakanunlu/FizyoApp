@@ -67,7 +67,7 @@ fun ProfilScreen(
     }
     LaunchedEffect(key1 = true) {
         viewModel.profileUpdatedEvent.collectLatest {
-            // Profil güncellendiğinde kullanıcı profilini tekrar yükle
+
             viewModel.onEvent(UserEvent.LoadUserProfile)
         }
     }
@@ -351,20 +351,6 @@ fun ProfileMenuSection(
             )
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                ProfileMenuItem(
-                    icon = Icons.Outlined.AttachMoney,
-                    title = "Finansal Bilgiler",
-                    subtitle = "Ödeme bilgilerinizi yönetin",
-                    primaryColor = primaryColor,
-                    accentColor = accentColor
-                ) {
-                    // Finansal bilgiler ekranına yönlendirme
-                }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 56.dp, end = 16.dp),
-                    color = Color.LightGray.copy(alpha = 0.5f)
-                )
 
                 ProfileMenuItem(
                     icon = Icons.AutoMirrored.Outlined.FollowTheSigns,
