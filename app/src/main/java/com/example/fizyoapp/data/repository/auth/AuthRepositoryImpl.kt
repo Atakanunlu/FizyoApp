@@ -1,6 +1,5 @@
 package com.example.fizyoapp.data.repository.auth
 
-import android.util.Log
 import com.example.fizyoapp.data.local.entity.auth.AuthResult
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.auth.User
@@ -30,21 +29,20 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
         email: String,
         password: String,
         role: UserRole
-    ): Flow<Resource<AuthResult.SignInResult>> = flow{
+    ): Flow<Resource<AuthResult.SignInResult>> = flow {
         try {
             emit(Resource.Loading())
-
 
             val result = auth.signInWithEmailAndPassword(email, password).await()
             val userId = result.user?.uid ?: throw Exception("Kullanıcı ID bulunamadı.")
 
-            val collection = when (role){
+            val collection = when (role) {
                 UserRole.PHYSIOTHERAPIST -> physiotherapistCollection
                 UserRole.USER -> userCollection
             }
 
             val userDoc = collection.document(userId).get().await()
-            if (!userDoc.exists()){
+            if (!userDoc.exists()) {
                 auth.signOut()
                 throw Exception("Yanlış rol! Lütfen doğru rolde giriş yapınız.")
             }
@@ -56,8 +54,7 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
             )
 
             emit(Resource.Success(AuthResult.SignInResult(user)))
-        } catch (e: Exception){
-            Log.e("FirebaseRepository","Giriş hatası", e)
+        } catch (e: Exception) {
             emit(Resource.Error(e.message ?: "Giriş başarısız oldu", e))
         }
     }
@@ -78,7 +75,6 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
                 role = role
             )
 
-            // Firestore'a kaydedilecek kullanıcı verileri
             val userData = hashMapOf(
                 "email" to email,
                 "role" to role.name,
@@ -87,69 +83,63 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
             )
 
             try {
-                when(role) {
+                when (role) {
                     UserRole.PHYSIOTHERAPIST -> physiotherapistCollection.document(userId).set(userData).await()
                     UserRole.USER -> userCollection.document(userId).set(userData).await()
                 }
 
-
-                auth.signOut()
                 emit(Resource.Success(AuthResult.SignUpResult(user)))
             } catch (e: Exception) {
                 try {
                     auth.currentUser?.delete()?.await()
                 } catch (deleteEx: Exception) {
-                    Log.e("FirebaseRepository", "Kullanıcı silme hatası", deleteEx)
                 }
                 throw e
             }
         } catch (e: Exception) {
-            Log.e("FirebaseRepository", "Kayıt Hatası", e)
             emit(Resource.Error(e.message ?: "Kayıt başarısız oldu", e))
         }
     }
 
-    override fun signOut(): Flow<Resource<AuthResult.SignOutResult>> = flow{
+    override fun signOut(): Flow<Resource<AuthResult.SignOutResult>> = flow {
         try {
             emit(Resource.Loading())
             auth.signOut()
             emit(Resource.Success(AuthResult.SignOutResult))
-        } catch (e: Exception){
-            Log.e("FirebaseRepository","Çıkış hatası", e)
+        } catch (e: Exception) {
             emit(Resource.Error(e.message ?: "Çıkış yapılırken hata oluştu", e))
         }
     }
 
-    override fun getUserRole(userId: String): Flow<Resource<AuthResult.UserRoleResult>> = flow{
+    override fun getUserRole(userId: String): Flow<Resource<AuthResult.UserRoleResult>> = flow {
         try {
             emit(Resource.Loading())
             val physiotherapistDoc = physiotherapistCollection.document(userId).get().await()
-            if (physiotherapistDoc.exists()){
+            if (physiotherapistDoc.exists()) {
                 emit(Resource.Success(AuthResult.UserRoleResult(UserRole.PHYSIOTHERAPIST)))
                 return@flow
             }
 
             val userDoc = userCollection.document(userId).get().await()
-            if (userDoc.exists()){
+            if (userDoc.exists()) {
                 emit(Resource.Success(AuthResult.UserRoleResult(UserRole.USER)))
                 return@flow
             }
 
             emit(Resource.Success(AuthResult.UserRoleResult(null)))
-        } catch (e: Exception){
-            Log.e("FirebaseRepository","Rol sorgulama hatası", e)
+        } catch (e: Exception) {
             emit(Resource.Error(e.message ?: "Kullanıcı rolü bulunamadı", e))
         }
     }
 
-    override fun getCurrentUser(): Flow<Resource<AuthResult.CurrentUserResult>> = flow{
+    override fun getCurrentUser(): Flow<Resource<AuthResult.CurrentUserResult>> = flow {
         try {
             emit(Resource.Loading())
             val firebaseUser = auth.currentUser
-            if (firebaseUser != null){
+            if (firebaseUser != null) {
                 val roleFlow = getUserRole(firebaseUser.uid)
-                roleFlow.collect{ resource ->
-                    when(resource){
+                roleFlow.collect { resource ->
+                    when (resource) {
                         is Resource.Success -> {
                             val role = resource.data.role
                             if (role != null) {
@@ -169,11 +159,10 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
                         is Resource.Loading -> {}
                     }
                 }
-            } else{
+            } else {
                 emit(Resource.Success(AuthResult.CurrentUserResult(null)))
             }
-        } catch (e: Exception){
-            Log.e("FirebaseRepository","Mevcut kullanıcı hatası", e)
+        } catch (e: Exception) {
             emit(Resource.Error(e.message ?: "Kullanıcı bilgileri alınamadı", e))
         }
     }
@@ -207,20 +196,70 @@ class AuthRepositoryImpl @Inject constructor() : AuthRepository {
                             }
                         }
                     } catch (e: Exception) {
-                        Log.e("FirebaseRepository", "Auth state listener hatası", e)
                         trySend(Resource.Error("Kullanıcı rolü alınamadı: ${e.message}", e))
                     }
                 } else {
-
                     trySend(Resource.Success(AuthResult.CurrentUserResult(null)))
                 }
             }
         }
 
         auth.addAuthStateListener(authStateListener)
-        // Flow kapatıldığında listener'ı temizle
+
         awaitClose {
             auth.removeAuthStateListener(authStateListener)
+        }
+    }
+
+    override fun sendEmailVerification(): Flow<Resource<AuthResult.EmailVerificationResult>> = flow {
+        try {
+            emit(Resource.Loading())
+            val user = auth.currentUser ?: throw Exception("Kullanıcı bulunamadı.")
+            user.sendEmailVerification().await()
+            emit(Resource.Success(AuthResult.EmailVerificationResult(true)))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "E-posta doğrulama e-postası gönderilemedi", e))
+        }
+    }
+
+    override fun checkEmailVerified(): Flow<Resource<AuthResult.EmailVerifiedResult>> = flow {
+        try {
+            emit(Resource.Loading())
+            auth.currentUser?.reload()?.await()
+            val user = auth.currentUser ?: throw Exception("Kullanıcı bulunamadı.")
+            emit(Resource.Success(AuthResult.EmailVerifiedResult(user.isEmailVerified)))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "E-posta doğrulama durumu kontrol edilemedi", e))
+        }
+    }
+
+    override fun sendPasswordResetEmail(email: String): Flow<Resource<AuthResult.PasswordResetEmailResult>> = flow {
+        try {
+            emit(Resource.Loading())
+            auth.sendPasswordResetEmail(email).await()
+            emit(Resource.Success(AuthResult.PasswordResetEmailResult(true)))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Şifre sıfırlama e-postası gönderilemedi", e))
+        }
+    }
+
+    override fun verifyPasswordResetCode(code: String): Flow<Resource<AuthResult.VerifyResetCodeResult>> = flow {
+        try {
+            emit(Resource.Loading())
+            auth.verifyPasswordResetCode(code).await()
+            emit(Resource.Success(AuthResult.VerifyResetCodeResult(true)))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Şifre sıfırlama kodu doğrulanamadı", e))
+        }
+    }
+
+    override fun resetPassword(code: String, newPassword: String): Flow<Resource<AuthResult.ResetPasswordResult>> = flow {
+        try {
+            emit(Resource.Loading())
+            auth.confirmPasswordReset(code, newPassword).await()
+            emit(Resource.Success(AuthResult.ResetPasswordResult(true)))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Şifre sıfırlanamadı", e))
         }
     }
 }
