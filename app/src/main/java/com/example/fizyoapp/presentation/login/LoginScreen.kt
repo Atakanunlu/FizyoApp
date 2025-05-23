@@ -25,7 +25,7 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.collectAsState().value
-    val context = LocalContext.current
+
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
