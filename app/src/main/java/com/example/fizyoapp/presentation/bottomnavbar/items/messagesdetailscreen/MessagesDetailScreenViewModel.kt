@@ -14,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import okhttp3.internal.concurrent.formatDuration
 import javax.inject.Inject
 
 @HiltViewModel
@@ -102,10 +103,34 @@ class MessagesDetailScreenViewModel @Inject constructor(
                 loadMessages()
             }
             is MessageDetailScreenEvent.StartVideoCall -> {
-                _state.update { it.copy(isVideoCallActive = true) }
+                // Sadece fizyoterapistler video arama başlatabilir
+                if (!state.value.isPhysiotherapist) {
+                    _state.update { it.copy(isVideoCallActive = true) }
+                } else {
+                    // Fizyoterapist olmayan kullanıcılar için hata mesajı
+                    _state.update { it.copy(
+                        error = "Sadece fizyoterapistler görüntülü arama başlatabilir."
+                    ) }
+                }
             }
             is MessageDetailScreenEvent.EndVideoCall -> {
                 _state.update { it.copy(isVideoCallActive = false) }
+
+                // Daha önce video araması olduğunu görmek için mesajları kontrol et
+                val lastMessage = state.value.messages.lastOrNull()
+                val isDuplicateCallMessage = lastMessage != null &&
+                        (lastMessage.messageType == "video_call" || lastMessage.messageType == "missed_video_call") &&
+                        System.currentTimeMillis() - lastMessage.timestamp.time < 5000 // Son 5 saniye içinde
+
+                if (!isDuplicateCallMessage) {
+                    if (!event.wasAnswered) {
+                        // Cevapsız arama mesajı gönder
+                        sendVideoCallMessage(false, event.metadata)
+                    } else {
+                        // Tamamlanan arama mesajı gönder
+                        sendVideoCallMessage(true, event.metadata)
+                    }
+                }
             }
             is MessageDetailScreenEvent.DismissError -> {
                 _state.update { it.copy(error = null) }
@@ -148,6 +173,49 @@ class MessagesDetailScreenViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+    private fun sendVideoCallMessage(wasAnswered: Boolean, metadata: Map<String, Any> = emptyMap()) {
+        if (FirebaseAuth.getInstance().currentUser == null) {
+            return
+        }
+
+        viewModelScope.launch {
+            val messageType = if (wasAnswered) "video_call" else "missed_video_call"
+
+            val messageContent = if (wasAnswered) {
+                val duration = metadata["duration"] as? Long ?: 0L
+                if (duration > 0) {
+                    "Görüntülü arama - ${formatDuration(duration)}"
+                } else {
+                    "Görüntülü arama yapıldı"
+                }
+            } else {
+                "Cevapsız görüntülü arama"
+            }
+            sendMessageUseCase.sendCustomMessage(
+                content = messageContent,
+                receiverId = userId,
+                messageType = messageType,
+                metadata = metadata
+            ).collectLatest { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        loadMessages()
+                    }
+                    else -> {}
+                }
+            }
+        }
+    }
+    // Süreyi formatlamak için yardımcı fonksiyon
+    private fun formatDuration(seconds: Long): String {
+        val minutes = seconds / 60
+        val remainingSeconds = seconds % 60
+        return if (minutes > 0) {
+            "$minutes dk $remainingSeconds sn"
+        } else {
+            "$remainingSeconds sn"
         }
     }
 

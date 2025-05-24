@@ -1,5 +1,11 @@
 package com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen
+
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,17 +33,12 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.messagesscreen.Message
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.videocall.VideoCallScreen
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.DateFormatter
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.EvaluationFormDetailDialog
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.EvaluationFormMessageBubble
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MedicalReportDetailDialog
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.MedicalReportMessageBubble
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.RadiologicalImageDetailDialog
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.RadiologicalImageMessageBubble
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.isEvaluationFormMessage
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.isMedicalReportMessage
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.isRadiologicalImageMessage
+import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.internal.concurrent.formatDuration
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,7 +46,7 @@ import kotlinx.coroutines.launch
 fun MessagesDetailScreen(
     navController: NavController,
     userId: String,
-    viewModel: MessagesDetailScreenViewModel = hiltViewModel()
+    viewModel: MessagesDetailScreenViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val scrollState = rememberLazyListState()
@@ -63,6 +64,14 @@ fun MessagesDetailScreen(
     var selectedMedicalReportMessage by remember { mutableStateOf<Message?>(null) }
     var selectedEvaluationFormMessage by remember { mutableStateOf<Message?>(null) }
 
+    // Mesajları günlere göre grupla
+    val groupedMessages = remember(state.messages) {
+        state.messages.groupBy { message ->
+            DateFormatter.getMessageDay(message.timestamp)
+        }
+    }
+
+
     if (state.isVideoCallActive) {
         val otherUserName = if (state.isPhysiotherapist) {
             "${state.physiotherapist?.firstName ?: ""} ${state.physiotherapist?.lastName ?: ""}"
@@ -72,15 +81,26 @@ fun MessagesDetailScreen(
         VideoCallScreen(
             otherUserId = userId,
             otherUserName = otherUserName.ifEmpty { "Karşı Taraf" },
-            onCallEnded = { viewModel.onEvent(MessageDetailScreenEvent.EndVideoCall) }
+            onCallEnded = { wasAnswered, metadata ->
+                viewModel.onEvent(MessageDetailScreenEvent.EndVideoCall(wasAnswered, metadata))
+            }
         )
         return
     }
 
+    // Scroll durumunu izleyen daha güçlü bir LaunchedEffect
+    LaunchedEffect(state.messages, state.isLoading) {
+        if (state.messages.isNotEmpty() && !state.isLoading) {
+            // Kısa bir gecikme ekleyin, böylece görünüm yenilendikten sonra scroll edilir
+            delay(100)
+            scrollState.scrollToItem(state.messages.size - 1, scrollOffset = 0)
+        }
+    }
 
-    LaunchedEffect(state.messages.size) {
-        if(state.messages.isNotEmpty()){
-            scrollState.animateScrollToItem(state.messages.size-1)
+    LaunchedEffect(state.isInitialLoading) {
+        if (!state.isInitialLoading && state.messages.isNotEmpty()) {
+            delay(300)
+            scrollState.scrollToItem(state.messages.size - 1)
         }
     }
 
@@ -168,14 +188,17 @@ fun MessagesDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = { viewModel.onEvent(MessageDetailScreenEvent.StartVideoCall) }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Videocam,
-                            contentDescription = "Görüntülü Arama",
-                            tint = Color.White
-                        )
+                    // Sadece fizyoterapistler için görüntülü arama butonu göster
+                    if (!state.isPhysiotherapist) {
+                        IconButton(
+                            onClick = { viewModel.onEvent(MessageDetailScreenEvent.StartVideoCall) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Videocam,
+                                contentDescription = "Görüntülü Arama",
+                                tint = Color.White
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -267,28 +290,54 @@ fun MessagesDetailScreen(
                                 state = scrollState,
                                 contentPadding = PaddingValues(vertical = 16.dp)
                             ) {
-                                items(state.messages) { message ->
-                                    ModernMessageItem(
-                                        message = message,
-                                        isFromCurrentUser = message.senderId == currentUserId,
-                                        myMessageColor = myMessageColor,
-                                        otherMessageColor = otherMessageColor,
-                                        onMessageClick = { clickedMessage ->
-                                            when {
-                                                isRadiologicalImageMessage(clickedMessage) -> {
-                                                    selectedRadiologicalMessage = clickedMessage
-                                                }
-                                                isMedicalReportMessage(clickedMessage) -> {
-                                                    selectedMedicalReportMessage = clickedMessage
-                                                }
-                                                isEvaluationFormMessage(clickedMessage) -> {
-                                                    selectedEvaluationFormMessage = clickedMessage
-                                                }
+                                groupedMessages.forEach { (date, messagesForDate) ->
+                                    // Tarih başlığı
+                                    item {
+                                        Box(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Surface(
+                                                color = Color(0xFFE0E0E0),
+                                                shape = RoundedCornerShape(16.dp),
+                                                modifier = Modifier.padding(vertical = 8.dp)
+                                            ) {
+                                                Text(
+                                                    text = date,
+                                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = Color.DarkGray
+                                                )
                                             }
                                         }
-                                    )
+                                    }
+
+                                    // Günün mesajları
+                                    items(messagesForDate) { message ->
+                                        ModernMessageItem(
+                                            message = message,
+                                            isFromCurrentUser = message.senderId == currentUserId,
+                                            myMessageColor = myMessageColor,
+                                            otherMessageColor = otherMessageColor,
+                                            onMessageClick = { clickedMessage ->
+                                                when {
+                                                    isRadiologicalImageMessage(clickedMessage) -> {
+                                                        selectedRadiologicalMessage = clickedMessage
+                                                    }
+                                                    isMedicalReportMessage(clickedMessage) -> {
+                                                        selectedMedicalReportMessage = clickedMessage
+                                                    }
+                                                    isEvaluationFormMessage(clickedMessage) -> {
+                                                        selectedEvaluationFormMessage = clickedMessage
+                                                    }
+                                                }
+                                            }
+                                        )
+                                    }
                                 }
                             }
+
                             selectedRadiologicalMessage?.let { message ->
                                 RadiologicalImageDetailDialog(
                                     message = message,
@@ -302,18 +351,21 @@ fun MessagesDetailScreen(
                                     onDismiss = { selectedMedicalReportMessage = null }
                                 )
                             }
+
                             selectedEvaluationFormMessage?.let { message ->
                                 EvaluationFormDetailDialog(
                                     message = message,
                                     onDismiss = { selectedEvaluationFormMessage = null }
                                 )
                             }
+
                             val showScrollToBottom by remember {
                                 derivedStateOf {
                                     scrollState.firstVisibleItemIndex < state.messages.size - 2 &&
                                             state.messages.size > 5
                                 }
                             }
+
                             if (showScrollToBottom) {
                                 FloatingActionButton(
                                     onClick = {
@@ -339,6 +391,7 @@ fun MessagesDetailScreen(
                         }
                     }
                 }
+
                 if (state.error != null && state.messages.isNotEmpty()) {
                     Surface(
                         color = Color(0xFFFEEAEA),
@@ -365,6 +418,7 @@ fun MessagesDetailScreen(
                         }
                     }
                 }
+
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shadowElevation = 8.dp,
@@ -406,7 +460,9 @@ fun MessagesDetailScreen(
                                 )
                             )
                         }
+
                         Spacer(modifier = Modifier.width(12.dp))
+
                         FloatingActionButton(
                             onClick = { viewModel.onEvent(MessageDetailScreenEvent.SendMessage) },
                             modifier = Modifier.size(52.dp),
@@ -434,6 +490,7 @@ fun MessagesDetailScreen(
         }
     }
 }
+
 @Composable
 fun ModernMessageItem(
     message: Message,
@@ -442,16 +499,29 @@ fun ModernMessageItem(
     otherMessageColor: Color,
     onMessageClick: (Message) -> Unit = {}
 ) {
+    // Bu fonksiyonu ekleyin:
+    fun shouldShowUnreadIndicator(message: Message, isFromCurrentUser: Boolean): Boolean {
+        // Eğer mesaj benden geldiyse, okunma göstergesini hiç gösterme
+        if (isFromCurrentUser) {
+            return false
+        }
+        // Başkasından gelen mesajlar için okunma durumunu göster
+        return !message.isRead
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         horizontalAlignment = if (isFromCurrentUser) Alignment.End else Alignment.Start
     ) {
-
         when {
+            message.messageType == "video_call" || message.messageType == "missed_video_call" -> {
+                VideoCallNotificationBubble(
+                    message = message,
+                    isCurrentUser = isFromCurrentUser
+                )
+            }
             isRadiologicalImageMessage(message) -> {
-
                 RadiologicalImageMessageBubble(
                     message = message,
                     isCurrentUser = isFromCurrentUser,
@@ -459,7 +529,6 @@ fun ModernMessageItem(
                 )
             }
             isMedicalReportMessage(message) -> {
-
                 MedicalReportMessageBubble(
                     message = message,
                     isCurrentUser = isFromCurrentUser,
@@ -467,7 +536,6 @@ fun ModernMessageItem(
                 )
             }
             isEvaluationFormMessage(message) -> {
-
                 EvaluationFormMessageBubble(
                     message = message,
                     isCurrentUser = isFromCurrentUser,
@@ -475,7 +543,7 @@ fun ModernMessageItem(
                 )
             }
             else -> {
-
+                // Normal metin mesajı
                 Box(
                     modifier = Modifier
                         .widthIn(max = 280.dp)
@@ -512,7 +580,7 @@ fun ModernMessageItem(
                         Icon(
                             imageVector = Icons.Default.Done,
                             contentDescription = null,
-                            tint = Color.Gray,
+                            tint = if (message.isRead) Color(0xFF6D72C3) else Color.Gray,
                             modifier = Modifier.size(12.dp)
                         )
                     } else {
@@ -521,6 +589,176 @@ fun ModernMessageItem(
                             fontSize = 12.sp,
                             color = Color.Gray
                         )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun VideoCallNotificationBubble(
+    message: Message,
+    isCurrentUser: Boolean
+) {
+    val isMissedCall = message.messageType == "missed_video_call"
+
+    // Animasyon için
+    var isVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        isVisible = true
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.85f),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 4.dp
+                ),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Üst Kısım: İkon ve Başlık
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isMissedCall)
+                                    Color(0xFFFF3B30)
+                                else
+                                    Color(0xFF34C759)
+                            )
+                            .padding(12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (isMissedCall)
+                                Icons.Default.VideocamOff
+                            else
+                                Icons.Default.Videocam,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = if (isMissedCall)
+                            "Cevapsız Görüntülü Arama"
+                        else
+                            "Görüntülü Arama",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = if (isMissedCall) Color(0xFFFF3B30) else Color(0xFF34C759)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Orta Kısım: Süre (eğer tamamlanmış arama ise)
+                    if (!isMissedCall && message.metadata.containsKey("duration")) {
+                        val duration = message.metadata["duration"] as? Long ?: 0L
+                        if (duration > 0) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AccessTime,
+                                    contentDescription = null,
+                                    tint = Color.Gray,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "Arama Süresi: ${formatDuration(duration)}",
+                                    fontSize = 14.sp,
+                                    color = Color.DarkGray
+                                )
+                            }
+                        }
+                    }
+
+                    // Alt Kısım: Tarih ve Zaman
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Event,
+                            contentDescription = null,
+                            tint = Color.Gray,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        val dateText = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale("tr"))
+                            .format(message.timestamp)
+                        Text(
+                            text = dateText,
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                    }
+
+                    // Cevapsız arama için ek bilgi
+                    if (isMissedCall) {
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Divider(
+                            modifier = Modifier.padding(horizontal = 32.dp),
+                            color = Color.LightGray
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = Color(0xFFFF3B30).copy(alpha = 0.7f),
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isCurrentUser)
+                                    "Aramanız cevaplanmadı"
+                                else
+                                    "Cevapsız bir arama aldınız",
+                                fontSize = 13.sp,
+                                color = Color.DarkGray,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
             }

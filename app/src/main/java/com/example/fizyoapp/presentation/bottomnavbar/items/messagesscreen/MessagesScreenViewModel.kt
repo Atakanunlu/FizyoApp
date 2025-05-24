@@ -2,6 +2,7 @@ package com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
+import com.example.fizyoapp.domain.model.messagesscreen.Message
 import com.example.fizyoapp.domain.usecase.messagesscreen.GetChatThreadsUseCase
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,6 +46,7 @@ class MessagesScreenViewModel @Inject constructor(
     init {
         loadChatThreads()
     }
+
 
     fun onEvent(event: MessagesScreenEvent) {
         when (event) {

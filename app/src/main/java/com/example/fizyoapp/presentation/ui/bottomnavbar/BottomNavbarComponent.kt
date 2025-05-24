@@ -1,4 +1,5 @@
 package com.example.fizyoapp.presentation.ui.bottomnavbar
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
@@ -36,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.fizyoapp.ui.bottomnavbar.items
 
 @Composable
 fun BottomNavbarComponent(navController: NavController) {

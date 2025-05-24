@@ -1,4 +1,4 @@
-package com.example.fizyoapp.ui.bottomnavbar
+package com.example.fizyoapp.presentation.ui.bottomnavbar
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -46,6 +46,7 @@ val items = listOf(
         title = "Mesajlar",
         selectedicon = Icons.Default.Message,
         unselectedicon = Icons.Filled.Message,
-        route = AppScreens.MessagesScreen.route // Master'dan MessagesScreen yönlendirmesi
+        route = AppScreens.MessagesScreen.route ,
+
     )
 )
