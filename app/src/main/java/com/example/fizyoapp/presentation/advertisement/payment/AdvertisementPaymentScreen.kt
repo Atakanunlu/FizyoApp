@@ -38,6 +38,13 @@ fun AdvertisementPaymentScreen(
     val scrollState = rememberScrollState()
 
     LaunchedEffect(key1 = true) {
+
+        viewModel.onCardHolderNameChanged("")
+        viewModel.onCardNumberChanged("")
+        viewModel.onExpireMonthChanged("")
+        viewModel.onExpireYearChanged("")
+        viewModel.onCvcChanged("")
+
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is AdvertisementPaymentViewModel.UIEvent.NavigateToSuccess -> {
@@ -113,9 +120,7 @@ fun AdvertisementPaymentScreen(
                             fontWeight = FontWeight.Bold,
                             color = primaryColor
                         )
-
                         Spacer(modifier = Modifier.height(8.dp))
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
@@ -130,12 +135,10 @@ fun AdvertisementPaymentScreen(
                                 color = textColor
                             )
                         }
-
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 8.dp),
                             color = primaryColor.copy(alpha = 0.2f)
                         )
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
@@ -166,6 +169,7 @@ fun AdvertisementPaymentScreen(
                             tint = primaryColor
                         )
                     },
+                    placeholder = { Text("Adınız Soyadınız") },
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = primaryColor,
@@ -191,7 +195,6 @@ fun AdvertisementPaymentScreen(
                             tint = primaryColor
                         )
                     },
-                    placeholder = { Text("5528 7900 0000 0008") },
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = primaryColor,
@@ -215,7 +218,6 @@ fun AdvertisementPaymentScreen(
                             .weight(1f)
                             .padding(end = 4.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        placeholder = { Text("12") },
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = primaryColor,
@@ -234,7 +236,6 @@ fun AdvertisementPaymentScreen(
                             .weight(1f)
                             .padding(horizontal = 4.dp),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        placeholder = { Text("2030") },
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = primaryColor,
@@ -261,7 +262,6 @@ fun AdvertisementPaymentScreen(
                                 tint = primaryColor
                             )
                         },
-                        placeholder = { Text("123") },
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = primaryColor,
@@ -293,9 +293,7 @@ fun AdvertisementPaymentScreen(
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF6200EA)
                         )
-
                         Spacer(modifier = Modifier.height(4.dp))
-
                         Text(
                             text = "Kart No: 5528790000000008",
                             color = textColor

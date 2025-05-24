@@ -20,6 +20,7 @@ class AdvertisementBannerViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = MutableStateFlow(AdvertisementBannerState())
     val state: StateFlow<AdvertisementBannerState> = _state.asStateFlow()
+
     private var refreshJob: Job? = null
     private var autoScrollJob: Job? = null
 
@@ -75,7 +76,8 @@ class AdvertisementBannerViewModel @Inject constructor(
         refreshJob?.cancel()
         refreshJob = viewModelScope.launch {
             while (true) {
-                delay(60 * 1000L)
+                // 30 saniyede bir reklamları kontrol edelim (süre dolmuş olabilir)
+                delay(30 * 1000L)
                 loadActiveAdvertisements()
             }
         }
@@ -140,4 +142,3 @@ class AdvertisementBannerViewModel @Inject constructor(
         autoScrollJob?.cancel()
     }
 }
-

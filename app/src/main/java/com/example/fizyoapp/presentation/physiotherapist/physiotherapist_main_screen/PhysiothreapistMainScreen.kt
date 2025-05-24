@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -7,12 +6,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +45,7 @@ fun PhysiotherapistMainScreen(
 ) {
     val state = viewModel.state.collectAsState().value
     val context = LocalContext.current
+    val showLogoutDialog = remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
@@ -53,6 +57,34 @@ fun PhysiotherapistMainScreen(
                 }
             }
         }
+    }
+
+    if (showLogoutDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog.value = false },
+            title = { Text("Çıkış Yap") },
+            text = { Text("Çıkış yapmak istediğinize emin misiniz?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog.value = false
+                        viewModel.onEvent(PhysiotherapistEvent.SignOut)
+                    }
+                ) {
+                    Text("Evet", color = primaryColor)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showLogoutDialog.value = false }
+                ) {
+                    Text("Hayır", color = primaryColor)
+                }
+            },
+            containerColor = surfaceColor,
+            titleContentColor = primaryColor,
+            textContentColor = textColor
+        )
     }
 
     Scaffold(
@@ -79,9 +111,9 @@ fun PhysiotherapistMainScreen(
                             contentDescription = "Profil"
                         )
                     }
-                    IconButton(onClick = { viewModel.onEvent(PhysiotherapistEvent.SignOut) }) {
+                    IconButton(onClick = { showLogoutDialog.value = true }) {
                         Icon(
-                            Icons.Default.ExitToApp,
+                            Icons.AutoMirrored.Filled.ExitToApp,
                             contentDescription = "Çıkış"
                         )
                     }
@@ -130,7 +162,6 @@ fun PhysiotherapistMainScreen(
                     }
                 }
             }
-
             state.errorMessage?.let {
                 Snackbar(
                     modifier = Modifier
@@ -280,6 +311,64 @@ fun MainNavigationButtonsRedesigned(navController: NavController) {
 
     Spacer(modifier = Modifier.height(12.dp))
 
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { navController.navigate(AppScreens.ExerciseManagementScreen.route) },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = surfaceColor
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(primaryColor.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.FitnessCenter,
+                    contentDescription = null,
+                    tint = primaryColor,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "EGZERSİZ YÖNETİMİ",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor
+                )
+                Text(
+                    text = "Egzersizleri yönetin ve hastalara egzersiz planları oluşturun",
+                    fontSize = 14.sp,
+                    color = textColor.copy(alpha = 0.7f)
+                )
+            }
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = primaryColor
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -292,7 +381,7 @@ fun MainNavigationButtonsRedesigned(navController: NavController) {
         )
         ServiceCard(
             title = "Mesajlar",
-            icon = Icons.Default.Message,
+            icon = Icons.AutoMirrored.Filled.Message,
             onClick = { navController.navigate(AppScreens.MessagesScreen.route) },
             modifier = Modifier.weight(1f)
         )
