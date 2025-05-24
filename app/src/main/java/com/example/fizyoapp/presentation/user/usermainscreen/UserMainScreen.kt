@@ -34,6 +34,7 @@ import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBanne
 import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBannerViewModel
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -55,6 +56,7 @@ fun UserMainScreen(
         advertisementBannerViewModel.loadActiveAdvertisements()
     }
 
+    // Lifecycle bazlı yenileme
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -69,6 +71,15 @@ fun UserMainScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    // Düzenli olarak reklamları yenile (60 saniyede bir)
+    LaunchedEffect(key1 = Unit) {
+        while (true) {
+            delay(60000) // 60 saniyede bir
+            Log.d("UserMainScreen", "Timer: Reklamlar yenileniyor")
+            advertisementBannerViewModel.loadActiveAdvertisements()
         }
     }
 
@@ -147,18 +158,15 @@ fun UserMainScreen(
                             viewModel = advertisementBannerViewModel
                         )
                     }
-
                     item {
                         MainNavigationButtons(navController)
                         PainSymptomSummaryCard(navController, state.latestPainRecord)
                     }
-
                     item {
                         Spacer(modifier = Modifier.height(70.dp))
                     }
                 }
             }
-
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
@@ -222,7 +230,6 @@ fun AdvertisementBanner(
                                 Log.e("AdvertisementBanner", "Reklam görseli yüklenemedi: ${ad.imageUrl}")
                             }
                         )
-
                         // Reklam badge'i
                         Box(
                             modifier = Modifier
@@ -268,7 +275,6 @@ fun AdvertisementBanner(
                             tint = Color.White
                         )
                     }
-
                     // Sağ ok
                     IconButton(
                         onClick = { viewModel.moveToNextAd() },
@@ -287,7 +293,6 @@ fun AdvertisementBanner(
                         )
                     }
                 }
-
                 // Alt kısımda nokta göstergeleri
                 Row(
                     modifier = Modifier
@@ -333,37 +338,7 @@ fun AdvertisementBanner(
         }
     } else {
         // Reklam yoksa
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-                .padding(vertical = 8.dp),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Campaign,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                        tint = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Reklam Alanı",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                }
-            }
-        }
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
@@ -537,6 +512,7 @@ fun MainNavigationButtons(navController: NavController) {
 fun PainSymptomSummaryCard(navController: NavController, painRecord: PainRecord?) {
     val intensity = painRecord?.intensity ?: 0
     val location = painRecord?.location ?: "Veri yok"
+
     Card(
         modifier = Modifier
             .fillMaxWidth()

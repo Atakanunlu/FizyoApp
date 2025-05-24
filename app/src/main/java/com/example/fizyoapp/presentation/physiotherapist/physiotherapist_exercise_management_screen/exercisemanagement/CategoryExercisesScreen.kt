@@ -29,6 +29,12 @@ import com.example.fizyoapp.domain.model.exercise.ExerciseType
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
 
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val accentColor = Color(59, 62, 104)
+private val textColor = Color.DarkGray
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryExercisesScreen(
@@ -38,31 +44,43 @@ fun CategoryExercisesScreen(
     val state = viewModel.state.collectAsState().value
 
     Scaffold(
+        containerColor = backgroundColor,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = state.category?.name ?: "Kategori Egzersizleri",
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Geri")
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Geri",
+                            tint = Color.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate(AppScreens.CreateExercisePlanScreen.route) },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                containerColor = primaryColor,
+                contentColor = Color.White,
+                shape = CircleShape,
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 6.dp,
+                    pressedElevation = 8.dp
+                )
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Egzersiz Planı Ekle")
             }
@@ -78,7 +96,10 @@ fun CategoryExercisesScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(
+                        color = primaryColor,
+                        strokeWidth = 3.dp
+                    )
                 }
             } else if (state.exercises.isEmpty()) {
                 EmptyExercisesView()
@@ -94,7 +115,8 @@ fun CategoryExercisesScreen(
                             text = "${state.exercises.size} Egzersiz",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(vertical = 8.dp)
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            color = primaryColor
                         )
                     }
 
@@ -102,24 +124,35 @@ fun CategoryExercisesScreen(
                         ExerciseItem(exercise = exercise)
                     }
 
-                    // FAB için boşluk
                     item {
                         Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
             }
 
-            // Error dialog
             if (state.error != null) {
                 AlertDialog(
                     onDismissRequest = { viewModel.dismissError() },
-                    title = { Text("Hata") },
+                    title = {
+                        Text(
+                            "Hata",
+                            color = primaryColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
                     text = { Text(state.error) },
                     confirmButton = {
-                        Button(onClick = { viewModel.dismissError() }) {
+                        Button(
+                            onClick = { viewModel.dismissError() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = primaryColor,
+                                contentColor = Color.White
+                            )
+                        ) {
                             Text("Tamam")
                         }
-                    }
+                    },
+                    containerColor = surfaceColor
                 )
             }
         }
@@ -141,7 +174,7 @@ fun EmptyExercisesView() {
                 imageVector = Icons.Default.FitnessCenter,
                 contentDescription = null,
                 modifier = Modifier.size(72.dp),
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                tint = primaryColor.copy(alpha = 0.5f)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -150,7 +183,8 @@ fun EmptyExercisesView() {
                 text = "Bu kategoride henüz egzersiz yok",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = textColor
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -158,14 +192,13 @@ fun EmptyExercisesView() {
             Text(
                 text = "Sağ alttaki + butonuna tıklayarak yeni bir egzersiz ekleyebilirsiniz",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                color = textColor.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
             )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExerciseItem(exercise: Exercise) {
     var expanded by remember { mutableStateOf(false) }
@@ -173,9 +206,9 @@ fun ExerciseItem(exercise: Exercise) {
     var selectedMediaUrl by remember { mutableStateOf("") }
     var selectedMediaType by remember { mutableStateOf("") }
 
-    // Exercise.type alanını mediaType'dan belirleyelim
     val exerciseType = remember(exercise) {
         if (exercise.mediaUrls.isEmpty()) {
+            null
         } else {
             val firstMediaType = exercise.mediaType.values.firstOrNull()
             when (firstMediaType) {
@@ -185,7 +218,6 @@ fun ExerciseItem(exercise: Exercise) {
         }
     }
 
-    // İlk medya URL'ini al
     val firstMediaUrl = remember(exercise) { exercise.mediaUrls.firstOrNull() ?: "" }
 
     Card(
@@ -195,7 +227,7 @@ fun ExerciseItem(exercise: Exercise) {
             .animateContentSize(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = surfaceColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -204,64 +236,47 @@ fun ExerciseItem(exercise: Exercise) {
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically  // verticalAliganment hatası düzeltildi
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Egzersiz medya önizlemesi
+
                 Box(
                     modifier = Modifier
                         .size(64.dp)
                         .clip(RoundedCornerShape(12.dp))
+                        .background(primaryColor.copy(alpha = 0.1f))
                 ) {
-                    when (exerciseType) {
-                        ExerciseType.VIDEO -> {
-                            AsyncImage(
-                                model = firstMediaUrl,
-                                contentDescription = exercise.title,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
+                    if (firstMediaUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = firstMediaUrl,
+                            contentDescription = exercise.title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+
+                        if (exerciseType == ExerciseType.VIDEO) {
                             Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color.Black)
-                                    .clickable {
-                                        showMediaViewer = true
-                                        selectedMediaUrl = firstMediaUrl
-                                        selectedMediaType = "video"
-                                    },
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.3f)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.PlayArrow,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(16.dp)
+                                    tint = Color.White,
+                                    modifier = Modifier.size(32.dp)
                                 )
                             }
                         }
-                        ExerciseType.IMAGE -> {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable {
-                                        showMediaViewer = true
-                                        selectedMediaUrl = firstMediaUrl
-                                        selectedMediaType = "image"
-                                    }
-                            ) {
-                                AsyncImage(
-                                    model = firstMediaUrl,
-                                    contentDescription = exercise.title,
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                        }
-
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.FitnessCenter,
+                            contentDescription = null,
+                            tint = primaryColor,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.Center)
+                        )
                     }
                 }
 
@@ -273,7 +288,8 @@ fun ExerciseItem(exercise: Exercise) {
                     Text(
                         text = exercise.title,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -281,7 +297,7 @@ fun ExerciseItem(exercise: Exercise) {
                     Text(
                         text = exercise.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        color = textColor.copy(alpha = 0.7f),
                         maxLines = if (expanded) 10 else 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -290,14 +306,15 @@ fun ExerciseItem(exercise: Exercise) {
                 IconButton(onClick = { expanded = !expanded }) {
                     Icon(
                         imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = if (expanded) "Daralt" else "Genişlet"
+                        contentDescription = if (expanded) "Daralt" else "Genişlet",
+                        tint = primaryColor
                     )
                 }
             }
 
-            if (expanded) {
+            if (expanded && firstMediaUrl.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
-                Divider()
+                Divider(color = textColor.copy(alpha = 0.1f))
                 Spacer(modifier = Modifier.height(16.dp))
 
                 when (exerciseType) {
@@ -315,7 +332,7 @@ fun ExerciseItem(exercise: Exercise) {
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            // Video oynatma butonu ve önizleme resmi
+
                             AsyncImage(
                                 model = firstMediaUrl,
                                 contentDescription = exercise.title,
@@ -326,14 +343,18 @@ fun ExerciseItem(exercise: Exercise) {
                                 modifier = Modifier
                                     .size(64.dp)
                                     .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
-                                    .clickable { /* Video oynat */ },
+                                    .background(surfaceColor.copy(alpha = 0.7f))
+                                    .clickable {
+                                        showMediaViewer = true
+                                        selectedMediaUrl = firstMediaUrl
+                                        selectedMediaType = "video"
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.PlayArrow,
                                     contentDescription = "Oynat",
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = primaryColor,
                                     modifier = Modifier.size(40.dp)
                                 )
                             }
@@ -359,16 +380,17 @@ fun ExerciseItem(exercise: Exercise) {
                             )
                         }
                     }
-
-                }
-                if (showMediaViewer && selectedMediaUrl.isNotEmpty()) {
-                    MediaViewer(
-                        mediaUrl = selectedMediaUrl,
-                        mediaType = selectedMediaType,
-                        onDismiss = { showMediaViewer = false }
-                    )
+                    else -> {}
                 }
             }
         }
+    }
+
+    if (showMediaViewer && selectedMediaUrl.isNotEmpty()) {
+        MediaViewer(
+            mediaUrl = selectedMediaUrl,
+            mediaType = selectedMediaType,
+            onDismiss = { showMediaViewer = false }
+        )
     }
 }

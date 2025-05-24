@@ -55,9 +55,7 @@ fun AdvertisementSuccessScreen(
                     modifier = Modifier.size(120.dp),
                     colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFF4CAF50))
                 )
-
                 Spacer(modifier = Modifier.height(24.dp))
-
                 Text(
                     text = "Ödeme Başarılı!",
                     style = MaterialTheme.typography.headlineMedium,
@@ -65,17 +63,13 @@ fun AdvertisementSuccessScreen(
                     color = primaryColor,
                     textAlign = TextAlign.Center
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Text(
-                    text = "Reklamınız başarıyla oluşturuldu ve 24 saat boyunca aktif olacak.",
+                    text = "Reklamınız başarıyla oluşturuldu ve 1 gün boyunca aktif olacak.",
                     color = textColor,
                     textAlign = TextAlign.Center
                 )
-
                 Spacer(modifier = Modifier.height(32.dp))
-
                 Button(
                     onClick = {
                         navController.navigate(AppScreens.PhysiotherapistMainScreen.route) {

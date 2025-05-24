@@ -1,5 +1,5 @@
-// presentation/physiotherapist/exercise/ExerciseManagementScreen.kt
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.exercisemanagement
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -48,6 +48,12 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val accentColor = Color(59, 62, 104)
+private val textColor = Color.DarkGray
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExerciseManagementScreen(
@@ -68,12 +74,10 @@ fun ExerciseManagementScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 if (wasOnAddExerciseScreen.value) {
-                    // Egzersiz ekleme ekranından döndük, listeyi yenileyelim
                     viewModel.onEvent(ExerciseManagementEvent.RefreshExercises)
                     wasOnAddExerciseScreen.value = false
                 }
                 if (wasOnCreatePlanScreen.value) {
-                    // Plan oluşturma ekranından döndük, planları yenileyelim
                     viewModel.onEvent(ExerciseManagementEvent.LoadExercisePlans)
                     wasOnCreatePlanScreen.value = false
                 }
@@ -99,20 +103,27 @@ fun ExerciseManagementScreen(
                 is ExerciseManagementViewModel.UiEvent.NavigateToExerciseCategories -> {
                     navController.navigate(AppScreens.ExerciseCategoriesScreen.route)
                 }
-
                 else -> {}
             }
         }
     }
 
-    // Delete plan dialog outside the scaffold
     showDeletePlanDialog.value?.let { plan ->
         AlertDialog(
             onDismissRequest = { showDeletePlanDialog.value = null },
-            icon = { Icon(Icons.Default.Warning, contentDescription = null) },
-            title = { Text("Egzersiz Planını Sil") },
+            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = primaryColor) },
+            title = {
+                Text(
+                    "Egzersiz Planını Sil",
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+            },
             text = {
-                Text("\"${plan.title}\" planını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")
+                Text(
+                    "\"${plan.title}\" planını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+                    color = textColor.copy(alpha = 0.8f)
+                )
             },
             confirmButton = {
                 Button(
@@ -121,7 +132,8 @@ fun ExerciseManagementScreen(
                         showDeletePlanDialog.value = null
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
+                        containerColor = Color.Red,
+                        contentColor = Color.White
                     )
                 ) {
                     Text("Sil")
@@ -129,41 +141,46 @@ fun ExerciseManagementScreen(
             },
             dismissButton = {
                 OutlinedButton(
-                    onClick = { showDeletePlanDialog.value = null }
+                    onClick = { showDeletePlanDialog.value = null },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = primaryColor
+                    )
                 ) {
                     Text("İptal")
                 }
-            }
+            },
+            containerColor = surfaceColor
         )
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = backgroundColor,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
                         "Egzersiz Yönetimi",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.Bold
-                        )
+                        ),
+                        color = Color.White
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Geri"
+                            contentDescription = "Geri",
+                            tint = Color.White
                         )
                     }
                 },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                )
             )
         },
         floatingActionButton = {
@@ -186,8 +203,8 @@ fun ExerciseManagementScreen(
                         if (selectedTab.value == 0) "Yeni Egzersiz" else "Yeni Plan"
                     )
                 },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                containerColor = primaryColor,
+                contentColor = Color.White,
                 elevation = FloatingActionButtonDefaults.elevation(
                     defaultElevation = 6.dp,
                     pressedElevation = 8.dp
@@ -200,7 +217,6 @@ fun ExerciseManagementScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Kategori ve Zorluk Filtreleri - Sadece "Egzersizlerim" tabında göster
             if (selectedTab.value == 0) {
                 CategoryChipsRow(
                     categories = DEFAULT_EXERCISE_CATEGORIES,
@@ -214,21 +230,21 @@ fun ExerciseManagementScreen(
                     }
                 )
             }
-            // Tab Row
+
             Surface(
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp,
-                shadowElevation = 1.dp
+                color = surfaceColor,
+                shadowElevation = 1.dp,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 TabRow(
                     selectedTabIndex = selectedTab.value,
                     containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.primary,
+                    contentColor = primaryColor,
                     indicator = { tabPositions ->
                         TabRowDefaults.SecondaryIndicator(
                             modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab.value]),
                             height = 3.dp,
-                            color = MaterialTheme.colorScheme.primary
+                            color = primaryColor
                         )
                     }
                 ) {
@@ -253,13 +269,13 @@ fun ExerciseManagementScreen(
                                     modifier = Modifier.size(20.dp)
                                 )
                             },
-                            selectedContentColor = MaterialTheme.colorScheme.primary,
-                            unselectedContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            selectedContentColor = primaryColor,
+                            unselectedContentColor = textColor.copy(alpha = 0.7f)
                         )
                     }
                 }
             }
-            // Loading indicator
+
             AnimatedVisibility(
                 visible = state.isLoading,
                 enter = fadeIn(),
@@ -269,10 +285,10 @@ fun ExerciseManagementScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = primaryColor)
                 }
             }
-            // Error message
+
             state.errorMessage?.let {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -284,23 +300,29 @@ fun ExerciseManagementScreen(
                     ) {
                         Text(
                             text = it,
-                            color = MaterialTheme.colorScheme.error,
+                            color = Color.Red,
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = {
-                            if (selectedTab.value == 0) {
-                                viewModel.onEvent(ExerciseManagementEvent.LoadExercises)
-                            } else {
-                                viewModel.onEvent(ExerciseManagementEvent.LoadExercisePlans)
-                            }
-                        }) {
+                        Button(
+                            onClick = {
+                                if (selectedTab.value == 0) {
+                                    viewModel.onEvent(ExerciseManagementEvent.LoadExercises)
+                                } else {
+                                    viewModel.onEvent(ExerciseManagementEvent.LoadExercisePlans)
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = primaryColor,
+                                contentColor = Color.White
+                            )
+                        ) {
                             Text("Yeniden Dene")
                         }
                     }
                 }
             }
-            // Content
+
             if (!state.isLoading && state.errorMessage == null) {
                 when (selectedTab.value) {
                     0 -> ExercisesTab(
@@ -309,7 +331,6 @@ fun ExerciseManagementScreen(
                         else
                             state.filteredExercises,
                         onEditExercise = { exercise ->
-                            // Düzenleme sayfasına git
                             try {
                                 navController.navigate("edit_exercise_screen/${exercise.id}")
                             } catch (e: Exception) {
@@ -319,7 +340,6 @@ fun ExerciseManagementScreen(
                             }
                         },
                         onDeleteExercise = { exercise ->
-                            // Silme işlemi
                             viewModel.onEvent(ExerciseManagementEvent.DeleteExercise(exercise.id))
                         }
                     )
@@ -327,7 +347,6 @@ fun ExerciseManagementScreen(
                         plans = state.exercisePlans,
                         patientNames = state.patientNames,
                         onPlanClick = { plan ->
-                            // Navigate to edit plan screen
                             navController.navigate("edit_exercise_plan_screen/${plan.id}")
                         },
                         onDeletePlan = { plan ->
@@ -336,7 +355,7 @@ fun ExerciseManagementScreen(
                     )
                 }
             }
-            // Success message
+
             if (state.actionSuccess != null) {
                 LaunchedEffect(state.actionSuccess) {
                     scope.launch {
@@ -345,7 +364,6 @@ fun ExerciseManagementScreen(
                             actionLabel = "Tamam",
                             duration = SnackbarDuration.Short
                         )
-                        // Snackbar kapatıldıktan sonra
                         viewModel.onEvent(ExerciseManagementEvent.ClearActionSuccess)
                     }
                 }
@@ -363,8 +381,7 @@ fun CategoryChipsRow(
     onDifficultySelected: (ExerciseDifficulty?) -> Unit
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
+        color = surfaceColor,
         shadowElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -373,14 +390,14 @@ fun CategoryChipsRow(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
-            // Kategori başlığı
             Text(
                 text = "Kategoriler",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
+                color = primaryColor
             )
-            // Kategori filtreleri
+
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -389,18 +406,19 @@ fun CategoryChipsRow(
                     FilterChip(
                         selected = selectedCategory.isEmpty(),
                         onClick = { onCategoryClick("") },
-                        label = { Text("Tümü") },
+                        label = { Text("Tümü", color = if (selectedCategory.isEmpty()) Color.White else textColor) },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.FilterList,
                                 contentDescription = "Filtre",
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(18.dp),
+                                tint = if (selectedCategory.isEmpty()) Color.White else primaryColor
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            selectedContainerColor = primaryColor,
+                            selectedLabelColor = Color.White,
+                            selectedLeadingIconColor = Color.White
                         )
                     )
                 }
@@ -408,92 +426,98 @@ fun CategoryChipsRow(
                     FilterChip(
                         selected = category == selectedCategory,
                         onClick = { onCategoryClick(category) },
-                        label = { Text(category) },
+                        label = { Text(category, color = if (category == selectedCategory) Color.White else textColor) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            selectedContainerColor = primaryColor,
+                            selectedLabelColor = Color.White
                         )
                     )
                 }
             }
+
             Spacer(modifier = Modifier.height(16.dp))
-            // Zorluk başlığı
+
             Text(
                 text = "Zorluk Seviyesi",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
+                color = primaryColor
             )
-            // Zorluk seviyesi filtreleri
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Tümü
                 FilterChip(
                     selected = selectedDifficulty == null,
                     onClick = { onDifficultySelected(null) },
-                    label = { Text("Tümü") },
+                    label = { Text("Tümü", color = if (selectedDifficulty == null) Color.White else textColor) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.FilterList,
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(18.dp),
+                            tint = if (selectedDifficulty == null) Color.White else primaryColor
                         )
-                    }
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = primaryColor,
+                        selectedLabelColor = Color.White
+                    )
                 )
-                // Kolay
+
                 FilterChip(
                     selected = selectedDifficulty == ExerciseDifficulty.EASY,
                     onClick = { onDifficultySelected(ExerciseDifficulty.EASY) },
-                    label = { Text("Kolay") },
+                    label = { Text("Kolay", color = if (selectedDifficulty == ExerciseDifficulty.EASY) Color.White else textColor) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = if (selectedDifficulty == ExerciseDifficulty.EASY) Color.White else Color(0, 150, 136)
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        selectedContainerColor = Color(0, 150, 136),
+                        selectedLabelColor = Color.White
                     )
                 )
-                // Orta
+
                 FilterChip(
                     selected = selectedDifficulty == ExerciseDifficulty.MEDIUM,
                     onClick = { onDifficultySelected(ExerciseDifficulty.MEDIUM) },
-                    label = { Text("Orta") },
+                    label = { Text("Orta", color = if (selectedDifficulty == ExerciseDifficulty.MEDIUM) Color.White else textColor) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.tertiary
+                            tint = if (selectedDifficulty == ExerciseDifficulty.MEDIUM) Color.White else Color(255, 152, 0)
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        selectedContainerColor = Color(255, 152, 0),
+                        selectedLabelColor = Color.White
                     )
                 )
-                // Zor
+
                 FilterChip(
                     selected = selectedDifficulty == ExerciseDifficulty.HARD,
                     onClick = { onDifficultySelected(ExerciseDifficulty.HARD) },
-                    label = { Text("Zor") },
+                    label = { Text("Zor", color = if (selectedDifficulty == ExerciseDifficulty.HARD) Color.White else textColor) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.error
+                            tint = if (selectedDifficulty == ExerciseDifficulty.HARD) Color.White else Color.Red
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.errorContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onErrorContainer
+                        selectedContainerColor = Color.Red,
+                        selectedLabelColor = Color.White
                     )
                 )
             }
@@ -536,16 +560,17 @@ fun ExerciseCard(
     onDeleteClick: (Exercise) -> Unit
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-    ElevatedCard(
+
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onEditClick(exercise) }
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = surfaceColor,
+            contentColor = textColor
         )
     ) {
         Row(
@@ -554,13 +579,12 @@ fun ExerciseCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Thumbnail with gradient overlay
             Box(
                 modifier = Modifier
                     .size(88.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                        primaryColor.copy(alpha = 0.1f)
                     )
             ) {
                 if (exercise.mediaUrls.isNotEmpty()) {
@@ -573,7 +597,7 @@ fun ExerciseCard(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
-                    // Add a subtle gradient overlay
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -595,13 +619,14 @@ fun ExerciseCard(
                             imageVector = Icons.Default.FitnessCenter,
                             contentDescription = null,
                             modifier = Modifier.size(40.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = primaryColor
                         )
                     }
                 }
             }
+
             Spacer(modifier = Modifier.width(16.dp))
-            // Content with improved typography
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -610,87 +635,94 @@ fun ExerciseCard(
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold
                     ),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = textColor
                 )
+
                 Spacer(modifier = Modifier.height(4.dp))
-                // Category chip
+
                 Surface(
                     modifier = Modifier.padding(vertical = 4.dp),
                     shape = RoundedCornerShape(4.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
-                    tonalElevation = 0.dp
+                    color = primaryColor.copy(alpha = 0.1f)
                 ) {
                     Text(
                         text = exercise.category,
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = primaryColor,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
+
                 Spacer(modifier = Modifier.height(4.dp))
+
                 Text(
                     text = exercise.description,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = textColor.copy(alpha = 0.7f)
                 )
+
                 Spacer(modifier = Modifier.height(8.dp))
-                // Exercise details in a more compact horizontal flow
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.horizontalScroll(rememberScrollState())
                 ) {
-                    // Zorluk seviyesi bilgisi ekleyelim
                     val difficultyText = when (exercise.difficulty) {
                         ExerciseDifficulty.EASY -> "Kolay"
                         ExerciseDifficulty.MEDIUM -> "Orta"
                         ExerciseDifficulty.HARD -> "Zor"
                     }
                     val difficultyColor = when (exercise.difficulty) {
-                        ExerciseDifficulty.EASY -> MaterialTheme.colorScheme.primary
-                        ExerciseDifficulty.MEDIUM -> MaterialTheme.colorScheme.tertiary
-                        ExerciseDifficulty.HARD -> MaterialTheme.colorScheme.error
+                        ExerciseDifficulty.EASY -> Color(0, 150, 136)
+                        ExerciseDifficulty.MEDIUM -> Color(255, 152, 0)
+                        ExerciseDifficulty.HARD -> Color.Red
                     }
+
                     ExerciseDetailChip(
                         icon = Icons.Default.Star,
                         text = difficultyText,
                         iconTint = difficultyColor
                     )
+
                     Spacer(modifier = Modifier.width(8.dp))
                 }
             }
-            // Delete button with animation
+
             IconButton(
                 onClick = { showDeleteConfirmation = true },
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f))
+                    .background(Color.Red.copy(alpha = 0.1f))
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Sil",
-                    tint = MaterialTheme.colorScheme.error
+                    tint = Color.Red
                 )
             }
         }
     }
-    // Modern delete confirmation dialog
+
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            icon = { Icon(Icons.Default.Warning, contentDescription = null) },
+            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = primaryColor) },
             title = {
                 Text(
                     "Egzersizi Sil",
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
                 )
             },
             text = {
                 Text(
                     "\"${exercise.title}\" egzersizini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = textColor.copy(alpha = 0.8f)
                 )
             },
             confirmButton = {
@@ -700,7 +732,8 @@ fun ExerciseCard(
                         onDeleteClick(exercise)
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
+                        containerColor = Color.Red,
+                        contentColor = Color.White
                     )
                 ) {
                     Text("Sil")
@@ -708,11 +741,15 @@ fun ExerciseCard(
             },
             dismissButton = {
                 OutlinedButton(
-                    onClick = { showDeleteConfirmation = false }
+                    onClick = { showDeleteConfirmation = false },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = primaryColor
+                    )
                 ) {
                     Text("İptal")
                 }
-            }
+            },
+            containerColor = surfaceColor
         )
     }
 }
@@ -721,11 +758,11 @@ fun ExerciseCard(
 fun ExerciseDetailChip(
     icon: ImageVector,
     text: String,
-    iconTint: Color = MaterialTheme.colorScheme.primary
+    iconTint: Color
 ) {
     Surface(
         shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+        color = iconTint.copy(alpha = 0.1f),
         modifier = Modifier.height(28.dp)
     ) {
         Row(
@@ -742,7 +779,7 @@ fun ExerciseDetailChip(
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = iconTint
             )
         }
     }
@@ -751,7 +788,7 @@ fun ExerciseDetailChip(
 @Composable
 fun ExercisePlansTab(
     plans: List<ExercisePlan>,
-    patientNames: Map<String, String>, // Map of patient IDs to names
+    patientNames: Map<String, String>,
     onPlanClick: (ExercisePlan) -> Unit,
     onDeletePlan: (ExercisePlan) -> Unit
 ) {
@@ -788,17 +825,14 @@ fun ExercisePlanCard(
 ) {
     val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
     val currentDate = Date()
-
-    // Determine if plan is expired (end date has passed)
     val isExpired = plan.endDate?.before(currentDate) ?: false
 
-    // Status text and color based on plan status and expiration
     val (statusColor, statusText) = when {
-        isExpired -> Pair(MaterialTheme.colorScheme.error, "Pasif")
-        plan.status == ExercisePlanStatus.ACTIVE -> Pair(MaterialTheme.colorScheme.primary, "Aktif")
-        plan.status == ExercisePlanStatus.COMPLETED -> Pair(MaterialTheme.colorScheme.tertiary, "Tamamlandı")
-        plan.status == ExercisePlanStatus.CANCELLED -> Pair(MaterialTheme.colorScheme.error, "İptal Edildi")
-        else -> Pair(MaterialTheme.colorScheme.outline, plan.status.name)
+        isExpired -> Pair(Color.Red, "Pasif")
+        plan.status == ExercisePlanStatus.ACTIVE -> Pair(primaryColor, "Aktif")
+        plan.status == ExercisePlanStatus.COMPLETED -> Pair(Color(0, 150, 136), "Tamamlandı")
+        plan.status == ExercisePlanStatus.CANCELLED -> Pair(Color.Red, "İptal Edildi")
+        else -> Pair(Color.Gray, plan.status.name)
     }
 
     Card(
@@ -808,7 +842,7 @@ fun ExercisePlanCard(
             .clickable { onPlanClick(plan) },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = surfaceColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -817,7 +851,6 @@ fun ExercisePlanCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Title row with delete button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -829,11 +862,11 @@ fun ExercisePlanCard(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        color = textColor
                     )
                 }
 
-                // Status badge
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = statusColor.copy(alpha = 0.1f),
@@ -849,7 +882,6 @@ fun ExercisePlanCard(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Delete button
                 IconButton(
                     onClick = { onDeleteClick(plan) },
                     modifier = Modifier.size(32.dp)
@@ -857,7 +889,7 @@ fun ExercisePlanCard(
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Sil",
-                        tint = MaterialTheme.colorScheme.error,
+                        tint = Color.Red,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -865,19 +897,17 @@ fun ExercisePlanCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Description
             if (plan.description.isNotBlank()) {
                 Text(
                     text = plan.description,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = textColor.copy(alpha = 0.7f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
-            // Patient info
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -886,32 +916,31 @@ fun ExercisePlanCard(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = primaryColor
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Hasta: $patientName",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = textColor
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Icon(
                     imageVector = Icons.Default.FitnessCenter,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = primaryColor
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "${plan.exercises.size} egzersiz",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = textColor
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Date and frequency info
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -920,7 +949,7 @@ fun ExercisePlanCard(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = primaryColor
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 val dateText = if (plan.startDate != null && plan.endDate != null) {
@@ -931,7 +960,7 @@ fun ExercisePlanCard(
                 Text(
                     text = dateText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = textColor
                 )
 
                 if (plan.frequency.isNotBlank()) {
@@ -940,13 +969,13 @@ fun ExercisePlanCard(
                         imageVector = Icons.Default.Repeat,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = primaryColor
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = plan.frequency,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = textColor
                     )
                 }
             }
@@ -971,11 +1000,11 @@ fun EmptyState(
         ) {
             Surface(
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                color = primaryColor.copy(alpha = 0.1f),
                 modifier = Modifier.size(120.dp),
                 border = BorderStroke(
                     width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    color = primaryColor.copy(alpha = 0.3f)
                 )
             ) {
                 Icon(
@@ -984,21 +1013,26 @@ fun EmptyState(
                     modifier = Modifier
                         .padding(24.dp)
                         .fillMaxSize(),
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                    tint = primaryColor.copy(alpha = 0.8f)
                 )
             }
+
             Spacer(modifier = Modifier.height(24.dp))
+
             Text(
                 text = message,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                textAlign = TextAlign.Center
+                color = textColor.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Medium
             )
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = "Egzersizlerinizi buradan yönetebilirsiniz",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = textColor.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
             )
         }

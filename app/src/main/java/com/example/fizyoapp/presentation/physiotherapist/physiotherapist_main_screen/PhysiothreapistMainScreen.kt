@@ -459,7 +459,7 @@ fun ServiceCard(
                     text = description,
                     fontSize = 12.sp,
                     color = textColor.copy(alpha = 0.7f),
-                    textAlign = TextAlign.End
+                    textAlign = TextAlign.Center
                 )
             }
         }

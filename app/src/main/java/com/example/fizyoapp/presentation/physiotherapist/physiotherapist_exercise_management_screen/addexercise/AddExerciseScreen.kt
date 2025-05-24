@@ -1,4 +1,5 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexercise
+
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -48,6 +49,12 @@ import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercis
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val accentColor = Color(59, 62, 104)
+private val textColor = Color.DarkGray
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddExerciseScreen(
@@ -59,11 +66,9 @@ fun AddExerciseScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-
     var showMediaViewer by remember { mutableStateOf(false) }
     var selectedMediaUrl by remember { mutableStateOf("") }
     var selectedMediaType by remember { mutableStateOf("") }
-
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -71,7 +76,6 @@ fun AddExerciseScreen(
             viewModel.onEvent(AddExerciseEvent.AddMedia(it.toString(), "image"))
         }
     }
-
     val videoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -79,7 +83,6 @@ fun AddExerciseScreen(
             viewModel.onEvent(AddExerciseEvent.AddMedia(it.toString(), "video"))
         }
     }
-
     var showCategoryDialog by remember { mutableStateOf(false) }
     var showDifficultyDialog by remember { mutableStateOf(false) }
 
@@ -107,30 +110,30 @@ fun AddExerciseScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = backgroundColor,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
                         "Yeni Egzersiz",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        )
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Geri"
+                            contentDescription = "Geri",
+                            tint = Color.White
                         )
                     }
                 },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
                 )
             )
         }
@@ -147,15 +150,15 @@ fun AddExerciseScreen(
                     .verticalScroll(scrollState)
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
-
-                ElevatedCard(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
+                    colors = CardDefaults.cardColors(
+                        containerColor = surfaceColor
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -166,11 +169,10 @@ fun AddExerciseScreen(
                             text = "Temel Bilgiler",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = primaryColor
                             )
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.title,
                             onValueChange = { viewModel.onEvent(AddExerciseEvent.TitleChanged(it)) },
@@ -189,7 +191,7 @@ fun AddExerciseScreen(
                                 Icon(
                                     imageVector = Icons.Default.Title,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = primaryColor
                                 )
                             },
                             keyboardOptions = KeyboardOptions(
@@ -197,12 +199,12 @@ fun AddExerciseScreen(
                             ),
                             shape = RoundedCornerShape(12.dp),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                                focusedBorderColor = primaryColor,
+                                unfocusedBorderColor = textColor.copy(alpha = 0.5f),
+                                cursorColor = primaryColor
                             )
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.category,
                             onValueChange = { },
@@ -215,35 +217,37 @@ fun AddExerciseScreen(
                                 Icon(
                                     imageVector = Icons.Default.Category,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = primaryColor
                                 )
                             },
                             trailingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.ArrowDropDown,
                                     contentDescription = "Kategori Seç",
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = primaryColor
                                 )
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                disabledBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                                disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                disabledTextColor = MaterialTheme.colorScheme.onSurface
+                                disabledBorderColor = primaryColor.copy(alpha = 0.5f),
+                                disabledLabelColor = textColor.copy(alpha = 0.7f),
+                                disabledTextColor = textColor
                             )
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
-                ElevatedCard(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
+                    colors = CardDefaults.cardColors(
+                        containerColor = surfaceColor
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -254,18 +258,13 @@ fun AddExerciseScreen(
                             text = "Açıklama ve Talimatlar",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = primaryColor
                             )
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.description,
-                            onValueChange = { viewModel.onEvent(
-                                AddExerciseEvent.DescriptionChanged(
-                                    it
-                                )
-                            ) },
+                            onValueChange = { viewModel.onEvent(AddExerciseEvent.DescriptionChanged(it)) },
                             label = { Text("Açıklama") },
                             modifier = Modifier.fillMaxWidth(),
                             minLines = 3,
@@ -274,7 +273,7 @@ fun AddExerciseScreen(
                                 Icon(
                                     imageVector = Icons.Default.Description,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = primaryColor
                                 )
                             },
                             keyboardOptions = KeyboardOptions(
@@ -282,19 +281,15 @@ fun AddExerciseScreen(
                             ),
                             shape = RoundedCornerShape(12.dp),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                                focusedBorderColor = primaryColor,
+                                unfocusedBorderColor = textColor.copy(alpha = 0.5f),
+                                cursorColor = primaryColor
                             )
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.instructions,
-                            onValueChange = { viewModel.onEvent(
-                                AddExerciseEvent.InstructionsChanged(
-                                    it
-                                )
-                            ) },
+                            onValueChange = { viewModel.onEvent(AddExerciseEvent.InstructionsChanged(it)) },
                             label = { Text("Detaylı Talimatlar") },
                             modifier = Modifier.fillMaxWidth(),
                             minLines = 5,
@@ -303,27 +298,30 @@ fun AddExerciseScreen(
                                 Icon(
                                     imageVector = Icons.Default.Assignment,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = primaryColor
                                 )
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                                focusedBorderColor = primaryColor,
+                                unfocusedBorderColor = textColor.copy(alpha = 0.5f),
+                                cursorColor = primaryColor
                             )
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
-                ElevatedCard(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
+                    colors = CardDefaults.cardColors(
+                        containerColor = surfaceColor
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -334,11 +332,10 @@ fun AddExerciseScreen(
                             text = "Zorluk Seviyesi",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = primaryColor
                             )
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = when (state.difficulty) {
                                 ExerciseDifficulty.EASY -> "Kolay"
@@ -355,35 +352,37 @@ fun AddExerciseScreen(
                                 Icon(
                                     imageVector = Icons.Default.FitnessCenter,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = primaryColor
                                 )
                             },
                             trailingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.ArrowDropDown,
                                     contentDescription = "Zorluk Seç",
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = primaryColor
                                 )
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                disabledBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                                disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                disabledTextColor = MaterialTheme.colorScheme.onSurface
+                                disabledBorderColor = primaryColor.copy(alpha = 0.5f),
+                                disabledLabelColor = textColor.copy(alpha = 0.7f),
+                                disabledTextColor = textColor
                             )
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
-                ElevatedCard(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
+                    colors = CardDefaults.cardColors(
+                        containerColor = surfaceColor
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -394,17 +393,16 @@ fun AddExerciseScreen(
                             text = "Medya İçeriği",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = primaryColor
                             )
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Egzersiz için görsel veya video ekleyin",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            color = textColor.copy(alpha = 0.7f)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
@@ -420,7 +418,6 @@ fun AddExerciseScreen(
                                 onClick = { videoPickerLauncher.launch("video/*") }
                             )
                         }
-
                         AnimatedVisibility(
                             visible = state.mediaUris.isNotEmpty(),
                             enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
@@ -428,12 +425,13 @@ fun AddExerciseScreen(
                         ) {
                             Column {
                                 Spacer(modifier = Modifier.height(16.dp))
-                                Divider()
+                                Divider(color = textColor.copy(alpha = 0.1f))
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
                                     text = "Seçilen Medyalar (${state.mediaUris.size})",
                                     style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
+                                    color = primaryColor
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 LazyRow(
@@ -456,25 +454,27 @@ fun AddExerciseScreen(
                         }
                     }
                 }
+
                 Spacer(modifier = Modifier.height(24.dp))
 
-                ElevatedButton(
+                Button(
                     onClick = { viewModel.onEvent(AddExerciseEvent.SaveExercise) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     enabled = !state.isLoading && state.title.isNotBlank() && state.category.isNotBlank(),
-                    colors = ButtonDefaults.elevatedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = primaryColor,
+                        contentColor = Color.White,
+                        disabledContainerColor = primaryColor.copy(alpha = 0.5f),
+                        disabledContentColor = Color.White.copy(alpha = 0.7f)
                     ),
-                    elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 6.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     if (state.isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
+                            color = Color.White,
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -496,18 +496,20 @@ fun AddExerciseScreen(
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(32.dp))
             }
 
             if (showCategoryDialog) {
                 AlertDialog(
                     onDismissRequest = { showCategoryDialog = false },
-                    icon = { Icon(Icons.Default.Category, contentDescription = null) },
+                    icon = { Icon(Icons.Default.Category, contentDescription = null, tint = primaryColor) },
                     title = {
                         Text(
                             "Kategori Seç",
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = primaryColor
                         )
                     },
                     text = {
@@ -523,15 +525,11 @@ fun AddExerciseScreen(
                                         .fillMaxWidth()
                                         .padding(vertical = 4.dp)
                                         .clickable {
-                                            viewModel.onEvent(
-                                                AddExerciseEvent.CategoryChanged(
-                                                    category
-                                                )
-                                            )
+                                            viewModel.onEvent(AddExerciseEvent.CategoryChanged(category))
                                             showCategoryDialog = false
                                         },
                                     color = if (category == state.category)
-                                        MaterialTheme.colorScheme.primaryContainer
+                                        primaryColor.copy(alpha = 0.1f)
                                     else
                                         Color.Transparent,
                                     shape = RoundedCornerShape(8.dp)
@@ -545,15 +543,11 @@ fun AddExerciseScreen(
                                         RadioButton(
                                             selected = category == state.category,
                                             onClick = {
-                                                viewModel.onEvent(
-                                                    AddExerciseEvent.CategoryChanged(
-                                                        category
-                                                    )
-                                                )
+                                                viewModel.onEvent(AddExerciseEvent.CategoryChanged(category))
                                                 showCategoryDialog = false
                                             },
                                             colors = RadioButtonDefaults.colors(
-                                                selectedColor = MaterialTheme.colorScheme.primary
+                                                selectedColor = primaryColor
                                             )
                                         )
                                         Text(
@@ -563,7 +557,8 @@ fun AddExerciseScreen(
                                                 FontWeight.Bold
                                             else
                                                 FontWeight.Normal,
-                                            modifier = Modifier.padding(start = 8.dp)
+                                            modifier = Modifier.padding(start = 8.dp),
+                                            color = textColor
                                         )
                                     }
                                 }
@@ -572,21 +567,23 @@ fun AddExerciseScreen(
                     },
                     confirmButton = {
                         TextButton(onClick = { showCategoryDialog = false }) {
-                            Text("İptal")
+                            Text("İptal", color = primaryColor)
                         }
-                    }
+                    },
+                    containerColor = surfaceColor
                 )
             }
 
             if (showDifficultyDialog) {
                 AlertDialog(
                     onDismissRequest = { showDifficultyDialog = false },
-                    icon = { Icon(Icons.Outlined.FitnessCenter, contentDescription = null) },
+                    icon = { Icon(Icons.Outlined.FitnessCenter, contentDescription = null, tint = primaryColor) },
                     title = {
                         Text(
                             "Zorluk Seviyesi Seç",
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = primaryColor
                         )
                     },
                     text = {
@@ -628,9 +625,10 @@ fun AddExerciseScreen(
                     },
                     confirmButton = {
                         TextButton(onClick = { showDifficultyDialog = false }) {
-                            Text("İptal")
+                            Text("İptal", color = primaryColor)
                         }
-                    }
+                    },
+                    containerColor = surfaceColor
                 )
             }
 
@@ -666,10 +664,10 @@ fun MediaButton(
                     shape = CircleShape
                 ),
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer,
+            color = primaryColor.copy(alpha = 0.1f),
             border = BorderStroke(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                color = primaryColor.copy(alpha = 0.3f)
             )
         ) {
             Box(
@@ -679,7 +677,7 @@ fun MediaButton(
                 Icon(
                     imageVector = icon,
                     contentDescription = text,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = primaryColor,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -689,7 +687,7 @@ fun MediaButton(
             text = text,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = textColor
         )
     }
 }
@@ -710,7 +708,7 @@ fun MediaPreviewItem(
             .clip(RoundedCornerShape(12.dp))
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                color = textColor.copy(alpha = 0.2f),
                 shape = RoundedCornerShape(12.dp)
             )
             .clickable(onClick = onClick)
@@ -724,7 +722,6 @@ fun MediaPreviewItem(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -739,7 +736,6 @@ fun MediaPreviewItem(
                     )
                 )
         )
-
         IconButton(
             onClick = onRemove,
             modifier = Modifier
@@ -747,30 +743,29 @@ fun MediaPreviewItem(
                 .padding(4.dp)
                 .size(28.dp)
                 .background(
-                    color = MaterialTheme.colorScheme.errorContainer,
+                    color = Color.Red.copy(alpha = 0.7f),
                     shape = CircleShape
                 )
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = "Kaldır",
-                tint = MaterialTheme.colorScheme.onErrorContainer,
+                tint = Color.White,
                 modifier = Modifier.size(16.dp)
             )
         }
-
         if (uri.contains("video")) {
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(8.dp),
                 shape = RoundedCornerShape(4.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
+                color = Color.Black.copy(alpha = 0.6f)
             ) {
                 Icon(
                     imageVector = Icons.Default.Videocam,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = Color.White,
                     modifier = Modifier
                         .padding(4.dp)
                         .size(16.dp)
@@ -793,10 +788,9 @@ fun DifficultyOption(
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick),
         color = if (isSelected)
-            MaterialTheme.colorScheme.primaryContainer
+            primaryColor.copy(alpha = 0.1f)
         else
-            MaterialTheme.colorScheme.surface,
-        tonalElevation = if (isSelected) 2.dp else 0.dp,
+            surfaceColor,
         shadowElevation = if (isSelected) 2.dp else 0.dp
     ) {
         Row(
@@ -809,7 +803,7 @@ fun DifficultyOption(
                 selected = isSelected,
                 onClick = onClick,
                 colors = RadioButtonDefaults.colors(
-                    selectedColor = MaterialTheme.colorScheme.primary
+                    selectedColor = primaryColor
                 )
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -821,24 +815,24 @@ fun DifficultyOption(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     color = if (isSelected)
-                        MaterialTheme.colorScheme.onPrimaryContainer
+                        primaryColor
                     else
-                        MaterialTheme.colorScheme.onSurface
+                        textColor
                 )
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (isSelected)
-                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        primaryColor.copy(alpha = 0.7f)
                     else
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        textColor.copy(alpha = 0.7f)
                 )
             }
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = primaryColor
                 )
             }
         }
