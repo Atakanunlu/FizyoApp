@@ -88,21 +88,13 @@ fun MessagesDetailScreen(
         return
     }
 
-    // Scroll durumunu izleyen daha güçlü bir LaunchedEffect
     LaunchedEffect(state.messages, state.isLoading) {
         if (state.messages.isNotEmpty() && !state.isLoading) {
-            // Kısa bir gecikme ekleyin, böylece görünüm yenilendikten sonra scroll edilir
-            delay(100)
+            // Mesajlar yüklendikten hemen sonra en alta kaydır
             scrollState.scrollToItem(state.messages.size - 1, scrollOffset = 0)
         }
     }
 
-    LaunchedEffect(state.isInitialLoading) {
-        if (!state.isInitialLoading && state.messages.isNotEmpty()) {
-            delay(300)
-            scrollState.scrollToItem(state.messages.size - 1)
-        }
-    }
 
     Scaffold(
         containerColor = backgroundColor,
@@ -366,28 +358,6 @@ fun MessagesDetailScreen(
                                 }
                             }
 
-                            if (showScrollToBottom) {
-                                FloatingActionButton(
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            if (state.messages.isNotEmpty()) {
-                                                scrollState.animateScrollToItem(state.messages.size - 1)
-                                            }
-                                        }
-                                    },
-                                    containerColor = accentColor,
-                                    contentColor = Color.White,
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(end = 16.dp, bottom = 16.dp)
-                                        .size(46.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.KeyboardArrowDown,
-                                        contentDescription = "En aşağı kaydır"
-                                    )
-                                }
-                            }
                         }
                     }
                 }

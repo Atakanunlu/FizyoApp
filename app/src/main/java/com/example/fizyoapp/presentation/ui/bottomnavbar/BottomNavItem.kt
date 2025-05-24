@@ -14,7 +14,8 @@ data class BottomNavItem(
     val title: String,
     val selectedicon: ImageVector,
     val unselectedicon: ImageVector,
-    val route: String
+    val route: String,
+
 )
 
 val items = listOf(
