@@ -373,7 +373,7 @@ fun MainNavigationButtons(navController: NavController) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Button(
-            onClick = { },
+            onClick = { navController.navigate(AppScreens.UserExercisePlansScreen.route)},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 10.dp)

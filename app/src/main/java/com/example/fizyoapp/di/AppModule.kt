@@ -14,6 +14,8 @@ import com.example.fizyoapp.data.repository.appointment.AppointmentRepository
 import com.example.fizyoapp.data.repository.appointment.AppointmentRepositoryImpl
 import com.example.fizyoapp.data.repository.auth.AuthRepository
 import com.example.fizyoapp.data.repository.auth.AuthRepositoryImpl
+import com.example.fizyoapp.data.repository.exercisemanagescreen.ExerciseRepository
+import com.example.fizyoapp.data.repository.exercisemanagescreen.ExerciseRepositoryImpl
 import com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExerciseRepository
 import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExercisesRepositoryImp
@@ -703,6 +705,13 @@ object AppModule {
     @Singleton
     fun provideDeleteNotificationUseCase(repository: NotificationRepository): DeleteNotificationUseCase {
         return DeleteNotificationUseCase(repository)
+    }
+    @Provides
+    @Singleton
+    fun provideExerciseRepository(
+        exerciseRepositoryImpl: ExerciseRepositoryImpl
+    ): ExerciseRepository {
+        return exerciseRepositoryImpl
     }
     @Provides
     @Singleton
