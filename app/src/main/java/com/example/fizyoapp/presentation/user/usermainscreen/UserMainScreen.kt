@@ -9,6 +9,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,6 +36,7 @@ import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBanne
 import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBannerViewModel
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -49,7 +52,6 @@ fun UserMainScreen(
     val adState = advertisementBannerViewModel.state.collectAsState().value
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
-    // Reklamları uygulama açıldığında hemen yükle
     LaunchedEffect(key1 = Unit) {
         Log.d("UserMainScreen", "LaunchedEffect: Reklamlar yükleniyor")
         advertisementBannerViewModel.loadActiveAdvertisements()
@@ -69,6 +71,14 @@ fun UserMainScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        while (true) {
+            delay(60000) // 60 saniyede bir
+            Log.d("UserMainScreen", "Timer: Reklamlar yenileniyor")
+            advertisementBannerViewModel.loadActiveAdvertisements()
         }
     }
 
@@ -139,7 +149,7 @@ fun UserMainScreen(
                         .padding(horizontal = 10.dp, vertical = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Reklam banner'ı en üstte gösteriyoruz
+
                     item {
                         AdvertisementBanner(
                             navController = navController,
@@ -147,18 +157,15 @@ fun UserMainScreen(
                             viewModel = advertisementBannerViewModel
                         )
                     }
-
                     item {
                         MainNavigationButtons(navController)
                         PainSymptomSummaryCard(navController, state.latestPainRecord)
                     }
-
                     item {
                         Spacer(modifier = Modifier.height(70.dp))
                     }
                 }
             }
-
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
@@ -186,7 +193,6 @@ fun AdvertisementBanner(
 ) {
     val context = LocalContext.current
 
-    // Reklamlar varsa
     if (adState.advertisements.isNotEmpty()) {
         Card(
             modifier = Modifier
@@ -199,9 +205,9 @@ fun AdvertisementBanner(
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Mevcut reklam
+
                 adState.currentAdvertisement?.let { ad ->
-                    // Resmi göster
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -222,8 +228,6 @@ fun AdvertisementBanner(
                                 Log.e("AdvertisementBanner", "Reklam görseli yüklenemedi: ${ad.imageUrl}")
                             }
                         )
-
-                        // Reklam badge'i
                         Box(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
@@ -244,14 +248,13 @@ fun AdvertisementBanner(
                     }
                 }
 
-                // Sol-sağ kaydırma okları
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.Center),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Sol ok
+
                     IconButton(
                         onClick = { viewModel.moveToPreviousAd() },
                         modifier = Modifier
@@ -263,13 +266,12 @@ fun AdvertisementBanner(
                             )
                     ) {
                         Icon(
-                            imageVector = Icons.Default.KeyboardArrowLeft,
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                             contentDescription = "Önceki",
                             tint = Color.White
                         )
                     }
 
-                    // Sağ ok
                     IconButton(
                         onClick = { viewModel.moveToNextAd() },
                         modifier = Modifier
@@ -281,14 +283,13 @@ fun AdvertisementBanner(
                             )
                     ) {
                         Icon(
-                            imageVector = Icons.Default.KeyboardArrowRight,
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                             contentDescription = "Sonraki",
                             tint = Color.White
                         )
                     }
                 }
 
-                // Alt kısımda nokta göstergeleri
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -315,7 +316,7 @@ fun AdvertisementBanner(
             }
         }
     } else if (adState.isLoading) {
-        // Yükleniyor durumu
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -332,38 +333,8 @@ fun AdvertisementBanner(
             }
         }
     } else {
-        // Reklam yoksa
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-                .padding(vertical = 8.dp),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Campaign,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                        tint = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Reklam Alanı",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                }
-            }
-        }
+
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
@@ -537,6 +508,7 @@ fun MainNavigationButtons(navController: NavController) {
 fun PainSymptomSummaryCard(navController: NavController, painRecord: PainRecord?) {
     val intensity = painRecord?.intensity ?: 0
     val location = painRecord?.location ?: "Veri yok"
+
     Card(
         modifier = Modifier
             .fillMaxWidth()

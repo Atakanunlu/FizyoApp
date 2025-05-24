@@ -27,6 +27,7 @@ class AdvertisementPaymentViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = MutableStateFlow(PaymentState())
     val state: StateFlow<PaymentState> = _state.asStateFlow()
+
     private val _eventChannel = Channel<UIEvent>()
     val eventFlow = _eventChannel.receiveAsFlow()
 
@@ -195,4 +196,3 @@ class AdvertisementPaymentViewModel @Inject constructor(
         object NavigateToSuccess : UIEvent()
     }
 }
-
