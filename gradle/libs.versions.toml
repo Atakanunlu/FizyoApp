@@ -2,6 +2,7 @@
 agp = "8.3.0"
 core-testing = "2.2.0"
 gson = "2.11.0"
+iyzipay-java = "2.0.119"
 kotlin = "2.0.0"
 core-ktx = "1.12.0"
 junit = "4.13.2"
@@ -25,6 +26,7 @@ androidx-core-testing = { module = "androidx.arch.core:core-testing", version.re
 androidx-lifecycle-runtime-testing = { module = "androidx.lifecycle:lifecycle-runtime-testing", version.ref = "lifecycle" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+iyzipay-java = { module = "com.iyzipay:iyzipay-java", version.ref = "iyzipay-java" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }

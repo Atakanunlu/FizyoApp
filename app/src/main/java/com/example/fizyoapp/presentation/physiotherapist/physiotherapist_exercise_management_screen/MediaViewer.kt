@@ -1,6 +1,5 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen
 
-
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -22,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+
+private val primaryColor = Color(59, 62, 104)
 
 @Composable
 fun MediaViewer(
@@ -46,23 +47,19 @@ fun MediaViewer(
         ) {
             when {
                 mediaType.contains("video") -> {
-                    // Video görüntüleyici
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .clickable {
-
                                 try {
                                     val intent = Intent(Intent.ACTION_VIEW)
                                     intent.setDataAndType(Uri.parse(mediaUrl), "video/*")
                                     context.startActivity(intent)
                                 } catch (e: Exception) {
-
                                 }
                             },
                         contentAlignment = Alignment.Center
                     ) {
-
                         AsyncImage(
                             model = mediaUrl,
                             contentDescription = "Video",
@@ -70,26 +67,24 @@ fun MediaViewer(
                             modifier = Modifier.fillMaxSize()
                         )
 
-
                         Box(
                             modifier = Modifier
                                 .size(80.dp)
                                 .clip(RoundedCornerShape(40.dp))
-                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
+                                .background(Color.White.copy(alpha = 0.7f))
                                 .align(Alignment.Center),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.PlayArrow,
                                 contentDescription = "Oynat",
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = primaryColor,
                                 modifier = Modifier.size(48.dp)
                             )
                         }
                     }
                 }
                 else -> {
-
                     AsyncImage(
                         model = mediaUrl,
                         contentDescription = "Görsel",
@@ -99,7 +94,6 @@ fun MediaViewer(
                 }
             }
 
-
             IconButton(
                 onClick = onDismiss,
                 modifier = Modifier
@@ -107,14 +101,14 @@ fun MediaViewer(
                     .padding(16.dp)
                     .size(48.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                        color = Color.White.copy(alpha = 0.5f),
                         shape = RoundedCornerShape(24.dp)
                     )
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Kapat",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = Color.Black
                 )
             }
         }

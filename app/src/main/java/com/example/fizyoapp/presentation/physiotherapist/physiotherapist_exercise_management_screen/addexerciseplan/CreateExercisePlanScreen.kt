@@ -1,4 +1,3 @@
-// presentation/physiotherapist/exercise/CreateExercisePlanScreen.kt
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexerciseplan
 
 import android.util.Log
@@ -14,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -42,6 +42,12 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val accentColor = Color(59, 62, 104)
+private val textColor = Color.DarkGray
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateExercisePlanScreen(
@@ -52,9 +58,9 @@ fun CreateExercisePlanScreen(
     var showPatientDialog by remember { mutableStateOf(false) }
     var showExercisesDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
-    // DateFormat için
     val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
     val coroutineScope = rememberCoroutineScope()
+
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
@@ -63,7 +69,6 @@ fun CreateExercisePlanScreen(
                     navController.popBackStack()
                 }
                 is CreateExercisePlanViewModel.UiEvent.ShowError -> {
-                    // Show a snackbar instead of a Toast
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
                             message = event.message,
@@ -77,21 +82,30 @@ fun CreateExercisePlanScreen(
     }
 
     Scaffold(
+        containerColor = backgroundColor,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Egzersiz Planı Oluştur") },
+                title = {
+                    Text(
+                        "Egzersiz Planı Oluştur",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Geri"
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Geri",
+                            tint = Color.White
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
                 )
             )
         }
@@ -107,202 +121,291 @@ fun CreateExercisePlanScreen(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Başlık
-                OutlinedTextField(
-                    value = state.title,
-                    onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.TitleChanged(it)) },
-                    label = { Text("Plan Adı") },
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = state.titleError != null,
-                    supportingText = {
-                        state.titleError?.let {
-                            Text(
-                                text = it,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Title,
-                            contentDescription = null
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Next
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Hasta seçimi - MedicalReportScreen'deki gibi yapılandırılmış
-                OutlinedTextField(
-                    value = state.selectedPatient?.fullName ?: "",
-                    onValueChange = { },
-                    label = { Text("Hasta") },
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showPatientDialog = true },
-                    enabled = false,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = "Hasta Seç"
-                        )
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Açıklama
-                OutlinedTextField(
-                    value = state.description,
-                    onValueChange = { viewModel.onEvent(
-                        CreateExercisePlanEvent.DescriptionChanged(
-                            it
-                        )
-                    ) },
-                    label = { Text("Açıklama") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
-                    maxLines = 5,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Description,
-                            contentDescription = null
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Next
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Tarih aralığı
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .padding(vertical = 4.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = surfaceColor
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    // Başlangıç tarihi
-                    DatePickerField(
-                        date = state.startDate,
-                        onDateSelected = { viewModel.onEvent(CreateExercisePlanEvent.StartDateChanged(it)) },
-                        label = "Başlangıç Tarihi",
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    // Bitiş tarihi
-                    DatePickerField(
-                        date = state.endDate,
-                        onDateSelected = { viewModel.onEvent(CreateExercisePlanEvent.EndDateChanged(it)) },
-                        label = "Bitiş Tarihi",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Sıklık
-                OutlinedTextField(
-                    value = state.frequency,
-                    onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.FrequencyChanged(it)) },
-                    label = { Text("Sıklık (örn. Günde 2 kez, Haftada 3 gün)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Repeat,
-                            contentDescription = null
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Next
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Notlar
-                OutlinedTextField(
-                    value = state.notes,
-                    onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.NotesChanged(it)) },
-                    label = { Text("Notlar") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
-                    maxLines = 5,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Note,
-                            contentDescription = null
-                        )
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Egzersizler bölümü
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Egzersizler",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Button(
-                        onClick = { showExercisesDialog = true }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Egzersiz Ekle"
+                        Text(
+                            text = "Plan Bilgileri",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = primaryColor
+                            )
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Egzersiz Ekle")
-                    }
-                }
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = state.title,
+                            onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.TitleChanged(it)) },
+                            label = { Text("Plan Adı") },
+                            modifier = Modifier.fillMaxWidth(),
+                            isError = state.titleError != null,
+                            supportingText = {
+                                state.titleError?.let {
+                                    Text(
+                                        text = it,
+                                        color = Color.Red
+                                    )
+                                }
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Title,
+                                    contentDescription = null,
+                                    tint = primaryColor
+                                )
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                focusedBorderColor = primaryColor,
+                                unfocusedBorderColor = textColor.copy(alpha = 0.5f),
+                                cursorColor = primaryColor
+                            )
+                        )
 
-                // Egzersiz listesi
-                AnimatedVisibility(visible = state.exercises.isNotEmpty()) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Column(
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = state.selectedPatient?.fullName ?: "",
+                            onValueChange = { },
+                            label = { Text("Hasta") },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp)
+                                .clickable { showPatientDialog = true },
+                            enabled = false,
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = primaryColor
+                                )
+                            },
+                            trailingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Hasta Seç",
+                                    tint = primaryColor
+                                )
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                disabledBorderColor = primaryColor.copy(alpha = 0.5f),
+                                disabledLabelColor = textColor.copy(alpha = 0.7f),
+                                disabledTextColor = textColor
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = surfaceColor
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Detaylar ve Tarihler",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = primaryColor
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = state.description,
+                            onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.DescriptionChanged(it)) },
+                            label = { Text("Açıklama") },
+                            modifier = Modifier.fillMaxWidth(),
+                            minLines = 3,
+                            maxLines = 5,
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Description,
+                                    contentDescription = null,
+                                    tint = primaryColor
+                                )
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                focusedBorderColor = primaryColor,
+                                unfocusedBorderColor = textColor.copy(alpha = 0.5f),
+                                cursorColor = primaryColor
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            state.exercises.forEachIndexed { index, exercise ->
-                                ExerciseListItem(
-                                    exercise = exercise,
-                                    onRemoveClick = {
-                                        viewModel.onEvent(CreateExercisePlanEvent.RemoveExercise(index))
-                                    },
-                                    onDetailsChanged = { sets, reps, duration, notes ->
-                                        viewModel.onEvent(
-                                            CreateExercisePlanEvent.UpdateExerciseDetails(
-                                                index, sets, reps, duration, notes
+                            DatePickerField(
+                                date = state.startDate,
+                                onDateSelected = { viewModel.onEvent(CreateExercisePlanEvent.StartDateChanged(it)) },
+                                label = "Başlangıç Tarihi",
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            DatePickerField(
+                                date = state.endDate,
+                                onDateSelected = { viewModel.onEvent(CreateExercisePlanEvent.EndDateChanged(it)) },
+                                label = "Bitiş Tarihi",
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = state.frequency,
+                            onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.FrequencyChanged(it)) },
+                            label = { Text("Sıklık (örn. Günde 2 kez, Haftada 3 gün)") },
+                            modifier = Modifier.fillMaxWidth(),
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Repeat,
+                                    contentDescription = null,
+                                    tint = primaryColor
+                                )
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Next
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                focusedBorderColor = primaryColor,
+                                unfocusedBorderColor = textColor.copy(alpha = 0.5f),
+                                cursorColor = primaryColor
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = state.notes,
+                            onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.NotesChanged(it)) },
+                            label = { Text("Notlar") },
+                            modifier = Modifier.fillMaxWidth(),
+                            minLines = 3,
+                            maxLines = 5,
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Note,
+                                    contentDescription = null,
+                                    tint = primaryColor
+                                )
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                focusedBorderColor = primaryColor,
+                                unfocusedBorderColor = textColor.copy(alpha = 0.5f),
+                                cursorColor = primaryColor
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = surfaceColor
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Egzersizler",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = primaryColor
+                                )
+                            )
+
+                            Button(
+                                onClick = { showExercisesDialog = true },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = primaryColor,
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Egzersiz Ekle"
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Egzersiz Ekle")
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        AnimatedVisibility(visible = state.exercises.isNotEmpty()) {
+                            Column {
+                                state.exercises.forEachIndexed { index, exercise ->
+                                    ExerciseListItem(
+                                        exercise = exercise,
+                                        onRemoveClick = {
+                                            viewModel.onEvent(CreateExercisePlanEvent.RemoveExercise(index))
+                                        },
+                                        onDetailsChanged = { sets, reps, duration, notes ->
+                                            viewModel.onEvent(
+                                                CreateExercisePlanEvent.UpdateExerciseDetails(
+                                                    index, sets, reps, duration, notes
+                                                )
                                             )
+                                        }
+                                    )
+
+                                    if (index < state.exercises.size - 1) {
+                                        Divider(
+                                            modifier = Modifier.padding(vertical = 8.dp),
+                                            color = textColor.copy(alpha = 0.1f)
                                         )
                                     }
-                                )
-                                if (index < state.exercises.size - 1) {
-                                    Divider(
-                                        modifier = Modifier.padding(vertical = 8.dp)
-                                    )
                                 }
                             }
                         }
@@ -311,7 +414,7 @@ fun CreateExercisePlanScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                ElevatedButton(
+                Button(
                     onClick = {
                         Log.d("CreateExercisePlanScreen", "Save button clicked, isLoading: ${state.isLoading}")
                         if (!state.isLoading) {
@@ -321,7 +424,14 @@ fun CreateExercisePlanScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    enabled = !state.isLoading && state.title.isNotBlank() && state.selectedPatient != null && state.exercises.isNotEmpty()
+                    enabled = !state.isLoading && state.title.isNotBlank() && state.selectedPatient != null && state.exercises.isNotEmpty(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = primaryColor,
+                        contentColor = Color.White,
+                        disabledContainerColor = primaryColor.copy(alpha = 0.5f),
+                        disabledContentColor = Color.White.copy(alpha = 0.7f)
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Box(
                         modifier = Modifier.fillMaxWidth(),
@@ -330,7 +440,7 @@ fun CreateExercisePlanScreen(
                         if (state.isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
+                                color = Color.White,
                                 strokeWidth = 2.dp
                             )
                         } else {
@@ -357,7 +467,6 @@ fun CreateExercisePlanScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // Hasta seçim diyaloğu - MedicalReportScreen'deki ShareDialog mantığıyla
             if (showPatientDialog) {
                 AlertDialog(
                     onDismissRequest = { showPatientDialog = false },
@@ -365,12 +474,12 @@ fun CreateExercisePlanScreen(
                         Text(
                             "Hasta Seç",
                             style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = primaryColor
                         )
                     },
                     text = {
                         Column(modifier = Modifier.fillMaxWidth()) {
-                            // Debug bilgileri (geliştirme sırasında)
                             if (state.isLoadingPatients) {
                                 Box(
                                     modifier = Modifier
@@ -378,7 +487,7 @@ fun CreateExercisePlanScreen(
                                         .height(300.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    CircularProgressIndicator()
+                                    CircularProgressIndicator(color = primaryColor)
                                 }
                             } else if (state.patients.isEmpty()) {
                                 Box(
@@ -395,20 +504,21 @@ fun CreateExercisePlanScreen(
                                             imageVector = Icons.Default.Chat,
                                             contentDescription = null,
                                             modifier = Modifier.size(48.dp),
-                                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                            tint = primaryColor.copy(alpha = 0.5f)
                                         )
                                         Spacer(modifier = Modifier.height(16.dp))
                                         Text(
                                             "Mesajlaştığınız hasta bulunamadı",
                                             style = MaterialTheme.typography.titleMedium,
-                                            textAlign = TextAlign.Center
+                                            textAlign = TextAlign.Center,
+                                            color = textColor
                                         )
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Text(
                                             "Lütfen önce bir hastayla mesajlaşın veya hasta ekleyin",
                                             style = MaterialTheme.typography.bodyMedium,
                                             textAlign = TextAlign.Center,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                            color = textColor.copy(alpha = 0.7f)
                                         )
                                     }
                                 }
@@ -433,18 +543,28 @@ fun CreateExercisePlanScreen(
                         }
                     },
                     confirmButton = {
-                        TextButton(onClick = { showPatientDialog = false }) {
+                        TextButton(
+                            onClick = { showPatientDialog = false },
+                            colors = ButtonDefaults.textButtonColors(contentColor = primaryColor)
+                        ) {
                             Text("Kapat")
                         }
-                    }
+                    },
+                    containerColor = surfaceColor
                 )
             }
 
-            // Egzersiz seçim diyaloğu
             if (showExercisesDialog) {
                 AlertDialog(
                     onDismissRequest = { showExercisesDialog = false },
-                    title = { Text("Egzersiz Seç") },
+                    title = {
+                        Text(
+                            "Egzersiz Seç",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryColor
+                        )
+                    },
                     text = {
                         if (state.isLoadingExercises) {
                             Box(
@@ -453,7 +573,7 @@ fun CreateExercisePlanScreen(
                                     .height(300.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator()
+                                CircularProgressIndicator(color = primaryColor)
                             }
                         } else if (state.availableExercises.isEmpty()) {
                             Box(
@@ -462,7 +582,24 @@ fun CreateExercisePlanScreen(
                                     .height(300.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("Egzersiz bulunamadı")
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.FitnessCenter,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(48.dp),
+                                        tint = primaryColor.copy(alpha = 0.5f)
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        "Egzersiz bulunamadı",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        textAlign = TextAlign.Center,
+                                        color = textColor
+                                    )
+                                }
                             }
                         } else {
                             LazyColumn(
@@ -484,10 +621,14 @@ fun CreateExercisePlanScreen(
                         }
                     },
                     confirmButton = {
-                        TextButton(onClick = { showExercisesDialog = false }) {
+                        TextButton(
+                            onClick = { showExercisesDialog = false },
+                            colors = ButtonDefaults.textButtonColors(contentColor = primaryColor)
+                        ) {
                             Text("İptal")
                         }
-                    }
+                    },
+                    containerColor = surfaceColor
                 )
             }
         }
@@ -505,7 +646,7 @@ fun PatientListItem(
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(vertical = 8.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent,
+        color = if (isSelected) primaryColor.copy(alpha = 0.1f) else Color.Transparent,
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
@@ -514,12 +655,11 @@ fun PatientListItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Profil fotoğrafı
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .background(primaryColor.copy(alpha = 0.1f))
             ) {
                 if (patient.profilePhotoUrl != null && patient.profilePhotoUrl.isNotEmpty()) {
                     AsyncImage(
@@ -538,14 +678,13 @@ fun PatientListItem(
                         modifier = Modifier
                             .size(24.dp)
                             .align(Alignment.Center),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = primaryColor
                     )
                 }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Hasta adı
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -553,16 +692,15 @@ fun PatientListItem(
                     text = patient.fullName,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    color = if (isSelected) primaryColor else textColor
                 )
             }
 
-            // Seçim göstergesi
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Seçildi",
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = primaryColor
                 )
             }
         }
@@ -575,73 +713,78 @@ fun ExerciseSelectionItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    Row(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 4.dp),
+        color = if (isSelected) primaryColor.copy(alpha = 0.1f) else Color.Transparent,
+        shape = RoundedCornerShape(12.dp)
     ) {
-        // Exercise thumbnail
-        Box(
+        Row(
             modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            if (exercise.mediaUrls.isNotEmpty()) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(exercise.mediaUrls.first())
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = exercise.title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(primaryColor.copy(alpha = 0.1f))
+            ) {
+                if (exercise.mediaUrls.isNotEmpty()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(exercise.mediaUrls.first())
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = exercise.title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.FitnessCenter,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .align(Alignment.Center),
+                        tint = primaryColor
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = exercise.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    color = if (isSelected) primaryColor else textColor
                 )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.FitnessCenter,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .align(Alignment.Center),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                Text(
+                    text = exercise.category,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = textColor.copy(alpha = 0.7f)
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // Exercise details
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = exercise.title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-            )
-
-            Text(
-                text = exercise.category,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        // Selection indicator
-        if (isSelected) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = "Seçildi",
-                tint = MaterialTheme.colorScheme.primary
-            )
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Seçildi",
+                    tint = primaryColor
+                )
+            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExerciseListItem(
     exercise: ExercisePlanItem,
@@ -670,7 +813,6 @@ fun ExerciseListItem(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Thumbnail gösterimi (varsa)
             if (exercise.mediaUrls.isNotEmpty()) {
                 Box(
                     modifier = Modifier
@@ -682,7 +824,10 @@ fun ExerciseListItem(
                         }
                 ) {
                     AsyncImage(
-                        model = exercise.mediaUrls.first(),
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(exercise.mediaUrls.first())
+                            .crossfade(true)
+                            .build(),
                         contentDescription = exercise.exerciseTitle,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
@@ -691,28 +836,27 @@ fun ExerciseListItem(
                 Spacer(modifier = Modifier.width(12.dp))
             }
 
-            // Egzersiz başlığı
             Text(
                 text = exercise.exerciseTitle,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                color = textColor
             )
 
-            // Genişlet/daralt butonu
             IconButton(onClick = { expanded = !expanded }) {
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (expanded) "Daralt" else "Genişlet"
+                    contentDescription = if (expanded) "Daralt" else "Genişlet",
+                    tint = primaryColor
                 )
             }
 
-            // Kaldır butonu
             IconButton(onClick = onRemoveClick) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Kaldır",
-                    tint = MaterialTheme.colorScheme.error
+                    tint = Color.Red
                 )
             }
         }
@@ -723,20 +867,23 @@ fun ExerciseListItem(
                     .fillMaxWidth()
                     .padding(top = 8.dp)
             ) {
-                // Eğer medya varsa önizleme göster
                 if (exercise.mediaUrls.isNotEmpty()) {
-                    Box(
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(180.dp)
-                            .clip(RoundedCornerShape(8.dp))
                             .clickable {
                                 selectedMediaUrl = exercise.mediaUrls.first()
                                 showMediaViewer = true
-                            }
+                            },
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
                         AsyncImage(
-                            model = exercise.mediaUrls.first(),
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(exercise.mediaUrls.first())
+                                .crossfade(true)
+                                .build(),
                             contentDescription = exercise.exerciseTitle,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
@@ -745,12 +892,10 @@ fun ExerciseListItem(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Egzersiz parametreleri
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Sets
                     OutlinedTextField(
                         value = sets,
                         onValueChange = {
@@ -762,10 +907,15 @@ fun ExerciseListItem(
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Next
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = primaryColor,
+                            unfocusedBorderColor = textColor.copy(alpha = 0.5f),
+                            cursorColor = primaryColor
                         )
                     )
 
-                    // Repetitions
                     OutlinedTextField(
                         value = repetitions,
                         onValueChange = {
@@ -777,10 +927,15 @@ fun ExerciseListItem(
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Next
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = primaryColor,
+                            unfocusedBorderColor = textColor.copy(alpha = 0.5f),
+                            cursorColor = primaryColor
                         )
                     )
 
-                    // Duration
                     OutlinedTextField(
                         value = duration,
                         onValueChange = {
@@ -792,13 +947,18 @@ fun ExerciseListItem(
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Done
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = primaryColor,
+                            unfocusedBorderColor = textColor.copy(alpha = 0.5f),
+                            cursorColor = primaryColor
                         )
                     )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Notes
                 OutlinedTextField(
                     value = notes,
                     onValueChange = {
@@ -808,12 +968,17 @@ fun ExerciseListItem(
                     label = { Text("Notlar") },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2,
-                    maxLines = 3
+                    maxLines = 3,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = primaryColor,
+                        unfocusedBorderColor = textColor.copy(alpha = 0.5f),
+                        cursorColor = primaryColor
+                    )
                 )
             }
         }
 
-        // Medya görüntüleyici
         if (showMediaViewer && selectedMediaUrl.isNotEmpty()) {
             MediaViewer(
                 mediaUrl = selectedMediaUrl,

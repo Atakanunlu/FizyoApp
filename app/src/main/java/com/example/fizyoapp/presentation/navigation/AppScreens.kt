@@ -118,4 +118,14 @@ sealed class AppScreens(val route: String) {
 
     // Şifre sıfırlama ekranı
     object ForgotPasswordScreen: AppScreens("forgot_password_screen")
+
+    object CreateAdvertisementScreen: AppScreens("create_advertisement_screen")
+    object AdvertisementPaymentScreen: AppScreens("advertisement_payment_screen")
+    object AdvertisementSuccessScreen: AppScreens("advertisement_success_screen")
+
+    object AdvertisementDetailScreen: AppScreens("advertisement_detail_screen/{advertisementId}") {
+        fun createRoute(advertisementId: String): String {
+            return "advertisement_detail_screen/$advertisementId"
+        }
+    }
 }
