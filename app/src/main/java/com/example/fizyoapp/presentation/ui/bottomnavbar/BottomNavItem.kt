@@ -1,6 +1,7 @@
 package com.example.fizyoapp.ui.bottomnavbar
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.Search
@@ -29,8 +30,8 @@ val items = listOf(
     ),
     BottomNavItem(
         title = "Mesajlar",
-        selectedicon = Icons.Default.Message,
-        unselectedicon = Icons.Default.Message,
+        selectedicon = Icons.AutoMirrored.Filled.Message,
+        unselectedicon = Icons.AutoMirrored.Filled.Message,
         route = AppScreens.MessagesScreen.route
     )
 )

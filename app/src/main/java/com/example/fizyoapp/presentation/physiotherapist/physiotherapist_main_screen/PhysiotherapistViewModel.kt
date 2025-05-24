@@ -46,7 +46,6 @@ class PhysiotherapistViewModel @Inject constructor(
                                 physiotherapistName = physiotherapist.email
                             )
 
-                            // Fetch physiotherapist profile
                             getPhysiotherapistProfileUseCase(physiotherapist.id).collect { profileResult ->
                                 when (profileResult) {
                                     is Resource.Success -> {
