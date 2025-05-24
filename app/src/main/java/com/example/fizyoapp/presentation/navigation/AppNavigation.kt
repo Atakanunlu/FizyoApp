@@ -7,6 +7,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.fizyoapp.presentation.advertisement.create.CreateAdvertisementScreen
+import com.example.fizyoapp.presentation.advertisement.detail.AdvertisementDetailScreen
+import com.example.fizyoapp.presentation.advertisement.payment.AdvertisementPaymentScreen
+import com.example.fizyoapp.presentation.advertisement.success.AdvertisementSuccessScreen
 import com.example.fizyoapp.presentation.appointment.booking.AppointmentBookingScreen
 import com.example.fizyoapp.presentation.appointment.calendar.PhysiotherapistCalendarScreen
 import com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen.MessagesDetailScreen
@@ -374,6 +378,26 @@ fun AppNavigation() {
 
         composable(AppScreens.ForgotPasswordScreen.route) {
             ForgotPasswordScreen(navController = navController)
+        }
+
+        composable(AppScreens.CreateAdvertisementScreen.route) {
+            CreateAdvertisementScreen(navController = navController)
+        }
+
+        composable(AppScreens.AdvertisementPaymentScreen.route) {
+            AdvertisementPaymentScreen(navController = navController)
+        }
+
+        composable(AppScreens.AdvertisementSuccessScreen.route) {
+            AdvertisementSuccessScreen(navController = navController)
+        }
+
+        composable(
+            route = AppScreens.AdvertisementDetailScreen.route,
+            arguments = listOf(navArgument("advertisementId") { type = NavType.StringType })
+        ) {
+            val advertisementId = it.arguments?.getString("advertisementId") ?: ""
+            AdvertisementDetailScreen(navController = navController)
         }
 
 

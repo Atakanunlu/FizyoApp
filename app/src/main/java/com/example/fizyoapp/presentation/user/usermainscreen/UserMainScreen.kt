@@ -1,6 +1,7 @@
 package com.example.fizyoapp.presentation.user.usermainscreen
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,7 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -26,7 +28,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.usermainscreen.PainRecord
+import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBannerState
+import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBannerViewModel
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
 import java.text.SimpleDateFormat
@@ -37,16 +42,27 @@ import java.util.*
 @Composable
 fun UserMainScreen(
     navController: NavController,
-    viewModel: UserViewModel = hiltViewModel()
+    viewModel: UserViewModel = hiltViewModel(),
+    advertisementBannerViewModel: AdvertisementBannerViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.collectAsState().value
+    val adState = advertisementBannerViewModel.state.collectAsState().value
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
+    // Reklamları uygulama açıldığında hemen yükle
+    LaunchedEffect(key1 = Unit) {
+        Log.d("UserMainScreen", "LaunchedEffect: Reklamlar yükleniyor")
+        advertisementBannerViewModel.loadActiveAdvertisements()
+    }
+
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
+                Log.d("UserMainScreen", "ON_RESUME: Veriler ve reklamlar yenileniyor")
                 val userId = state.userProfile?.userId
                 if (userId != null) {
                     viewModel.refreshAllData(userId)
+                    advertisementBannerViewModel.loadActiveAdvertisements()
                 }
             }
         }
@@ -123,6 +139,15 @@ fun UserMainScreen(
                         .padding(horizontal = 10.dp, vertical = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // Reklam banner'ı en üstte gösteriyoruz
+                    item {
+                        AdvertisementBanner(
+                            navController = navController,
+                            adState = adState,
+                            viewModel = advertisementBannerViewModel
+                        )
+                    }
+
                     item {
                         MainNavigationButtons(navController)
                         PainSymptomSummaryCard(navController, state.latestPainRecord)
@@ -154,8 +179,196 @@ fun UserMainScreen(
 }
 
 @Composable
-fun MainNavigationButtons(navController: NavController) {
+fun AdvertisementBanner(
+    navController: NavController,
+    adState: AdvertisementBannerState,
+    viewModel: AdvertisementBannerViewModel
+) {
+    val context = LocalContext.current
 
+    // Reklamlar varsa
+    if (adState.advertisements.isNotEmpty()) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .padding(vertical = 8.dp),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Mevcut reklam
+                adState.currentAdvertisement?.let { ad ->
+                    // Resmi göster
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable {
+                                Log.d("AdvertisementBanner", "Reklama tıklandı: ${ad.id}")
+                                navController.navigate(AppScreens.AdvertisementDetailScreen.createRoute(ad.id))
+                            }
+                    ) {
+                        AsyncImage(
+                            model = ad.imageUrl,
+                            contentDescription = "Reklam",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            onSuccess = {
+                                Log.d("AdvertisementBanner", "Reklam görseli başarıyla yüklendi")
+                            },
+                            onError = {
+                                Log.e("AdvertisementBanner", "Reklam görseli yüklenemedi: ${ad.imageUrl}")
+                            }
+                        )
+
+                        // Reklam badge'i
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 6.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                text = "Reklam",
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+                // Sol-sağ kaydırma okları
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Sol ok
+                    IconButton(
+                        onClick = { viewModel.moveToPreviousAd() },
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .size(36.dp)
+                            .background(
+                                color = Color.Black.copy(alpha = 0.3f),
+                                shape = CircleShape
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowLeft,
+                            contentDescription = "Önceki",
+                            tint = Color.White
+                        )
+                    }
+
+                    // Sağ ok
+                    IconButton(
+                        onClick = { viewModel.moveToNextAd() },
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .size(36.dp)
+                            .background(
+                                color = Color.Black.copy(alpha = 0.3f),
+                                shape = CircleShape
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowRight,
+                            contentDescription = "Sonraki",
+                            tint = Color.White
+                        )
+                    }
+                }
+
+                // Alt kısımda nokta göstergeleri
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    adState.advertisements.forEachIndexed { index, _ ->
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 4.dp)
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (index == adState.currentIndex)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        Color.White.copy(alpha = 0.6f)
+                                )
+                                .clickable { viewModel.moveToAd(index) }
+                        )
+                    }
+                }
+            }
+        }
+    } else if (adState.isLoading) {
+        // Yükleniyor durumu
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .padding(vertical = 8.dp),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+    } else {
+        // Reklam yoksa
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .padding(vertical = 8.dp),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Campaign,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Reklam Alanı",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MainNavigationButtons(navController: NavController) {
     Row(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -324,7 +537,6 @@ fun MainNavigationButtons(navController: NavController) {
 fun PainSymptomSummaryCard(navController: NavController, painRecord: PainRecord?) {
     val intensity = painRecord?.intensity ?: 0
     val location = painRecord?.location ?: "Veri yok"
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -363,7 +575,6 @@ fun PainSymptomSummaryCard(navController: NavController, painRecord: PainRecord?
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically

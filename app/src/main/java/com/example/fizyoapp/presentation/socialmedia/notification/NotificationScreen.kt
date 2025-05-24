@@ -32,6 +32,11 @@ import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.Physiothe
 import java.text.SimpleDateFormat
 import java.util.*
 
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val textColor = Color.DarkGray
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationScreen(
@@ -48,12 +53,19 @@ fun NotificationScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Bildirimler", fontWeight = FontWeight.SemiBold) },
+                title = {
+                    Text(
+                        "Bildirimler",
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Geri"
+                            contentDescription = "Geri",
+                            tint = Color.White
                         )
                     }
                 },
@@ -62,11 +74,18 @@ fun NotificationScreen(
                         IconButton(onClick = { viewModel.markAllAsRead() }) {
                             Icon(
                                 imageVector = Icons.Default.DoneAll,
-                                contentDescription = "Tümünü Okundu İşaretle"
+                                contentDescription = "Tümünü Okundu İşaretle",
+                                tint = Color.White
                             )
                         }
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
+                )
             )
         },
         bottomBar = {
@@ -76,12 +95,13 @@ fun NotificationScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(backgroundColor)
                 .padding(paddingValues)
         ) {
             if (state.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.primary
+                    color = primaryColor
                 )
             } else if (state.notifications.isEmpty()) {
                 Column(
@@ -92,12 +112,13 @@ fun NotificationScreen(
                         imageVector = Icons.Default.Notifications,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        tint = primaryColor.copy(alpha = 0.5f)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Henüz bildiriminiz yok",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = textColor
                     )
                 }
             } else {
@@ -129,8 +150,9 @@ fun NotificationScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    containerColor = Color(0xFFB71C1C),
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(state.error!!)
                 }
@@ -157,13 +179,13 @@ fun NotificationItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (!notification.isRead)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+                primaryColor.copy(alpha = 0.1f)
             else
-                MaterialTheme.colorScheme.surface
+                surfaceColor
         )
     ) {
         Row(
@@ -176,7 +198,7 @@ fun NotificationItem(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                    .background(primaryColor.copy(alpha = 0.1f))
             ) {
                 if (senderProfile?.photoUrl?.isNotEmpty() == true) {
                     AsyncImage(
@@ -192,7 +214,7 @@ fun NotificationItem(
                         modifier = Modifier
                             .size(30.dp)
                             .align(Alignment.Center),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = primaryColor
                     )
                 }
             }
@@ -210,7 +232,8 @@ fun NotificationItem(
                 Text(
                     text = "$senderName $message",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    color = textColor
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -221,7 +244,7 @@ fun NotificationItem(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        color = textColor.copy(alpha = 0.7f)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                 }
@@ -229,7 +252,7 @@ fun NotificationItem(
                 Text(
                     text = dateFormat.format(notification.timestamp),
                     fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    color = textColor.copy(alpha = 0.5f)
                 )
             }
 
@@ -242,8 +265,8 @@ fun NotificationItem(
                 contentDescription = null,
                 tint = when (notification.type) {
                     NotificationType.LIKE -> Color.Red
-                    NotificationType.COMMENT -> MaterialTheme.colorScheme.primary
-                    NotificationType.FOLLOW -> MaterialTheme.colorScheme.secondary
+                    NotificationType.COMMENT -> primaryColor
+                    NotificationType.FOLLOW -> primaryColor
                 },
                 modifier = Modifier.size(24.dp)
             )

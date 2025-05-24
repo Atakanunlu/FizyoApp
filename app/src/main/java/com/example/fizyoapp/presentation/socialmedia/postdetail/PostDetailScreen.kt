@@ -38,6 +38,11 @@ import com.example.fizyoapp.domain.model.socialmedia.Comment
 import java.text.SimpleDateFormat
 import java.util.*
 
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val textColor = Color.DarkGray
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostDetailScreen(
@@ -60,12 +65,19 @@ fun PostDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Gönderi Detayı", fontWeight = FontWeight.SemiBold) },
+                title = {
+                    Text(
+                        "Gönderi Detayı",
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Geri"
+                            contentDescription = "Geri",
+                            tint = Color.White
                         )
                     }
                 },
@@ -75,7 +87,7 @@ fun PostDetailScreen(
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Gönderiyi Sil",
-                                tint = MaterialTheme.colorScheme.error
+                                tint = Color.White
                             )
                         }
                         IconButton(
@@ -87,22 +99,31 @@ fun PostDetailScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
-                                contentDescription = "Gönderiyi Düzenle"
+                                contentDescription = "Gönderiyi Düzenle",
+                                tint = Color.White
                             )
                         }
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = primaryColor,
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White,
+                    actionIconContentColor = Color.White
+                )
             )
         }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(backgroundColor)
                 .padding(paddingValues)
         ) {
             if (state.isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
+                    color = primaryColor
                 )
             } else if (state.error != null) {
                 Column(
@@ -114,17 +135,22 @@ fun PostDetailScreen(
                     Icon(
                         imageVector = Icons.Default.Error,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
+                        tint = Color(0xFFB71C1C),
                         modifier = Modifier.size(48.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = state.error ?: "",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error
+                        color = Color(0xFFB71C1C)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { viewModel.loadPostAndComments() }) {
+                    Button(
+                        onClick = { viewModel.loadPostAndComments() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = primaryColor
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
                         Text("Tekrar Dene")
                     }
                 }
@@ -137,12 +163,12 @@ fun PostDetailScreen(
                         imageVector = Icons.AutoMirrored.Filled.Feed,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        tint = primaryColor.copy(alpha = 0.5f)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Gönderi bulunamadı",
-                        style = MaterialTheme.typography.titleMedium
+                        color = textColor
                     )
                 }
             } else {
@@ -162,13 +188,13 @@ fun PostDetailScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(16.dp),
-                                    shape = RoundedCornerShape(12.dp),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                    shape = RoundedCornerShape(16.dp),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                                    colors = CardDefaults.cardColors(containerColor = surfaceColor)
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(16.dp)
                                     ) {
-                                        // User info
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
@@ -176,7 +202,7 @@ fun PostDetailScreen(
                                                 modifier = Modifier
                                                     .size(48.dp)
                                                     .clip(CircleShape)
-                                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                                                    .background(primaryColor.copy(alpha = 0.2f))
                                             ) {
                                                 if (post.userPhotoUrl.isNotEmpty()) {
                                                     AsyncImage(
@@ -192,7 +218,7 @@ fun PostDetailScreen(
                                                         modifier = Modifier
                                                             .size(24.dp)
                                                             .align(Alignment.Center),
-                                                        tint = MaterialTheme.colorScheme.primary
+                                                        tint = primaryColor
                                                     )
                                                 }
                                             }
@@ -201,31 +227,30 @@ fun PostDetailScreen(
                                                 Text(
                                                     text = post.userName,
                                                     fontWeight = FontWeight.Bold,
-                                                    fontSize = 16.sp
+                                                    fontSize = 16.sp,
+                                                    color = textColor
                                                 )
                                                 Text(
                                                     text = if (post.userRole == "PHYSIOTHERAPIST") "Fizyoterapist" else "Kullanıcı",
                                                     fontSize = 14.sp,
-                                                    color = MaterialTheme.colorScheme.primary
+                                                    color = primaryColor
                                                 )
                                             }
                                             Spacer(modifier = Modifier.weight(1f))
                                             Text(
                                                 text = dateFormatter.format(post.timestamp),
                                                 fontSize = 12.sp,
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                                color = textColor.copy(alpha = 0.6f)
                                             )
                                         }
-
                                         Spacer(modifier = Modifier.height(16.dp))
-
                                         Text(
                                             text = post.content,
                                             modifier = Modifier.fillMaxWidth(),
                                             fontSize = 16.sp,
-                                            lineHeight = 24.sp
+                                            lineHeight = 24.sp,
+                                            color = textColor
                                         )
-
                                         if (post.mediaUrls.isNotEmpty()) {
                                             Spacer(modifier = Modifier.height(16.dp))
                                             MediaGallery(
@@ -236,9 +261,7 @@ fun PostDetailScreen(
                                                 context = context
                                             )
                                         }
-
                                         Spacer(modifier = Modifier.height(16.dp))
-
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically
@@ -254,26 +277,26 @@ fun PostDetailScreen(
                                                     contentDescription = "Beğen",
                                                     tint = if (state.isPostLikedByCurrentUser)
                                                         Color.Red else
-                                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                                        textColor.copy(alpha = 0.6f)
                                                 )
                                             }
                                             Text(
                                                 text = "${post.likeCount} beğeni",
                                                 fontSize = 14.sp,
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                                color = textColor.copy(alpha = 0.6f)
                                             )
                                             Spacer(modifier = Modifier.width(16.dp))
                                             Icon(
                                                 imageVector = Icons.AutoMirrored.Filled.Comment,
                                                 contentDescription = "Yorum",
-                                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                                tint = textColor.copy(alpha = 0.6f),
                                                 modifier = Modifier.size(20.dp)
                                             )
                                             Spacer(modifier = Modifier.width(4.dp))
                                             Text(
                                                 text = "${post.commentCount} yorum",
                                                 fontSize = 14.sp,
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                                color = textColor.copy(alpha = 0.6f)
                                             )
                                         }
                                     }
@@ -285,11 +308,12 @@ fun PostDetailScreen(
                                     text = "Yorumlar",
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp
+                                    fontSize = 18.sp,
+                                    color = primaryColor
                                 )
                                 HorizontalDivider(
                                     modifier = Modifier.padding(horizontal = 16.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant
+                                    color = primaryColor.copy(alpha = 0.2f)
                                 )
                             }
 
@@ -307,13 +331,13 @@ fun PostDetailScreen(
                                             Icon(
                                                 imageVector = Icons.Outlined.ChatBubbleOutline,
                                                 contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                                                tint = textColor.copy(alpha = 0.4f),
                                                 modifier = Modifier.size(32.dp)
                                             )
                                             Spacer(modifier = Modifier.height(8.dp))
                                             Text(
                                                 text = "Henüz yorum yapılmamış",
-                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                                color = textColor.copy(alpha = 0.6f)
                                             )
                                         }
                                     }
@@ -331,7 +355,8 @@ fun PostDetailScreen(
                                 .padding(8.dp)
                                 .navigationBarsPadding(),
                             shape = RoundedCornerShape(24.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                            colors = CardDefaults.cardColors(containerColor = surfaceColor)
                         ) {
                             Row(
                                 modifier = Modifier
@@ -343,7 +368,7 @@ fun PostDetailScreen(
                                     modifier = Modifier
                                         .size(36.dp)
                                         .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                                        .background(primaryColor.copy(alpha = 0.2f))
                                 ) {
                                     if (state.currentUserPhotoUrl.isNotEmpty()) {
                                         AsyncImage(
@@ -359,10 +384,11 @@ fun PostDetailScreen(
                                             modifier = Modifier
                                                 .size(20.dp)
                                                 .align(Alignment.Center),
-                                            tint = MaterialTheme.colorScheme.primary
+                                            tint = primaryColor
                                         )
                                     }
                                 }
+
                                 OutlinedTextField(
                                     value = commentText,
                                     onValueChange = { viewModel.updateCommentText(it) },
@@ -373,10 +399,12 @@ fun PostDetailScreen(
                                     colors = TextFieldDefaults.outlinedTextFieldColors(
                                         focusedBorderColor = Color.Transparent,
                                         unfocusedBorderColor = Color.Transparent,
-                                        containerColor = MaterialTheme.colorScheme.surface
+                                        containerColor = surfaceColor,
+                                        cursorColor = primaryColor
                                     ),
                                     maxLines = 3
                                 )
+
                                 IconButton(
                                     onClick = { viewModel.addComment() },
                                     enabled = commentText.isNotBlank() && !state.isCommentLoading
@@ -384,15 +412,16 @@ fun PostDetailScreen(
                                     if (state.isCommentLoading) {
                                         CircularProgressIndicator(
                                             modifier = Modifier.size(24.dp),
-                                            strokeWidth = 2.dp
+                                            strokeWidth = 2.dp,
+                                            color = primaryColor
                                         )
                                     } else {
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.Send,
                                             contentDescription = "Gönder",
                                             tint = if (commentText.isBlank())
-                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else
-                                                MaterialTheme.colorScheme.primary
+                                                textColor.copy(alpha = 0.38f) else
+                                                primaryColor
                                         )
                                     }
                                 }
@@ -416,17 +445,25 @@ fun PostDetailScreen(
                         showDeleteConfirmDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
+                        containerColor = Color(0xFFB71C1C)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text("Sil")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirmDialog = false }) {
+                TextButton(
+                    onClick = { showDeleteConfirmDialog = false },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = primaryColor
+                    )
+                ) {
                     Text("İptal")
                 }
-            }
+            },
+            containerColor = surfaceColor,
+            shape = RoundedCornerShape(16.dp)
         )
     }
 }
@@ -447,7 +484,7 @@ fun MediaGallery(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(280.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable { if (isVideo) onVideoClick() }
             ) {
                 if (isVideo) {
@@ -458,11 +495,13 @@ fun MediaGallery(
                             prepare()
                         }
                     }
+
                     DisposableEffect(key1 = videoUri.toString()) {
                         onDispose {
                             exoPlayer.release()
                         }
                     }
+
                     AndroidView(
                         factory = { ctx ->
                             PlayerView(ctx).apply {
@@ -472,6 +511,7 @@ fun MediaGallery(
                         },
                         modifier = Modifier.fillMaxSize()
                     )
+
                     if (!videoControlsVisible) {
                         Box(
                             modifier = Modifier
@@ -524,7 +564,7 @@ fun MediaGallery(
                                 modifier = Modifier
                                     .weight(1f)
                                     .fillMaxHeight()
-                                    .clip(RoundedCornerShape(8.dp))
+                                    .clip(RoundedCornerShape(12.dp))
                             ) {
                                 AsyncImage(
                                     model = mediaUrl,
@@ -579,7 +619,7 @@ fun MediaGallery(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight()
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(12.dp))
                         ) {
                             AsyncImage(
                                 model = mediaUrl,
@@ -624,7 +664,7 @@ fun MediaGallery(
                                 modifier = Modifier
                                     .weight(1f)
                                     .fillMaxHeight()
-                                    .clip(RoundedCornerShape(8.dp))
+                                    .clip(RoundedCornerShape(12.dp))
                             ) {
                                 AsyncImage(
                                     model = mediaUrl,
@@ -673,9 +713,13 @@ fun MediaGallery(
                 }
 
                 if (mediaUrls.size > 5) {
-                    TextButton(
+                    Button(
                         onClick = { /* Tüm medyaları görüntüleme ekranı açılabilir */ },
-                        modifier = Modifier.align(Alignment.End)
+                        modifier = Modifier.align(Alignment.End),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = primaryColor
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Text("Tüm Medyaları Görüntüle (${mediaUrls.size})")
                     }
@@ -694,8 +738,9 @@ fun CommentItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = surfaceColor)
     ) {
         Column(
             modifier = Modifier.padding(12.dp)
@@ -707,7 +752,7 @@ fun CommentItem(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                        .background(primaryColor.copy(alpha = 0.2f))
                 ) {
                     if (comment.userPhotoUrl.isNotEmpty()) {
                         AsyncImage(
@@ -723,35 +768,43 @@ fun CommentItem(
                             modifier = Modifier
                                 .size(20.dp)
                                 .align(Alignment.Center),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = primaryColor
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.width(8.dp))
+
                 Column {
                     Text(
                         text = comment.userName,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        color = textColor
                     )
                     Text(
                         text = if (comment.userRole == "PHYSIOTHERAPIST") "Fizyoterapist" else "Kullanıcı",
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.primary
+                        color = primaryColor
                     )
                 }
+
                 Spacer(modifier = Modifier.weight(1f))
+
                 Text(
                     text = dateFormatter.format(comment.timestamp),
                     fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = textColor.copy(alpha = 0.6f)
                 )
             }
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = comment.content,
                 fontSize = 14.sp,
-                lineHeight = 20.sp
+                lineHeight = 20.sp,
+                color = textColor
             )
         }
     }
