@@ -1,4 +1,5 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -36,6 +38,7 @@ private val backgroundColor = Color(245, 245, 250)
 private val surfaceColor = Color.White
 private val accentColor = Color(59, 62, 104)
 private val textColor = Color.DarkGray
+private val greenColor = Color(76, 175, 80)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,14 +96,16 @@ fun PhysiotherapistMainScreen(
                 title = {
                     Column {
                         Text(
-                            "Fizyoterapist Panel",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
+                            "Merhaba,",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
                         )
                         Text(
-                            "İyi günler",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.8f)
+                            state.physiotherapistProfile?.firstName ?: "Fizyoterapist",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 },
@@ -153,7 +158,7 @@ fun PhysiotherapistMainScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     item {
-                        WelcomeCard()
+                        WelcomeCard(state)
                         Spacer(modifier = Modifier.height(16.dp))
                         MainNavigationButtonsRedesigned(navController)
                     }
@@ -162,6 +167,7 @@ fun PhysiotherapistMainScreen(
                     }
                 }
             }
+
             state.errorMessage?.let {
                 Snackbar(
                     modifier = Modifier
@@ -182,7 +188,7 @@ fun PhysiotherapistMainScreen(
 }
 
 @Composable
-fun WelcomeCard() {
+fun WelcomeCard(state: PhysiotherapistState) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -231,7 +237,7 @@ fun WelcomeCard() {
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Fizyoterapist",
+                    text = state.physiotherapistProfile?.firstName ?: "Fizyoterapist",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
@@ -252,7 +258,6 @@ fun MainNavigationButtonsRedesigned(navController: NavController) {
         fontWeight = FontWeight.Bold,
         color = primaryColor
     )
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -308,9 +313,7 @@ fun MainNavigationButtonsRedesigned(navController: NavController) {
             )
         }
     }
-
     Spacer(modifier = Modifier.height(12.dp))
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -366,9 +369,7 @@ fun MainNavigationButtonsRedesigned(navController: NavController) {
             )
         }
     }
-
     Spacer(modifier = Modifier.height(12.dp))
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -386,24 +387,20 @@ fun MainNavigationButtonsRedesigned(navController: NavController) {
             modifier = Modifier.weight(1f)
         )
     }
-
     Spacer(modifier = Modifier.height(12.dp))
-
     ServiceCard(
         title = "Sosyal Medya",
         icon = Icons.Default.Share,
         description = "Gönderilerinizi paylaşın ve diğer içerikleri görüntüleyin",
         onClick = { navController.navigate(AppScreens.SocialMediaScreen.route) }
     )
-
     Spacer(modifier = Modifier.height(12.dp))
-
     ServiceCard(
         title = "Reklam Ver",
         icon = Icons.Default.Campaign,
         description = "Hastalara reklam göstermek için ödeme yapın",
         onClick = { navController.navigate(AppScreens.CreateAdvertisementScreen.route) },
-        accentColor = Color(76, 175, 80)
+        accentColor = greenColor
     )
 }
 
