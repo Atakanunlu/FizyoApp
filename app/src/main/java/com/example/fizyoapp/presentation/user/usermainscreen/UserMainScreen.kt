@@ -9,6 +9,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -50,13 +52,11 @@ fun UserMainScreen(
     val adState = advertisementBannerViewModel.state.collectAsState().value
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
-    // Reklamları uygulama açıldığında hemen yükle
     LaunchedEffect(key1 = Unit) {
         Log.d("UserMainScreen", "LaunchedEffect: Reklamlar yükleniyor")
         advertisementBannerViewModel.loadActiveAdvertisements()
     }
 
-    // Lifecycle bazlı yenileme
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -74,7 +74,6 @@ fun UserMainScreen(
         }
     }
 
-    // Düzenli olarak reklamları yenile (60 saniyede bir)
     LaunchedEffect(key1 = Unit) {
         while (true) {
             delay(60000) // 60 saniyede bir
@@ -150,7 +149,7 @@ fun UserMainScreen(
                         .padding(horizontal = 10.dp, vertical = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Reklam banner'ı en üstte gösteriyoruz
+
                     item {
                         AdvertisementBanner(
                             navController = navController,
@@ -194,7 +193,6 @@ fun AdvertisementBanner(
 ) {
     val context = LocalContext.current
 
-    // Reklamlar varsa
     if (adState.advertisements.isNotEmpty()) {
         Card(
             modifier = Modifier
@@ -207,9 +205,9 @@ fun AdvertisementBanner(
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Mevcut reklam
+
                 adState.currentAdvertisement?.let { ad ->
-                    // Resmi göster
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -230,7 +228,6 @@ fun AdvertisementBanner(
                                 Log.e("AdvertisementBanner", "Reklam görseli yüklenemedi: ${ad.imageUrl}")
                             }
                         )
-                        // Reklam badge'i
                         Box(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
@@ -251,14 +248,13 @@ fun AdvertisementBanner(
                     }
                 }
 
-                // Sol-sağ kaydırma okları
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.Center),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Sol ok
+
                     IconButton(
                         onClick = { viewModel.moveToPreviousAd() },
                         modifier = Modifier
@@ -270,12 +266,12 @@ fun AdvertisementBanner(
                             )
                     ) {
                         Icon(
-                            imageVector = Icons.Default.KeyboardArrowLeft,
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                             contentDescription = "Önceki",
                             tint = Color.White
                         )
                     }
-                    // Sağ ok
+
                     IconButton(
                         onClick = { viewModel.moveToNextAd() },
                         modifier = Modifier
@@ -287,13 +283,13 @@ fun AdvertisementBanner(
                             )
                     ) {
                         Icon(
-                            imageVector = Icons.Default.KeyboardArrowRight,
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                             contentDescription = "Sonraki",
                             tint = Color.White
                         )
                     }
                 }
-                // Alt kısımda nokta göstergeleri
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -320,7 +316,7 @@ fun AdvertisementBanner(
             }
         }
     } else if (adState.isLoading) {
-        // Yükleniyor durumu
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -337,7 +333,7 @@ fun AdvertisementBanner(
             }
         }
     } else {
-        // Reklam yoksa
+
         Spacer(modifier = Modifier.height(8.dp))
     }
 }

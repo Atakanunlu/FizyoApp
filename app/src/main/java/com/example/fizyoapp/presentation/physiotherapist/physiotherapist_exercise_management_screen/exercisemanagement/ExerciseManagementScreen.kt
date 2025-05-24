@@ -15,6 +15,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -170,7 +172,7 @@ fun ExerciseManagementScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Geri",
                             tint = Color.White
                         )
@@ -264,7 +266,7 @@ fun ExerciseManagementScreen(
                             },
                             icon = {
                                 Icon(
-                                    imageVector = if (index == 0) Icons.Default.FitnessCenter else Icons.Default.Assignment,
+                                    imageVector = if (index == 0) Icons.Default.FitnessCenter else Icons.AutoMirrored.Filled.Assignment,
                                     contentDescription = null,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -795,7 +797,7 @@ fun ExercisePlansTab(
     if (plans.isEmpty()) {
         EmptyState(
             message = "Henüz hiç egzersiz planı oluşturmadınız.",
-            icon = Icons.Default.Assignment
+            icon = Icons.AutoMirrored.Filled.Assignment
         )
     } else {
         LazyColumn(

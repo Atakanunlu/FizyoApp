@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -111,7 +113,7 @@ fun PhysiotherapistMainScreen(
                     }
                     IconButton(onClick = { showLogoutDialog.value = true }) {
                         Icon(
-                            Icons.Default.ExitToApp,
+                            Icons.AutoMirrored.Filled.ExitToApp,
                             contentDescription = "Çıkış"
                         )
                     }
@@ -379,7 +381,7 @@ fun MainNavigationButtonsRedesigned(navController: NavController) {
         )
         ServiceCard(
             title = "Mesajlar",
-            icon = Icons.Default.Message,
+            icon = Icons.AutoMirrored.Filled.Message,
             onClick = { navController.navigate(AppScreens.MessagesScreen.route) },
             modifier = Modifier.weight(1f)
         )
