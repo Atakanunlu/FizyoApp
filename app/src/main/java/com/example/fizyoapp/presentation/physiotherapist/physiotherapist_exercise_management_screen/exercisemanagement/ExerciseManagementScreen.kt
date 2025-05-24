@@ -37,11 +37,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.fizyoapp.domain.model.exercise.DEFAULT_EXERCISE_CATEGORIES
-import com.example.fizyoapp.domain.model.exercise.Exercise
-import com.example.fizyoapp.domain.model.exercise.ExerciseDifficulty
-import com.example.fizyoapp.domain.model.exercise.ExercisePlan
-import com.example.fizyoapp.domain.model.exercise.ExercisePlanStatus
+import com.example.fizyoapp.domain.model.exercisemanagescreen.DEFAULT_EXERCISE_CATEGORIES
+import com.example.fizyoapp.domain.model.exercisemanagescreen.Exercise
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseDifficulty
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanStatus
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch

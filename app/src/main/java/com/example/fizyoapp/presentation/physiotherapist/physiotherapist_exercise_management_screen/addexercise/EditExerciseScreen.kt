@@ -41,8 +41,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.fizyoapp.domain.model.exercise.DEFAULT_EXERCISE_CATEGORIES
-import com.example.fizyoapp.domain.model.exercise.ExerciseDifficulty
+import com.example.fizyoapp.domain.model.exercisemanagescreen.DEFAULT_EXERCISE_CATEGORIES
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseDifficulty
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
 import kotlinx.coroutines.flow.collectLatest
@@ -625,7 +625,8 @@ fun EditExerciseScreen(
                                     description = "Başlangıç seviyesi egzersizler",
                                     isSelected = state.difficulty == ExerciseDifficulty.EASY,
                                     onClick = {
-                                        viewModel.onEvent(EditExerciseEvent.DifficultyChanged(ExerciseDifficulty.EASY))
+                                        viewModel.onEvent(EditExerciseEvent.DifficultyChanged(
+                                            ExerciseDifficulty.EASY))
                                         showDifficultyDialog = false
                                     }
                                 )
@@ -635,7 +636,8 @@ fun EditExerciseScreen(
                                     description = "Orta seviye egzersizler",
                                     isSelected = state.difficulty == ExerciseDifficulty.MEDIUM,
                                     onClick = {
-                                        viewModel.onEvent(EditExerciseEvent.DifficultyChanged(ExerciseDifficulty.MEDIUM))
+                                        viewModel.onEvent(EditExerciseEvent.DifficultyChanged(
+                                            ExerciseDifficulty.MEDIUM))
                                         showDifficultyDialog = false
                                     }
                                 )
@@ -645,7 +647,8 @@ fun EditExerciseScreen(
                                     description = "İleri seviye egzersizler",
                                     isSelected = state.difficulty == ExerciseDifficulty.HARD,
                                     onClick = {
-                                        viewModel.onEvent(EditExerciseEvent.DifficultyChanged(ExerciseDifficulty.HARD))
+                                        viewModel.onEvent(EditExerciseEvent.DifficultyChanged(
+                                            ExerciseDifficulty.HARD))
                                         showDifficultyDialog = false
                                     }
                                 )

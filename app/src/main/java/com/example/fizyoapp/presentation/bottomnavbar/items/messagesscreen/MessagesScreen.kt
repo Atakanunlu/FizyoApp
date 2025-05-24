@@ -257,10 +257,10 @@ fun ModernChatThreadItem(
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
     val accentColor = Color(0xFF6D72C3)
-    // Son mesajı ben gönderdim mi kontrol et
+
     val iLastSentMessage = chatThread.lastMessageSenderId == currentUserId
 
-    // Eğer son mesajı ben gönderdiysem, okunmamış sayısını gösterme
+
     val hasUnreadMessages = chatThread.unreadCount > 0 && !iLastSentMessage
 
 
@@ -268,7 +268,7 @@ fun ModernChatThreadItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            // Okunmamış mesaj varsa solda mavi bir çizgi ekleyelim
+
             .then(if (hasUnreadMessages) Modifier.border(
                 width = 2.dp,
                 color = accentColor,
@@ -277,7 +277,7 @@ fun ModernChatThreadItem(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            // Okunmamış mesaj varsa arka plan rengini hafif değiştirelim
+
             containerColor = if (hasUnreadMessages) Color(0xFFF0F2FF) else Color.White
         )
     ) {
@@ -318,7 +318,7 @@ fun ModernChatThreadItem(
                     )
                 }
 
-                // Okunmamış mesaj varsa profil fotoğrafının üzerinde gösterelim
+
                 if (hasUnreadMessages) {
                     Box(
                         modifier = Modifier
@@ -352,7 +352,7 @@ fun ModernChatThreadItem(
                     Text(
                         text = chatThread.otherParticipantName,
                         fontSize = 17.sp,
-                        // Okunmamış mesaj varsa daha koyu renk kullan
+
                         fontWeight = if (hasUnreadMessages) FontWeight.Bold else FontWeight.SemiBold,
                         color = Color(0xFF3B3E68),
                         maxLines = 1,
@@ -371,7 +371,7 @@ fun ModernChatThreadItem(
                         Text(
                             text = DateFormatter.formatDate(chatThread.lastMessageTimestamp),
                             fontSize = 12.sp,
-                            // Okunmamış mesaj varsa daha koyu renk kullan
+
                             color = if (hasUnreadMessages) Color.DarkGray else Color.Gray,
                             fontWeight = if (hasUnreadMessages) FontWeight.Medium else FontWeight.Normal
                         )
@@ -387,7 +387,7 @@ fun ModernChatThreadItem(
                     Text(
                         text = chatThread.lastMessage,
                         fontSize = 14.sp,
-                        // Okunmamış mesaj varsa daha koyu renk kullan
+
                         color = if (hasUnreadMessages) Color.Black else Color.DarkGray,
                         fontWeight = if (hasUnreadMessages) FontWeight.Medium else FontWeight.Normal,
                         maxLines = 1,
@@ -431,13 +431,13 @@ object DateFormatter {
         val today = Calendar.getInstance()
         calendar.time = date
 
-        // Tarih bugün mü kontrol et
+
         if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
             calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
-            return timeFormat.format(date)  // Bugün için saat göster
+            return timeFormat.format(date)
         }
 
-        // Dün mü kontrol et
+
         val yesterday = Calendar.getInstance()
         yesterday.add(Calendar.DAY_OF_YEAR, -1)
         if (calendar.get(Calendar.YEAR) == yesterday.get(Calendar.YEAR) &&
@@ -445,13 +445,13 @@ object DateFormatter {
             return "Dün"
         }
 
-        // Bu yıl içinde mi kontrol et
+
         if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR)) {
-            return shortDateFormat.format(date)  // Gün ve ay göster
+            return shortDateFormat.format(date)
         }
 
-        // Diğer durumlar için tam tarih
-        return dateFormat.format(date)  // Gün, ay ve yıl göster
+
+        return dateFormat.format(date)
     }
 
     fun formatMessageDate(date: Date): String {
@@ -459,13 +459,13 @@ object DateFormatter {
         val today = Calendar.getInstance()
         calendar.time = date
 
-        // Tarih bugün mü kontrol et
+
         if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
             calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
             return "Bugün"
         }
 
-        // Dün mü kontrol et
+
         val yesterday = Calendar.getInstance()
         yesterday.add(Calendar.DAY_OF_YEAR, -1)
         if (calendar.get(Calendar.YEAR) == yesterday.get(Calendar.YEAR) &&
@@ -473,7 +473,7 @@ object DateFormatter {
             return "Dün"
         }
 
-        // Bu hafta içinde mi kontrol et
+
         val currentWeek = Calendar.getInstance()
         currentWeek.add(Calendar.DAY_OF_YEAR, -7)
         if (date.after(currentWeek.time)) {
@@ -481,11 +481,11 @@ object DateFormatter {
             return dayFormat.format(date).capitalize(Locale("tr"))
         }
 
-        // Diğer durumlar için tam tarih
+
         return dateFormat.format(date)
     }
 
-    // Mesajları günlere göre gruplamak için
+
     fun getMessageDay(date: Date): String {
         return formatMessageDate(date)
     }

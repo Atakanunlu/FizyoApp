@@ -8,10 +8,10 @@ import com.example.fizyoapp.data.repository.exercisemanagescreen.ExerciseReposit
 import com.example.fizyoapp.data.repository.exercisemanagescreen.PatientListItem
 import com.example.fizyoapp.data.repository.messagesscreen.MessagesRepository
 import com.example.fizyoapp.data.util.Resource
-import com.example.fizyoapp.domain.model.exercise.Exercise
-import com.example.fizyoapp.domain.model.exercise.ExercisePlan
-import com.example.fizyoapp.domain.model.exercise.ExercisePlanItem
-import com.example.fizyoapp.domain.model.exercise.ExercisePlanStatus
+import com.example.fizyoapp.domain.model.exercisemanagescreen.Exercise
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanItem
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
