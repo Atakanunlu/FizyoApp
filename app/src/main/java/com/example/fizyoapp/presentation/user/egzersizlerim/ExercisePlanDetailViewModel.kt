@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.repository.exercisemanagescreen.ExerciseRepository
 import com.example.fizyoapp.data.util.Resource
-import com.example.fizyoapp.domain.model.exercise.ExercisePlan
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

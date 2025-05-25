@@ -1,5 +1,5 @@
-// domain/model/exercise/Exercise.kt
-package com.example.fizyoapp.domain.model.exercise
+
+package com.example.fizyoapp.domain.model.exercisemanagescreen
 
 import java.util.Date
 
@@ -10,9 +10,9 @@ data class Exercise(
     val description: String = "",
     val category: String = "",
     val mediaUrls: List<String> = emptyList(),
-    val mediaType: Map<String, ExerciseType> = emptyMap(), // MediaType -> ExerciseType olarak değiştirildi
+    val mediaType: Map<String, ExerciseType> = emptyMap(),
     val instructions: String = "",
-    val duration: Int = 0, // in seconds
+    val duration: Int = 0,
     val repetitions: Int = 0,
     val sets: Int = 0,
     val difficulty: ExerciseDifficulty = ExerciseDifficulty.MEDIUM,
@@ -27,7 +27,6 @@ enum class ExerciseDifficulty {
     EASY, MEDIUM, HARD
 }
 
-// Common exercise categories
 val DEFAULT_EXERCISE_CATEGORIES = listOf(
     "Omuz Egzersizleri",
     "Kalça Egzersizleri",

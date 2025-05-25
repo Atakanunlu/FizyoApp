@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.repository.exercisemanagescreen.ExerciseRepository
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.auth.User
-import com.example.fizyoapp.domain.model.exercise.Exercise
-import com.example.fizyoapp.domain.model.exercise.ExerciseDifficulty
-import com.example.fizyoapp.domain.model.exercise.ExerciseType
+import com.example.fizyoapp.domain.model.exercisemanagescreen.Exercise
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseDifficulty
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
 
@@ -193,8 +194,8 @@ class AddExerciseViewModel @Inject constructor(
                     mediaType = mediaTypes,
                     instructions = _state.value.instructions,
                     difficulty = _state.value.difficulty,
-                    createdAt = java.util.Date(),
-                    updatedAt = java.util.Date()
+                    createdAt = Date(),
+                    updatedAt = Date()
                 )
 
                 try {

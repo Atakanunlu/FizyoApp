@@ -9,5 +9,6 @@ data class ChatThread(
     val lastMessageTimestamp: Date =Date(),
     val unreadCount:Int=0,
     val otherParticipantName: String = "",
+    val lastMessageSenderId: String = "",
     val otherParticipantPhotoUrl: String = "",
 )

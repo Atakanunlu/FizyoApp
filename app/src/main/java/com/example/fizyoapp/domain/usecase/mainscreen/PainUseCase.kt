@@ -3,7 +3,7 @@ package com.example.fizyoapp.domain.usecase.mainscreen
 
 
 
-import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainTrackingRepository
+import com.example.fizyoapp.data.repository.mainscreen.PainTrackingRepository
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.usermainscreen.PainRecord
 import kotlinx.coroutines.flow.Flow

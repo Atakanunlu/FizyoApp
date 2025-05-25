@@ -39,6 +39,7 @@ class MessageRepositoryImpl @Inject constructor(
                     val otherParticipantId = participantIds.firstOrNull { it != userId } ?: continue
                     var otherParticipantName = "Kullanıcı"
                     var otherParticipantPhotoUrl = ""
+
                     try {
                         val physiotherapistDoc = firestore.collection("physiotherapist").document(otherParticipantId).get().await()
                         if (physiotherapistDoc.exists()) {
@@ -75,6 +76,8 @@ class MessageRepositoryImpl @Inject constructor(
                     }
                     val lastMessage = threadData["lastMessage"] as? String ?: ""
                     val lastMessageTimestamp = (threadData["lastMessageTimestamp"] as? com.google.firebase.Timestamp)?.toDate() ?: Date()
+                    val lastMessageSenderId = threadData["lastMessageSenderId"] as? String ?: ""
+
                     val unreadCount = when (val count = threadData["unreadCount"]) {
                         is Long -> count.toInt()
                         is Int -> count
@@ -88,6 +91,7 @@ class MessageRepositoryImpl @Inject constructor(
                             lastMessageTimestamp = lastMessageTimestamp,
                             unreadCount = unreadCount,
                             otherParticipantName = otherParticipantName,
+                            lastMessageSenderId = lastMessageSenderId,
                             otherParticipantPhotoUrl = otherParticipantPhotoUrl
                         )
                     )
@@ -108,11 +112,12 @@ class MessageRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
         try {
             val threadId = getThreadId(userId1, userId2)
-            val messagesCollection=firestore.collection("messages")
-                .whereEqualTo("threadId",threadId)
-                .orderBy("timestamp",Query.Direction.ASCENDING)
+            val messagesCollection = firestore.collection("messages")
+                .whereEqualTo("threadId", threadId)
+                .orderBy("timestamp", Query.Direction.ASCENDING)
                 .get()
                 .await()
+
             val messages = messagesCollection.documents.mapNotNull { document ->
                 val messageData = document.data ?: return@mapNotNull null
                 val senderId = messageData["senderId"] as? String ?: return@mapNotNull null
@@ -121,6 +126,10 @@ class MessageRepositoryImpl @Inject constructor(
                 val timestamp = (messageData["timestamp"] as? com.google.firebase.Timestamp)?.toDate() ?: Date()
                 val isRead = messageData["isRead"] as? Boolean ?: false
                 val msgThreadId = messageData["threadId"] as? String ?: ""
+                val messageType = messageData["messageType"] as? String ?: "text"
+                val metadata = messageData["metadata"] as? Map<String, Any> ?: emptyMap()
+
+                // Create message object
                 Message(
                     id = document.id,
                     senderId = senderId,
@@ -128,83 +137,100 @@ class MessageRepositoryImpl @Inject constructor(
                     content = content,
                     timestamp = timestamp,
                     isRead = isRead,
-                    threadId = msgThreadId
+                    threadId = msgThreadId,
+                    messageType = messageType,
+                    metadata = metadata
                 )
             }
-            if (messages.any { !it.isRead && it.receiverId == userId1 }) {
-                markMessagesAsRead(userId2, userId1).collect { }
+
+            // Only mark messages as read if current user is the receiver
+            val unreadMessagesToMe = messages.filter { !it.isRead && it.receiverId == userId1 }
+            if (unreadMessagesToMe.isNotEmpty()) {
+                // Start a coroutine to mark messages as read
+                markMessagesAsRead(userId2, userId1).collect {}
             }
+
             emit(Resource.Success(messages))
-        }
-        catch (e:Exception){
+        } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Mesajlar alınamadı"))
         }
     }.flowOn(Dispatchers.IO)
-
-    override suspend fun sendMessage(message: Message): Flow<Resource<Boolean>> = flow{
+    override suspend fun sendMessage(message: Message): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
         try {
             val threadId = getThreadId(message.senderId, message.receiverId)
-            val messageData = mapOf(
+            val messageMap = hashMapOf(
+                "id" to message.id,
                 "senderId" to message.senderId,
                 "receiverId" to message.receiverId,
                 "content" to message.content,
-                "timestamp" to com.google.firebase.Timestamp(message.timestamp),
+                "timestamp" to message.timestamp,
                 "isRead" to false,
-                "threadId" to threadId
+                "threadId" to threadId,
+                "messageType" to message.messageType,
+                "metadata" to message.metadata
             ) as Map<String, Any>
+
             val messageRef = firestore.collection("messages").document()
-            messageRef.set(messageData).await()
+            messageRef.set(messageMap).await()
+
             val threadRef = firestore.collection("chatThreads").document(threadId)
             val threadDoc = threadRef.get().await()
+
             if (threadDoc.exists()) {
-                val updateData = mutableMapOf<String, Any>(
+                val updateData = hashMapOf(
                     "lastMessage" to message.content,
-                    "lastMessageTimestamp" to com.google.firebase.Timestamp(message.timestamp)
-                )
-                if (threadDoc.get("participantIds.0") == message.receiverId) {
-                    updateData["unreadCount"] = FieldValue.increment(1) as Any
-                }
+                    "lastMessageTimestamp" to com.google.firebase.Timestamp(message.timestamp),
+                    "lastMessageSenderId" to message.senderId, // Son mesajı kimin gönderdiğini kaydet
+                    "unreadCount" to FieldValue.increment(1)
+                ) as Map<String, Any>
                 threadRef.update(updateData).await()
             } else {
                 val newThreadData = mapOf(
                     "participantIds" to listOf(message.senderId, message.receiverId),
                     "lastMessage" to message.content,
                     "lastMessageTimestamp" to com.google.firebase.Timestamp(message.timestamp),
+                    "lastMessageSenderId" to message.senderId, // Son mesajı kimin gönderdiğini kaydet
                     "unreadCount" to 1
-                ) as Map<String, Any>
+                )
                 threadRef.set(newThreadData).await()
             }
+
             emit(Resource.Success(true))
-        }
-        catch (e: Exception){
-            emit(Resource.Error(e.localizedMessage ?: "Mesajlar alınamadı"))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Mesaj gönderilemedi"))
         }
     }.flowOn(Dispatchers.IO)
 
-    override suspend fun markMessagesAsRead(senderId: String, receiverId: String): Flow<Resource<Boolean>> = flow{
+    override suspend fun markMessagesAsRead(senderId: String, receiverId: String): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
         try {
-            val threadId=getThreadId(senderId,receiverId)
+            val threadId = getThreadId(senderId, receiverId)
             val batch = firestore.batch()
+
+            // Find all unread messages where I am the receiver
             val unreadMessagesQuery = firestore.collection("messages")
-                .whereEqualTo("threadId",threadId)
-                .whereEqualTo("senderId",senderId)
-                .whereEqualTo("receiverId",receiverId)
-                .whereEqualTo("isRead",false)
+                .whereEqualTo("threadId", threadId)
+                .whereEqualTo("senderId", senderId)
+                .whereEqualTo("receiverId", receiverId)
+                .whereEqualTo("isRead", false)
                 .get()
                 .await()
-            for (document in unreadMessagesQuery.documents){
-                batch.update(document.reference,"isRead",true)
+
+            for (document in unreadMessagesQuery.documents) {
+                batch.update(document.reference, "isRead", true)
             }
-            val threadRef = firestore.collection("chatThreads").document(threadId)
-            val threadDoc = threadRef.get().await()
-            if(threadDoc.exists()){
-                batch.update(threadRef,"unreadCount",0)
+
+            // Reset unread count only if there are unread messages
+            if (unreadMessagesQuery.documents.isNotEmpty()) {
+                val threadRef = firestore.collection("chatThreads").document(threadId)
+                batch.update(threadRef, "unreadCount", 0)
             }
+
             batch.commit().await()
             emit(Resource.Success(true))
-        }catch (e:Exception){
+        } catch (e: Exception) {
+            Log.e("MarkAsRead", "Error: ${e.message}", e)
             emit(Resource.Error(e.localizedMessage ?: "Mesajlar okundu olarak işaretlenemedi"))
         }
     }.flowOn(Dispatchers.IO)
@@ -213,4 +239,5 @@ class MessageRepositoryImpl @Inject constructor(
         val sortedUserIds = listOf(userId1, userId2).sorted()
         return "${sortedUserIds[0]}_${sortedUserIds[1]}"
     }
+
 }

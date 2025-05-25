@@ -20,48 +20,45 @@ class RadyolojikGoruntuRepositoryImpl @Inject constructor(
 
     override suspend fun getRadyolojikGoruntuler(userId: String): Flow<Resource<List<RadyolojikGoruntu>>> = flow {
         emit(Resource.Loading())
-
         if (userId.isBlank()) {
             emit(Resource.Error("Geçersiz kullanıcı kimliği"))
             return@flow
         }
-
         try {
             val storageRef = storage.reference.child("$baseStoragePath/$userId")
             val listResult = storageRef.listAll().await()
-
             val goruntular = mutableListOf<RadyolojikGoruntu>()
             for (item in listResult.items) {
                 try {
-                    // Meta verileri al
                     val metadata = item.metadata.await()
-                    // Custom metadata'dan bilgileri çek
-                    val title = metadata.getCustomMetadata("title") ?: "Başlıksız Görüntü"
+                    val title = metadata.getCustomMetadata("title") ?: "Başlıksız"
                     val description = metadata.getCustomMetadata("description") ?: ""
+                    val fileType = metadata.getCustomMetadata("fileType") ?: "image"
                     val timestampStr = metadata.getCustomMetadata("timestamp")
                         ?: System.currentTimeMillis().toString()
                     val timestamp = Date(timestampStr.toLong())
+                    val fileUrl = item.downloadUrl.await().toString()
 
-                    // Görüntü URL'sini al
-                    val imageUrl = item.downloadUrl.await().toString()
+                    val thumbnailUrl = if (fileType == "pdf") {
+                        ""
+                    } else {
+                        fileUrl
+                    }
 
-                    // RadyolojikGoruntu nesnesini oluştur
                     val goruntu = RadyolojikGoruntu(
-                        id = item.name, // Dosya adını ID olarak kullan
+                        id = item.name,
                         title = title,
                         description = description,
-                        imageUrl = imageUrl,
-                        thumbnailUrl = imageUrl, // Aynı URL'yi thumbnail olarak kullan
+                        fileUrl = fileUrl,
+                        thumbnailUrl = thumbnailUrl,
                         timestamp = timestamp,
-                        userId = userId
+                        userId = userId,
+                        fileType = fileType
                     )
                     goruntular.add(goruntu)
                 } catch (e: Exception) {
-                    // Tekil görüntü hatası tüm süreci durdurmaz, sonraki görüntülere devam ederiz
                 }
             }
-
-            // Görüntüleri timestamp'e göre sırala (yeniden eskiye)
             val sortedGoruntular = goruntular.sortedByDescending { it.timestamp }
             emit(Resource.Success(sortedGoruntular))
         } catch (e: Exception) {
@@ -70,85 +67,68 @@ class RadyolojikGoruntuRepositoryImpl @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     override suspend fun uploadRadyolojikGoruntu(
-        imageUri: Uri,
+        fileUri: Uri,
         title: String,
         description: String,
-        userId: String
+        userId: String,
+        fileType: String
     ): Flow<Resource<RadyolojikGoruntu>> = flow {
         emit(Resource.Loading())
-
         if (userId.isBlank()) {
             emit(Resource.Error("Geçersiz kullanıcı kimliği"))
             return@flow
         }
-
-        if (imageUri.toString().isBlank()) {
-            emit(Resource.Error("Geçersiz resim dosyası"))
+        if (fileUri.toString().isBlank()) {
+            emit(Resource.Error("Geçersiz dosya"))
             return@flow
         }
 
         try {
-            // Dosya adı oluştur
             val timestamp = System.currentTimeMillis()
-            val filename = "radyolojik_${UUID.randomUUID()}.jpg"
+            val fileExtension = if (fileType == "pdf") "pdf" else "jpg"
+            val filename = "radyolojik_${UUID.randomUUID()}.$fileExtension"
 
-            // Storage referansı oluştur
             val storageRef = storage.reference.child("$baseStoragePath/$userId/$filename")
 
-            // Metadata oluştur
+            val contentType = if (fileType == "pdf") "application/pdf" else "image/jpeg"
+
             val metadata = StorageMetadata.Builder()
-                .setContentType("image/jpeg")
+                .setContentType(contentType)
                 .setCustomMetadata("title", title)
                 .setCustomMetadata("description", description)
                 .setCustomMetadata("timestamp", timestamp.toString())
                 .setCustomMetadata("userId", userId)
+                .setCustomMetadata("fileType", fileType)
                 .build()
 
-            // Dosyayı yükle (metadata ile birlikte)
-            try {
-                val uploadTask = storageRef.putFile(imageUri, metadata).await()
-            } catch (e: Exception) {
-                emit(Resource.Error("Dosya yükleme hatası: ${e.message}"))
-                return@flow
-            }
+            storageRef.putFile(fileUri, metadata).await()
 
-            // İndirme URL'sini al
-            var imageUrl = ""
-            try {
-                imageUrl = storageRef.downloadUrl.await().toString()
-            } catch (e: Exception) {
-                emit(Resource.Error("URL alma hatası: ${e.message}"))
-                return@flow
-            }
+            val fileUrl = storageRef.downloadUrl.await().toString()
 
-            // Başarılı sonuç döndür
             val createdGoruntu = RadyolojikGoruntu(
                 id = filename,
                 title = title,
                 description = description,
-                imageUrl = imageUrl,
-                thumbnailUrl = imageUrl,
+                fileUrl = fileUrl,
+                thumbnailUrl = if (fileType == "pdf") "" else fileUrl,
                 timestamp = Date(timestamp),
-                userId = userId
+                userId = userId,
+                fileType = fileType
             )
             emit(Resource.Success(createdGoruntu))
         } catch (e: Exception) {
-            emit(Resource.Error(e.localizedMessage ?: "Görüntü yüklenirken bir hata oluştu"))
+            emit(Resource.Error(e.localizedMessage ?: "Dosya yüklenirken bir hata oluştu"))
         }
     }.flowOn(Dispatchers.IO)
 
-    override suspend fun deleteRadyolojikGoruntu(imageUrl: String): Flow<Resource<Boolean>> = flow {
+    override suspend fun deleteRadyolojikGoruntu(fileUrl: String): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
-
-        if (imageUrl.isBlank()) {
+        if (fileUrl.isBlank()) {
             emit(Resource.Error("Geçersiz resim URL'si"))
             return@flow
         }
-
         try {
-            // URL'den Firebase Storage referansını al
-            val storageRef = storage.getReferenceFromUrl(imageUrl)
-            // Dosyayı sil
+            val storageRef = storage.getReferenceFromUrl(fileUrl)
             storageRef.delete().await()
             emit(Resource.Success(true))
         } catch (e: Exception) {

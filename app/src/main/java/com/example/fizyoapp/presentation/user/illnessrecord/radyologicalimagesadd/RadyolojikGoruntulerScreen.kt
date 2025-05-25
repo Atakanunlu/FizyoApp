@@ -1,6 +1,9 @@
 package com.example.fizyoapp.presentation.user.illnessrecord.radyologicalimagesadd
 
+
+import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
@@ -13,7 +16,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -46,14 +49,42 @@ fun RadyolojikGoruntulerScreen(
     val context = LocalContext.current
     var selectedImage by remember { mutableStateOf<RadyolojikGoruntu?>(null) }
     var showShareDialog by remember { mutableStateOf(false) }
-    var showAddDialog by remember { mutableStateOf(false) }
+    var showAddImageDialog by remember { mutableStateOf(false) }
+    var showAddPdfDialog by remember { mutableStateOf(false) }
+    var showFileTypeDialog by remember { mutableStateOf(false) }
 
-    val filePickerLauncher = rememberLauncherForActivityResult(
+    val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            viewModel.onEvent(RadyolojikGoruntulerEvent.ImageSelected(uri))
-            showAddDialog = true
+            viewModel.onEvent(RadyolojikGoruntulerEvent.FileSelected(uri))
+            showAddImageDialog = true
+        }
+    }
+
+    val pdfPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            viewModel.onEvent(RadyolojikGoruntulerEvent.FileSelected(uri))
+            showAddPdfDialog = true
+        }
+    }
+
+    val openPdf = { pdfUrl: String ->
+        try {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse(pdfUrl)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(
+                context,
+                "PDF açılamadı: ${e.localizedMessage}",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -79,7 +110,7 @@ fun RadyolojikGoruntulerScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { filePickerLauncher.launch("image/*") },
+                onClick = { showFileTypeDialog = true },
                 containerColor = Color(59, 62, 104),
                 contentColor = Color.White
             ) {
@@ -164,25 +195,25 @@ fun RadyolojikGoruntulerScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Sağ alttaki + butonuna tıklayarak görüntü ekleyebilirsiniz",
+                        text = "Sağ alttaki + butonuna tıklayarak görüntü veya PDF ekleyebilirsiniz",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         color = Color.Gray
                     )
                     Spacer(modifier = Modifier.height(32.dp))
-                    OutlinedButton(
-                        onClick = { filePickerLauncher.launch("image/*") },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color(59, 62, 104)
-                        ),
-                        border = BorderStroke(1.dp, Color(59, 62, 104))
+
+                    Button(
+                        onClick = { showFileTypeDialog = true },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(59, 62, 104)
+                        )
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.CloudUpload,
+                            imageVector = Icons.Default.Add,
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Görüntü Yükle")
+                        Text("Radyolojik Görüntü Ekle")
                     }
                 }
             } else {
@@ -196,14 +227,18 @@ fun RadyolojikGoruntulerScreen(
                         RadyolojikGoruntuCard(
                             goruntu = goruntu,
                             onViewClicked = {
-                                selectedImage = goruntu
+                                if (goruntu.fileType == "pdf") {
+                                    openPdf(goruntu.fileUrl)
+                                } else {
+                                    selectedImage = goruntu
+                                }
                             },
                             onShareClicked = {
                                 selectedImage = goruntu
                                 showShareDialog = true
                             },
                             onDeleteClicked = {
-                                viewModel.onEvent(RadyolojikGoruntulerEvent.DeleteImage(goruntu.imageUrl))
+                                viewModel.onEvent(RadyolojikGoruntulerEvent.DeleteImage(goruntu.fileUrl))
                             }
                         )
                     }
@@ -212,7 +247,6 @@ fun RadyolojikGoruntulerScreen(
                     }
                 }
             }
-
 
             if (state.actionError != null) {
                 Snackbar(
@@ -230,7 +264,6 @@ fun RadyolojikGoruntulerScreen(
                     Text(state.actionError!!)
                 }
             }
-
 
             AnimatedVisibility(
                 visible = state.successMessage != null,
@@ -274,8 +307,66 @@ fun RadyolojikGoruntulerScreen(
         }
     }
 
+    // Dosya Tipi Seçim Dialogu
+    if (showFileTypeDialog) {
+        AlertDialog(
+            onDismissRequest = { showFileTypeDialog = false },
+            title = { Text("Radyolojik Görüntü Ekle") },
+            text = { Text("Eklemek istediğiniz dosya türünü seçin") },
+            confirmButton = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Button(
+                        onClick = {
+                            imagePickerLauncher.launch("image/*")
+                            showFileTypeDialog = false
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(59, 62, 104))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = "Görüntü"
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Görüntü Seç")
+                    }
 
-    if (selectedImage != null && !showShareDialog) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = {
+                            pdfPickerLauncher.launch("application/pdf")
+                            showFileTypeDialog = false
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(59, 62, 104))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PictureAsPdf,
+                            contentDescription = "PDF"
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("PDF Seç")
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TextButton(
+                        onClick = { showFileTypeDialog = false },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text("İptal")
+                    }
+                }
+            },
+            dismissButton = null
+        )
+    }
+
+    if (selectedImage != null && selectedImage!!.fileType == "image" && !showShareDialog) {
         Dialog(onDismissRequest = { selectedImage = null }) {
             Card(
                 modifier = Modifier
@@ -327,7 +418,7 @@ fun RadyolojikGoruntulerScreen(
                             .background(Color(0xFFF5F5F5))
                     ) {
                         AsyncImage(
-                            model = selectedImage!!.imageUrl,
+                            model = selectedImage!!.fileUrl,
                             contentDescription = selectedImage!!.title,
                             modifier = Modifier
                                 .fillMaxSize()
@@ -390,9 +481,9 @@ fun RadyolojikGoruntulerScreen(
         )
     }
 
-    if (showAddDialog) {
+    if (showAddImageDialog) {
         AddRadyolojikGoruntuDialog(
-            onDismiss = { showAddDialog = false },
+            onDismiss = { showAddImageDialog = false },
             onConfirm = { title, description ->
                 viewModel.onEvent(
                     RadyolojikGoruntulerEvent.AddImage(
@@ -400,12 +491,30 @@ fun RadyolojikGoruntulerScreen(
                         description = description
                     )
                 )
-                showAddDialog = false
-            }
+                showAddImageDialog = false
+            },
+            dialogTitle = "Radyolojik Görüntü Ekle",
+            icon = Icons.Default.Image
+        )
+    }
+
+    if (showAddPdfDialog) {
+        AddRadyolojikGoruntuDialog(
+            onDismiss = { showAddPdfDialog = false },
+            onConfirm = { title, description ->
+                viewModel.onEvent(
+                    RadyolojikGoruntulerEvent.AddPdf(
+                        title = title,
+                        description = description
+                    )
+                )
+                showAddPdfDialog = false
+            },
+            dialogTitle = "Radyolojik PDF Ekle",
+            icon = Icons.Default.PictureAsPdf
         )
     }
 }
-
 @Composable
 fun RadyolojikGoruntuCard(
     goruntu: RadyolojikGoruntu,
@@ -432,21 +541,41 @@ fun RadyolojikGoruntuCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFFF0F0F6))
-                ) {
-                    AsyncImage(
-                        model = goruntu.thumbnailUrl,
-                        contentDescription = goruntu.title,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop,
-                        error = ColorPainter(Color(0xFFEEEEEE)),
-                        fallback = ColorPainter(Color(0xFFEEEEEE))
-                    )
+                if (goruntu.fileType == "pdf") {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(59, 62, 104, 0x20)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PictureAsPdf,
+                            contentDescription = "PDF",
+                            tint = Color(59, 62, 104),
+                            modifier = Modifier
+                                .size(32.dp)
+                                .padding(4.dp)
+                        )
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFFF0F0F6))
+                    ) {
+                        AsyncImage(
+                            model = goruntu.thumbnailUrl,
+                            contentDescription = goruntu.title,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            error = ColorPainter(Color(0xFFEEEEEE)),
+                            fallback = ColorPainter(Color(0xFFEEEEEE))
+                        )
+                    }
                 }
+
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(
                     modifier = Modifier.weight(1f)
@@ -492,7 +621,7 @@ fun RadyolojikGoruntuCard(
                     border = BorderStroke(1.dp, Color(59, 62, 104))
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Visibility,
+                        imageVector = if (goruntu.fileType == "pdf") Icons.Default.OpenInNew else Icons.Default.Visibility,
                         contentDescription = "Görüntüle"
                     )
                     Spacer(modifier = Modifier.width(4.dp))
@@ -515,7 +644,6 @@ fun RadyolojikGoruntuCard(
             }
         }
     }
-
 
     if (showDeleteConfirmation) {
         AlertDialog(
@@ -541,6 +669,109 @@ fun RadyolojikGoruntuCard(
                 }
             }
         )
+    }
+}
+
+@Composable
+fun AddRadyolojikGoruntuDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (title: String, description: String) -> Unit,
+    dialogTitle: String,
+    icon: ImageVector
+) {
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var titleError by remember { mutableStateOf<String?>(null) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = Color(59, 62, 104)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = dialogTitle,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = {
+                        title = it
+                        titleError = if (it.isBlank()) "Başlık boş olamaz" else null
+                    },
+                    label = { Text("Başlık") },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = titleError != null,
+                    supportingText = {
+                        if (titleError != null) {
+                            Text(titleError!!)
+                        }
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Açıklama (Opsiyonel)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(
+                        onClick = onDismiss
+                    ) {
+                        Text("İptal")
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Button(
+                        onClick = {
+                            if (title.isBlank()) {
+                                titleError = "Başlık boş olamaz"
+                                return@Button
+                            }
+                            onConfirm(title, description)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(59, 62, 104)
+                        )
+                    ) {
+                        Text("Kaydet")
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -613,7 +844,7 @@ fun ShareDialog(
                                 colors = CardDefaults.cardColors(
                                     containerColor = Color(0xFFF5F5F5)
                                 ),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                                elevation = CardDefaults.cardElevation(0.dp)
                             ) {
                                 Row(
                                     modifier = Modifier
@@ -672,95 +903,13 @@ fun ShareDialog(
     }
 }
 
-@Composable
-fun AddRadyolojikGoruntuDialog(
-    onDismiss: () -> Unit,
-    onConfirm: (title: String, description: String) -> Unit
-) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var titleError by remember { mutableStateOf<String?>(null) }
-
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "Radyolojik Görüntü Ekle",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = {
-                        title = it
-                        titleError = if (it.isBlank()) "Başlık boş olamaz" else null
-                    },
-                    label = { Text("Başlık") },
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = titleError != null,
-                    supportingText = {
-                        if (titleError != null) {
-                            Text(titleError!!)
-                        }
-                    }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Açıklama (Opsiyonel)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(
-                        onClick = onDismiss
-                    ) {
-                        Text("İptal")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = {
-                            if (title.isBlank()) {
-                                titleError = "Başlık boş olamaz"
-                                return@Button
-                            }
-                            onConfirm(title, description)
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(59, 62, 104)
-                        )
-                    ) {
-                        Text("Kaydet")
-                    }
-                }
-            }
-        }
-    }
-}
-
 data class RadyolojikGoruntu(
     val id: String,
     val title: String,
     val description: String,
-    val imageUrl: String,
+    val fileUrl: String,
     val thumbnailUrl: String,
     val timestamp: Date,
-    val userId: String
+    val userId: String,
+    val fileType: String
 )

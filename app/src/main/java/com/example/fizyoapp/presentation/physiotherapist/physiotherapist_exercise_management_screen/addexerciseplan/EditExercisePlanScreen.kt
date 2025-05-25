@@ -27,8 +27,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.fizyoapp.domain.model.exercise.ExercisePlanItem
-import com.example.fizyoapp.domain.model.exercise.ExercisePlanStatus
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanItem
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanStatus
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.DatePickerField
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
 import kotlinx.coroutines.flow.collectLatest

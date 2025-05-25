@@ -11,5 +11,5 @@ data class MedicalReport(
     val timestamp: Date,
     val userId: String,
     val doctorName: String = "",
-    val hospitalName: String = ""
-)
+    val hospitalName: String = "",
+    val fileType: String = "pdf" )

@@ -7,11 +7,14 @@ import kotlinx.coroutines.flow.Flow
 
 interface RadyolojikGoruntuRepository {
     suspend fun getRadyolojikGoruntuler(userId: String): Flow<Resource<List<RadyolojikGoruntu>>>
+
     suspend fun uploadRadyolojikGoruntu(
-        imageUri: Uri,
+        fileUri: Uri,
         title: String,
         description: String,
-        userId: String
+        userId: String,
+        fileType: String = "image"
     ): Flow<Resource<RadyolojikGoruntu>>
-    suspend fun deleteRadyolojikGoruntu(imageUrl: String): Flow<Resource<Boolean>>
+
+    suspend fun deleteRadyolojikGoruntu(fileUrl: String): Flow<Resource<Boolean>>
 }
