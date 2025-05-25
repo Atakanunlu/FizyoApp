@@ -1,10 +1,12 @@
 package com.example.fizyoapp.presentation.bottomnavbar.items.searchscreen
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -19,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
@@ -34,7 +35,6 @@ import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.physiotherapist_profile.PhysiotherapistProfile
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
-
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -50,27 +50,17 @@ fun SearchScreen(
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
 
-    // Tema renkleri
-    val primaryColor = Color(0xFF3B3E68)
-    val backgroundColor = Color(0xFFF6F8FA)
-    val cardColor = Color.White
-    val accentColor = Color(0xFF6D72C3)
+    val primaryColor = Color(59, 62, 104)
+    val backgroundColor = Color(245, 245, 250)
 
-    // Arama çubuğu focus durumu
     var isSearchBarFocused by remember { mutableStateOf(false) }
 
-    // UI olaylarını dinleme
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is SearchScreenViewModel.SearchScreenUiEvent.NavigateToPhysiotherapistDetail -> {
-                    try {
-                        // Fizyoterapist detayına gitmek için
-                        val route = "${AppScreens.PhysiotherapistDetailScreen.route}/${event.physiotherapistId}"
-                        navController.navigate(route)
-                    } catch (e: Exception) {
-                        println("Navigation error to physiotherapist detail: ${e.message}")
-                    }
+                    val route = "${AppScreens.PhysiotherapistDetailScreen.route}/${event.physiotherapistId}"
+                    navController.navigate(route)
                 }
             }
         }
@@ -81,22 +71,10 @@ fun SearchScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            "Fizyoterapist Ara",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        )
-                    }
+                    Text(
+                        "Fizyoterapist Ara",
+                        fontWeight = FontWeight.Bold
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = primaryColor,
@@ -124,247 +102,87 @@ fun SearchScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(backgroundColor)
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(16.dp)
             ) {
-                // Arama çubuğu
-                Card(
+                Text(
+                    text = "Fizyoterapist Bul",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .shadow(
-                            elevation = if (isSearchBarFocused) 8.dp else 4.dp,
-                            shape = RoundedCornerShape(16.dp)
-                        ),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = cardColor
-                    )
-                ) {
-                    OutlinedTextField(
-                        value = state.searchQuery,
-                        onValueChange = { viewModel.onEvent(SearchScreenEvent.SearchQueryChanged(it)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp, vertical = 8.dp)
-                            .onFocusChanged { focusState ->
-                                isSearchBarFocused = focusState.isFocused
-                            },
-                        placeholder = {
-                            Text(
-                                "İsim, şehir veya uzmanlık ara...",
-                                color = Color.Gray.copy(alpha = 0.7f)
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Search,
-                                contentDescription = "Ara",
-                                tint = accentColor
-                            )
-                        },
-                        trailingIcon = {
-                            if (state.searchQuery.isNotEmpty()) {
-                                IconButton(
-                                    onClick = {
-                                        viewModel.onEvent(SearchScreenEvent.SearchQueryChanged(""))
-                                    }
-                                ) {
-                                    Icon(
-                                        Icons.Default.Clear,
-                                        contentDescription = "Temizle",
-                                        tint = accentColor
-                                    )
-                                }
-                            }
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true,
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = accentColor,
-                            unfocusedBorderColor = Color.LightGray,
-                            cursorColor = accentColor,
-                            containerColor = cardColor
-                        )
-                    )
-                }
+                        .padding(bottom = 8.dp),
+                    textAlign = TextAlign.Center
+                )
 
-                // İçerik durumları
+                Text(
+                    text = "İhtiyacınıza uygun fizyoterapisti arayın ve iletişime geçin",
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                )
+
+                SearchBar(
+                    searchQuery = state.searchQuery,
+                    onSearchQueryChanged = { viewModel.onEvent(SearchScreenEvent.SearchQueryChanged(it)) },
+                    onFocusChanged = { isSearchBarFocused = it },
+                    isFocused = isSearchBarFocused,
+                    accentColor = primaryColor
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 when {
-                    // Yükleme durumu
                     state.isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                CircularProgressIndicator(
-                                    color = accentColor,
-                                    strokeWidth = 4.dp,
-                                    modifier = Modifier.size(60.dp)
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = "Fizyoterapistler yükleniyor...",
-                                    color = Color.Gray,
-                                    fontSize = 16.sp
-                                )
-                            }
-                        }
+                        LoadingContent()
                     }
 
-                    // Hata durumu
                     state.error != null -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.padding(24.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Error,
-                                    contentDescription = null,
-                                    tint = Color.Red.copy(alpha = 0.7f),
-                                    modifier = Modifier.size(80.dp)
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = state.error ?: "Bir hata oluştu",
-                                    color = Color.DarkGray,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.height(24.dp))
-                                Button(
-                                    onClick = { viewModel.onEvent(SearchScreenEvent.RefreshPhysiotherapists) },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = accentColor
-                                    ),
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Refresh,
-                                        contentDescription = null
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Tekrar Dene")
-                                }
+                        ErrorContent(
+                            errorMessage = state.error ?: "Bir hata oluştu",
+                            onRetryClick = {
+                                viewModel.onEvent(SearchScreenEvent.RefreshPhysiotherapists)
                             }
-                        }
+                        )
                     }
 
-                    // Boş liste durumu
                     state.filteredPhysiotherapists.isEmpty() -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.padding(24.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.SearchOff,
-                                    contentDescription = null,
-                                    tint = Color.Gray.copy(alpha = 0.7f),
-                                    modifier = Modifier.size(80.dp)
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = "Fizyoterapist bulunamadı",
-                                    color = Color.DarkGray,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Farklı arama kriterleri deneyebilir veya sonuçları yenileyebilirsiniz",
-                                    color = Color.Gray,
-                                    fontSize = 14.sp,
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.height(24.dp))
-                                Button(
-                                    onClick = { viewModel.onEvent(SearchScreenEvent.RefreshPhysiotherapists) },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = accentColor
-                                    ),
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Refresh,
-                                        contentDescription = null
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Yenile")
-                                }
+                        EmptyContent(
+                            onRefreshClick = {
+                                viewModel.onEvent(SearchScreenEvent.RefreshPhysiotherapists)
                             }
-                        }
+                        )
                     }
 
-                    // Fizyoterapist listesi
                     else -> {
-                        LazyColumn(
-                            state = scrollState,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(bottom = 60.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            item {
-                                Text(
-                                    text = "${state.filteredPhysiotherapists.size} fizyoterapist bulundu",
-                                    color = Color.Gray,
-                                    fontSize = 14.sp,
-                                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
+                        PhysiotherapistList(
+                            physiotherapists = state.filteredPhysiotherapists,
+                            scrollState = scrollState,
+                            onCardClick = { physiotherapistId ->
+                                viewModel.onEvent(
+                                    SearchScreenEvent.NavigateToPhysiotherapistDetail(
+                                        physiotherapistId
+                                    )
                                 )
+                            },
+                            onMessageClick = { physiotherapistId ->
+                                val route = AppScreens.MessagesDetailScreen.createMessageDetailRoute(physiotherapistId)
+                                navController.navigate(route)
                             }
-
-                            items(
-                                items = state.filteredPhysiotherapists,
-                                key = { it.userId }
-                            ) { physiotherapist ->
-                                PhysiotherapistCard(
-                                    physiotherapist = physiotherapist,
-                                    onCardClick = {
-                                        viewModel.onEvent(
-                                            SearchScreenEvent.NavigateToPhysiotherapistDetail(
-                                                physiotherapist.userId
-                                            )
-                                        )
-                                    },
-                                    onMessageClick = {
-                                        try {
-
-                                            // veya
-                                            //
-                                            val route = AppScreens.MessagesDetailScreen.createMessageDetailRoute(physiotherapist.userId)
-                                            navController.navigate(route)
-                                        } catch (e: Exception) {
-                                            println("Navigation error to messages: ${e.message}")
-                                        }
-                                    }
-                                )
-                            }
-
-                            item {
-                                Spacer(modifier = Modifier.height(16.dp))
-                            }
-                        }
+                        )
                     }
                 }
             }
 
-            // Yukarı çık butonu
             val showScrollToTop by remember {
                 derivedStateOf { scrollState.firstVisibleItemIndex > 5 }
             }
@@ -376,7 +194,7 @@ fun SearchScreen(
                             scrollState.animateScrollToItem(0)
                         }
                     },
-                    containerColor = accentColor,
+                    containerColor = primaryColor,
                     contentColor = Color.White,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
@@ -392,23 +210,279 @@ fun SearchScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PhysiotherapistCard(
+fun SearchBar(
+    searchQuery: String,
+    onSearchQueryChanged: (String) -> Unit,
+    onFocusChanged: (Boolean) -> Unit,
+    isFocused: Boolean,
+    accentColor: Color
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = if (isFocused) 8.dp else 4.dp,
+                shape = RoundedCornerShape(16.dp)
+            ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
+    ) {
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = onSearchQueryChanged,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 8.dp)
+                .onFocusChanged { focusState ->
+                    onFocusChanged(focusState.isFocused)
+                },
+            placeholder = {
+                Text(
+                    "İsim, şehir veya uzmanlık ara...",
+                    color = Color.Gray.copy(alpha = 0.7f)
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = "Ara",
+                    tint = accentColor
+                )
+            },
+            trailingIcon = {
+                if (searchQuery.isNotEmpty()) {
+                    IconButton(
+                        onClick = {
+                            onSearchQueryChanged("")
+                        }
+                    ) {
+                        Icon(
+                            Icons.Default.Clear,
+                            contentDescription = "Temizle",
+                            tint = accentColor
+                        )
+                    }
+                }
+            },
+            shape = RoundedCornerShape(12.dp),
+            singleLine = true,
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = accentColor,
+                unfocusedBorderColor = Color.LightGray,
+                cursorColor = accentColor,
+                containerColor = Color.White
+            )
+        )
+    }
+}
+
+@Composable
+fun LoadingContent() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(
+                color = Color(59, 62, 104),
+                strokeWidth = 4.dp,
+                modifier = Modifier.size(60.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Fizyoterapistler yükleniyor...",
+                color = Color.Gray,
+                fontSize = 16.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun ErrorContent(
+    errorMessage: String,
+    onRetryClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Error,
+                contentDescription = null,
+                tint = Color.Red.copy(alpha = 0.7f),
+                modifier = Modifier.size(80.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = errorMessage,
+                color = Color.DarkGray,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(
+                onClick = onRetryClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(59, 62, 104)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Tekrar Dene")
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyContent(
+    onRefreshClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.SearchOff,
+                contentDescription = null,
+                tint = Color(59, 62, 104).copy(alpha = 0.7f),
+                modifier = Modifier.size(80.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Fizyoterapist bulunamadı",
+                color = Color.DarkGray,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Farklı arama kriterleri deneyebilir veya sonuçları yenileyebilirsiniz",
+                color = Color.Gray,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(
+                onClick = onRefreshClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(59, 62, 104)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Yenile")
+            }
+        }
+    }
+}
+
+@Composable
+fun PhysiotherapistList(
+    physiotherapists: List<PhysiotherapistProfile>,
+    scrollState: LazyListState,
+    onCardClick: (String) -> Unit,
+    onMessageClick: (String) -> Unit
+) {
+    LazyColumn(
+        state = scrollState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 60.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(230, 230, 250)
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 0.dp
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = Color(59, 62, 104),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "${physiotherapists.size} fizyoterapist bulundu. Detaylı bilgi için profilleri inceleyebilirsiniz.",
+                        fontSize = 14.sp,
+                        color = Color.DarkGray
+                    )
+                }
+            }
+        }
+
+        items(
+            items = physiotherapists,
+            key = { it.userId }
+        ) { physiotherapist ->
+            PhysiotherapistItem(
+                physiotherapist = physiotherapist,
+                onCardClick = { onCardClick(physiotherapist.userId) },
+                onMessageClick = { onMessageClick(physiotherapist.userId) }
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+fun PhysiotherapistItem(
     physiotherapist: PhysiotherapistProfile,
     onCardClick: () -> Unit,
     onMessageClick: () -> Unit
 ) {
-    val accentColor = Color(0xFF6D72C3)
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onCardClick() },
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
-        )
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
@@ -416,20 +490,11 @@ fun PhysiotherapistCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Profil resmi
             Box(
                 modifier = Modifier
-                    .size(70.dp)
-                    .shadow(4.dp, CircleShape)
-                    .clip(CircleShape)
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                Color(0xFF3B3E68),
-                                Color(0xFF6D72C3)
-                            )
-                        )
-                    ),
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(59, 62, 104, 20)),
                 contentAlignment = Alignment.Center
             ) {
                 if (physiotherapist.profilePhotoUrl.isNotEmpty()) {
@@ -438,30 +503,29 @@ fun PhysiotherapistCard(
                         contentDescription = "Profil fotoğrafı",
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip(CircleShape),
+                            .clip(RoundedCornerShape(12.dp)),
                         contentScale = ContentScale.Crop
                     )
                 } else {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Profil",
-                        tint = Color.White,
-                        modifier = Modifier.size(40.dp)
+                        tint = Color(59, 62, 104),
+                        modifier = Modifier.size(32.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Fizyoterapist bilgileri
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .padding(start = 16.dp)
+                    .weight(1f)
             ) {
                 Text(
                     text = "FZT. ${physiotherapist.firstName} ${physiotherapist.lastName}",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF3B3E68)
+                    color = Color(59, 62, 104)
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -483,68 +547,69 @@ fun PhysiotherapistCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-                // Fizyoterapist etiketi
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Default.MedicalServices,
                         contentDescription = null,
-                        tint = accentColor,
+                        tint = Color(59, 62, 104),
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Fizyoterapist",  // Modelinize göre değiştirebilirsiniz
+                        text = "Fizyoterapist",
                         fontSize = 14.sp,
-                        color = accentColor,
+                        color = Color(59, 62, 104),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
             }
 
-            // Butonlar
             Column(
                 horizontalAlignment = Alignment.End
             ) {
-                // Mesaj butonu
-                IconButton(
+                OutlinedButton(
                     onClick = { onMessageClick() },
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            color = accentColor.copy(alpha = 0.15f),
-                            shape = CircleShape
-                        )
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color(59, 62, 104)
+                    ),
+                    border = BorderStroke(1.dp, Color(59, 62, 104))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Message,
-                        contentDescription = "Mesaj Gönder",
-                        tint = accentColor,
-                        modifier = Modifier.size(20.dp)
+                        contentDescription = "Mesaj",
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Mesaj",
+                        fontSize = 12.sp
                     )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Profil butonu
-                IconButton(
+                Button(
                     onClick = { onCardClick() },
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            color = accentColor,
-                            shape = CircleShape
-                        )
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(59, 62, 104)
+                    )
                 ) {
+                    Text(
+                        text = "Detay",
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "Profili Görüntüle",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        contentDescription = "Detay",
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
