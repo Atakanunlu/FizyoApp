@@ -22,11 +22,11 @@ import com.example.fizyoapp.data.repository.exercisevideos.ExamplesOfExercisesRe
 import com.example.fizyoapp.data.repository.illnessrecordscreen.evaluationformscreen.EvaluationFormRepository
 import com.example.fizyoapp.data.repository.illnessrecordscreen.evaluationformscreen.EvaluationFormRepositoryImpl
 import com.example.fizyoapp.data.repository.illnessrecordscreen.medicalrecord.MedicalReportRepository
-import com.example.fizyoapp.data.repository.illnessrecordscreen.medicalreport.MedicalReportRepositoryImpl
 import com.example.fizyoapp.data.repository.illnessrecordscreen.radiologicalimagesscreen.RadyolojikGoruntuRepository
 import com.example.fizyoapp.data.repository.illnessrecordscreen.radiologicalimagesscreen.RadyolojikGoruntuRepositoryImpl
 import com.example.fizyoapp.data.repository.follow.FollowRepository
 import com.example.fizyoapp.data.repository.follow.FollowRepositoryImpl
+import com.example.fizyoapp.data.repository.illnessrecordscreen.medicalreport.MedicalReportRepositoryImpl
 import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainTrackingRepository
 import com.example.fizyoapp.data.repository.mainscreen.PainTrackingRepositoryImpl
 import com.example.fizyoapp.data.repository.messagesscreen.MessageRepositoryImpl

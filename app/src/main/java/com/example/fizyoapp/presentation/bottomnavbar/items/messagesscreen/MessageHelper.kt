@@ -59,22 +59,22 @@ fun extractRadiologicalImageData(message: Message): RadiologicalImageData {
     } catch (e: Exception) {
         null
     }
-
     val title = jsonContent?.optString("title") ?: "Radyolojik Görüntü"
     val description = jsonContent?.optString("description") ?: ""
     val imageUrl = jsonContent?.optString("url") ?: ""
+    val fileType = jsonContent?.optString("fileType") ?: "image"
     val timestamp = try {
         val timeMs = jsonContent?.optLong("timestamp", 0) ?: 0
         if (timeMs > 0) Date(timeMs) else message.timestamp
     } catch (e: Exception) {
         message.timestamp
     }
-
     return RadiologicalImageData(
         title = title,
         description = description,
         imageUrl = imageUrl,
-        timestamp = timestamp
+        timestamp = timestamp,
+        fileType = fileType
     )
 }
 
@@ -218,12 +218,12 @@ private fun createDefaultEvaluationFormData(message: Message): EvaluationFormDat
     )
 }
 
-
 data class RadiologicalImageData(
     val title: String,
     val description: String,
     val imageUrl: String,
-    val timestamp: Date
+    val timestamp: Date,
+    val fileType: String = "image"
 )
 
 data class MedicalReportData(
@@ -236,7 +236,6 @@ data class MedicalReportData(
 )
 
 
-
 @Composable
 fun RadiologicalImageMessageBubble(
     message: Message,
@@ -244,11 +243,33 @@ fun RadiologicalImageMessageBubble(
     onClick: () -> Unit
 ) {
     val imageData = extractRadiologicalImageData(message)
+    val context = LocalContext.current
+    val isPdf = imageData.fileType == "pdf"
 
     Card(
         modifier = Modifier
             .widthIn(max = 280.dp)
-            .clickable { onClick() },
+            .clickable {
+                if (isPdf) {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            data = Uri.parse(imageData.imageUrl)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            context,
+                            "PDF açılamadı: ${e.localizedMessage}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        onClick()
+                    }
+                } else {
+                    onClick()
+                }
+            },
         shape = RoundedCornerShape(
             topStart = if (isCurrentUser) 12.dp else 0.dp,
             topEnd = if (isCurrentUser) 0.dp else 12.dp,
@@ -271,33 +292,100 @@ fun RadiologicalImageMessageBubble(
                 modifier = Modifier.padding(bottom = 4.dp)
             )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFF0F0F0))
-            ) {
-                if (imageData.imageUrl.isNotEmpty()) {
-                    AsyncImage(
-                        model = imageData.imageUrl,
-                        contentDescription = imageData.title,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit,
-                        error = ColorPainter(Color(0xFFE0E0E0)),
-                        fallback = ColorPainter(Color(0xFFE0E0E0))
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+            if (isPdf) {
+                // PDF için görünüm
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFFF0F0F0)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
-                            imageVector = Icons.Default.BrokenImage,
-                            contentDescription = null,
-                            tint = Color.Gray,
+                            imageVector = Icons.Default.PictureAsPdf,
+                            contentDescription = "Radyolojik PDF",
+                            tint = if (isCurrentUser) Color(0xCCFFFFFF) else Color(59, 62, 104),
                             modifier = Modifier.size(48.dp)
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Radyolojik PDF",
+                            color = if (isCurrentUser) Color.White else Color(59, 62, 104),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        data = Uri.parse(imageData.imageUrl)
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    }
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(
+                                        context,
+                                        "PDF açılamadı: ${e.localizedMessage}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isCurrentUser) Color.White.copy(alpha = 0.2f)
+                                else Color(59, 62, 104)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.OpenInNew,
+                                contentDescription = "Aç",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Görüntüle",
+                                fontSize = 12.sp,
+                                color = if (isCurrentUser) Color.White else Color.White
+                            )
+                        }
+                    }
+                }
+            } else {
+                // Görüntü için mevcut görünüm
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFFF0F0F0))
+                ) {
+                    if (imageData.imageUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = imageData.imageUrl,
+                            contentDescription = imageData.title,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit,
+                            error = ColorPainter(Color(0xFFE0E0E0)),
+                            fallback = ColorPainter(Color(0xFFE0E0E0))
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.BrokenImage,
+                                contentDescription = null,
+                                tint = Color.Gray,
+                                modifier = Modifier.size(48.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -311,7 +399,6 @@ fun RadiologicalImageMessageBubble(
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                 )
             }
-
 
             Text(
                 text = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -596,6 +683,8 @@ fun RadiologicalImageDetailDialog(
     onDismiss: () -> Unit
 ) {
     val imageData = extractRadiologicalImageData(message)
+    val context = LocalContext.current
+    val isPdf = imageData.fileType == "pdf"
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -622,7 +711,6 @@ fun RadiologicalImageDetailDialog(
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge
                     )
-
                     IconButton(onClick = onDismiss) {
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -631,57 +719,123 @@ fun RadiologicalImageDetailDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFFF5F5F5))
-                ) {
-                    if (imageData.imageUrl.isNotEmpty()) {
-                        AsyncImage(
-                            model = imageData.imageUrl,
-                            contentDescription = imageData.title,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(4.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                    } else {
+                if (isPdf) {
+                    // PDF detay görünümü
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 250.dp)
+                            .weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFF5F5F5)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    ) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
                             Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.BrokenImage,
+                                    imageVector = Icons.Default.PictureAsPdf,
                                     contentDescription = null,
-                                    tint = Color.Gray,
+                                    tint = Color(59, 62, 104),
                                     modifier = Modifier.size(64.dp)
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = "Görüntü yüklenemedi",
-                                    color = Color.Gray
+                                    text = "Radyolojik PDF",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = Color(59, 62, 104)
                                 )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Button(
+                                    onClick = {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                                data = Uri.parse(imageData.imageUrl)
+                                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                            }
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            Toast.makeText(
+                                                context,
+                                                "PDF açılamadı: ${e.localizedMessage}",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(59, 62, 104)
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.OpenInNew,
+                                        contentDescription = "Aç"
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("PDF'i Aç")
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Görüntü detay görünümü
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFFF5F5F5))
+                    ) {
+                        if (imageData.imageUrl.isNotEmpty()) {
+                            AsyncImage(
+                                model = imageData.imageUrl,
+                                contentDescription = imageData.title,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(4.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.BrokenImage,
+                                        contentDescription = null,
+                                        tint = Color.Gray,
+                                        modifier = Modifier.size(64.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "Görüntü yüklenemedi",
+                                        color = Color.Gray
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
-
                 if (imageData.description.isNotEmpty()) {
                     Text(
                         text = imageData.description,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
                     )
-
                     Spacer(modifier = Modifier.height(4.dp))
                 }
 
@@ -693,7 +847,6 @@ fun RadiologicalImageDetailDialog(
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End),

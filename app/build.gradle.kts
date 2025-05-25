@@ -189,6 +189,7 @@ dependencies {
     implementation("javax.xml.bind:jaxb-api:2.3.1")
     implementation("org.glassfish.jaxb:jaxb-runtime:2.3.1")
     implementation("xerces:xercesImpl:2.12.2")
+
 }
 
 kapt {
