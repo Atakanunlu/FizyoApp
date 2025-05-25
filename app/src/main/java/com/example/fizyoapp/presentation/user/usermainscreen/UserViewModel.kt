@@ -1,6 +1,5 @@
 package com.example.fizyoapp.presentation.user.usermainscreen
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
@@ -9,10 +8,18 @@ import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignOutUseCase
 import com.example.fizyoapp.domain.usecase.mainscreen.GetLatestPainRecordUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.GetUserProfileUseCase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -30,40 +37,23 @@ class UserViewModel @Inject constructor(
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
-
     private val _profileUpdatedEvent = MutableSharedFlow<Unit>()
     val profileUpdatedEvent = _profileUpdatedEvent.asSharedFlow()
 
+    private var loadingTimeoutJob: kotlinx.coroutines.Job? = null
+
     init {
         fetchUserData()
-    }
 
-    fun refreshAllData(userId: String) {
         viewModelScope.launch {
-            fetchLatestPainRecord(userId)
-            loadUserEmail(userId)
-        }
-    }
-
-    fun onEvent(event: UserEvent) {
-        when (event) {
-            is UserEvent.SignOut -> {
-                logout()
-            }
-            is UserEvent.DismissError -> {
-                _state.update { it.copy(error = null) }
-            }
-            is UserEvent.LoadUserProfile -> {
+            profileUpdatedEvent.collect {
                 val userId = state.value.userProfile?.userId
                 if (userId != null) {
                     fetchUserProfile(userId)
-                } else {
-                    fetchUserData()
                 }
             }
         }
     }
-
 
     fun emitProfileUpdated() {
         viewModelScope.launch {
@@ -71,165 +61,304 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    private fun fetchUserData() {
+    fun refreshAllData(userId: String) {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            getCurrentUserUseCase().collect { result ->
-                when (result) {
-                    is Resource.Success -> {
-                        val userId = result.data?.id
-                        if (userId != null) {
-                            setupProfileListener(userId)
-                            fetchUserProfile(userId)
-                            fetchLatestPainRecord(userId)
-                            loadUserEmail(userId)
-                        } else {
-                            _state.update {
-                                it.copy(
-                                    error = "Kullanıcı bilgisi bulunamadı",
-                                    isLoading = false
-                                )
-                            }
-                        }
-                    }
-                    is Resource.Error -> {
-                        _state.update {
-                            it.copy(
-                                error = result.message ?: "Kullanıcı bilgisi alınamadı",
-                                isLoading = false
-                            )
-                        }
-                    }
-                    is Resource.Loading -> {
-                        _state.update { it.copy(isLoading = true) }
-                    }
+            try {
+                fetchLatestPainRecord(userId)
+                loadUserEmail(userId)
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+            }
+        }
+    }
+
+    fun onEvent(event: UserEvent) {
+        when (event) {
+            is UserEvent.SignOut -> {
+                signOut()
+            }
+            is UserEvent.DismissError -> {
+                _state.value = _state.value.copy(error = null)
+            }
+            is UserEvent.LoadUserProfile -> {
+                loadingTimeoutJob?.cancel()
+                _state.value = _state.value.copy(isLoading = true, error = null)
+
+                val currentUser = FirebaseAuth.getInstance().currentUser
+                if (currentUser != null) {
+                    fetchUserProfile(currentUser.uid)
+                } else {
+                    fetchUserData()
                 }
             }
         }
     }
 
-    private fun setupProfileListener(userId: String) {
-        FirebaseFirestore.getInstance().collection("user_profiles").document(userId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e("UserViewModel", "Error listening to profile changes: ${error.message}")
-                    return@addSnapshotListener
-                }
-
-                if (snapshot != null && snapshot.exists()) {
-                    try {
-                        val profilePhotoUrl = snapshot.getString("profilePhotoUrl")
-                        if (!profilePhotoUrl.isNullOrEmpty()) {
-                            _state.update { currentState ->
-                                currentState.copy(
-                                    userProfile = currentState.userProfile?.copy(
-                                        profilePhotoUrl = profilePhotoUrl
-                                    )
-                                )
-                            }
-                        }
-                    } catch (e: Exception) {
-                        Log.e("UserViewModel", "Error getting profile photo: ${e.message}")
-                    }
-                }
-            }
-    }
-
-    private fun loadUserEmail(userId: String) {
+    private fun fetchUserData() {
         viewModelScope.launch {
             try {
-                val userDoc = FirebaseFirestore.getInstance().collection("user").document(userId).get().await()
-                if (userDoc.exists()) {
-                    val email = userDoc.getString("email") ?: ""
-                    _state.update { it.copy(email = email) }
+                _state.value = _state.value.copy(isLoading = true, error = null)
+
+                startLoadingTimeout()
+
+                val currentUser = FirebaseAuth.getInstance().currentUser
+                if (currentUser != null) {
+                    val userId = currentUser.uid
+                    fetchUserProfile(userId)
+                } else {
+                    getCurrentUserUseCase().collect { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                val user = result.data
+                                if (user != null) {
+                                    fetchUserProfile(user.id)
+                                } else {
+                                    stopLoadingTimeout()
+                                    _state.value = _state.value.copy(
+                                        isLoading = false,
+                                        error = "Kullanıcı bulunamadı. Lütfen tekrar giriş yapın."
+                                    )
+                                }
+                            }
+                            is Resource.Error -> {
+                                stopLoadingTimeout()
+                                _state.value = _state.value.copy(
+                                    isLoading = false,
+                                    error = result.message ?: "Kullanıcı bilgileri alınamadı"
+                                )
+                            }
+                            is Resource.Loading -> {
+                            }
+                        }
+                    }
                 }
             } catch (e: Exception) {
-                Log.e("UserViewModel", "Error loading user email: ${e.message}")
+                if (e is CancellationException) throw e
+                stopLoadingTimeout()
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "Veri yükleme hatası: ${e.message}"
+                )
             }
         }
     }
 
     private fun fetchUserProfile(userId: String) {
         viewModelScope.launch {
-            getUserProfileUseCase(userId).collect { result ->
-                when (result) {
-                    is Resource.Success -> {
-                        val profile = result.data ?: UserProfile()
-                        _state.update {
-                            it.copy(
+            try {
+                startLoadingTimeout()
+
+                try {
+                    val userProfileDoc = FirebaseFirestore.getInstance()
+                        .collection("user_profiles")
+                        .document(userId)
+                        .get()
+                        .await()
+
+                    if (userProfileDoc.exists()) {
+                        val profile = userProfileDoc.toObject(UserProfile::class.java)
+                            ?: UserProfile(userId = userId)
+
+                        stopLoadingTimeout()
+
+                        _state.value = _state.value.copy(
+                            userProfile = profile,
+                            userName = "${profile.firstName} ${profile.lastName}".trim().ifEmpty { "Hasta" },
+                            isLoading = false
+                        )
+
+                        fetchLatestPainRecord(userId)
+                        loadUserEmail(userId)
+                        return@launch
+                    }
+                } catch (e: Exception) {
+                    if (e is CancellationException) throw e
+                }
+
+                getUserProfileUseCase(userId).collect { result ->
+                    when (result) {
+                        is Resource.Success -> {
+                            val profile = result.data ?: UserProfile(userId = userId)
+                            stopLoadingTimeout()
+
+                            _state.value = _state.value.copy(
                                 userProfile = profile,
                                 userName = "${profile.firstName} ${profile.lastName}".trim().ifEmpty { "Hasta" },
                                 isLoading = false
                             )
+
+                            fetchLatestPainRecord(userId)
+                            loadUserEmail(userId)
                         }
-                    }
-                    is Resource.Error -> {
-                        _state.update {
-                            it.copy(
-                                error = result.message ?: "Kullanıcı profili alınamadı",
-                                isLoading = false
+                        is Resource.Error -> {
+                            stopLoadingTimeout()
+                            _state.value = _state.value.copy(
+                                isLoading = false,
+                                error = result.message,
+                                userProfile = UserProfile(userId = userId)
                             )
                         }
-                    }
-                    is Resource.Loading -> {
-
+                        is Resource.Loading -> {
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                stopLoadingTimeout()
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "Profil yükleme hatası: ${e.message}",
+                    userProfile = UserProfile(userId = userId)
+                )
             }
         }
     }
 
     private fun fetchLatestPainRecord(userId: String) {
         viewModelScope.launch {
-            getLatestPainRecordUseCase(userId).collect { result ->
-                when (result) {
-                    is Resource.Success -> {
-                        _state.update {
-                            it.copy(
-                                latestPainRecord = result.data,
-                                isLoading = false
+            try {
+                getLatestPainRecordUseCase(userId).collect { result ->
+                    when (result) {
+                        is Resource.Success -> {
+                            _state.value = _state.value.copy(
+                                latestPainRecord = result.data
                             )
                         }
-                    }
-                    is Resource.Error -> {
-                        _state.update {
-                            it.copy(
-                                error = result.message ?: "Ağrı kaydı alınamadı",
-                                isLoading = false
-                            )
+                        is Resource.Error -> {
                         }
-                    }
-                    is Resource.Loading -> {
-
+                        is Resource.Loading -> {
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
             }
         }
     }
 
-    private fun logout() {
+    private fun loadUserEmail(userId: String) {
         viewModelScope.launch {
-            signOutUseCase().collect { result ->
-                when (result) {
-                    is Resource.Success -> {
-                        _uiEvent.send(UiEvent.NavigateToLogin)
-                    }
-                    is Resource.Error -> {
-                        _state.update {
-                            it.copy(
-                                error = result.message ?: "Çıkış yapılamadı"
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                val userDoc = firestore.collection("user").document(userId).get().await()
+                if (userDoc.exists()) {
+                    val email = userDoc.getString("email") ?: ""
+                    _state.value = _state.value.copy(email = email)
+                }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+            }
+        }
+    }
+
+    private fun signOut() {
+        viewModelScope.launch {
+            try {
+                _state.value = _state.value.copy(isLoading = true)
+
+                val timeoutJob = launch {
+                    delay(5000)
+                    if (_state.value.isLoading) {
+                        try {
+                            FirebaseAuth.getInstance().signOut()
+                            _state.value = _state.value.copy(isLoading = false)
+                            _uiEvent.send(UiEvent.NavigateToLogin)
+                        } catch (e: Exception) {
+                            _state.value = _state.value.copy(
+                                isLoading = false,
+                                error = "Çıkış yapma zaman aşımına uğradı"
                             )
                         }
                     }
-                    is Resource.Loading -> {
-                        _state.update { it.copy(isLoading = true) }
+                }
+
+                try {
+                    FirebaseAuth.getInstance().signOut()
+                    timeoutJob.cancel()
+                    _state.value = _state.value.copy(isLoading = false)
+                    _uiEvent.send(UiEvent.NavigateToLogin)
+                    return@launch
+                } catch (e: Exception) {
+                }
+
+                var useCase = false
+                try {
+                    signOutUseCase().collect { result ->
+                        useCase = true
+                        when (result) {
+                            is Resource.Success -> {
+                                timeoutJob.cancel()
+                                _state.value = _state.value.copy(isLoading = false)
+                                _uiEvent.send(UiEvent.NavigateToLogin)
+                            }
+                            is Resource.Error -> {
+                                timeoutJob.cancel()
+                                try {
+                                    FirebaseAuth.getInstance().signOut()
+                                    _state.value = _state.value.copy(isLoading = false)
+                                    _uiEvent.send(UiEvent.NavigateToLogin)
+                                } catch (ex: Exception) {
+                                    _state.value = _state.value.copy(
+                                        isLoading = false,
+                                        error = "Çıkış yapılamadı: ${result.message}"
+                                    )
+                                }
+                            }
+                            is Resource.Loading -> {
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    timeoutJob.cancel()
+
+                    if (!useCase) {
+                        try {
+                            FirebaseAuth.getInstance().signOut()
+                            _state.value = _state.value.copy(isLoading = false)
+                            _uiEvent.send(UiEvent.NavigateToLogin)
+                        } catch (finalEx: Exception) {
+                            _state.value = _state.value.copy(
+                                isLoading = false,
+                                error = "Çıkış yapılamadı: ${e.message}"
+                            )
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "Çıkış yapılamadı. Lütfen 'Çıkış Yap' düğmesini kullanın."
+                )
             }
         }
+    }
+
+    private fun startLoadingTimeout() {
+        loadingTimeoutJob?.cancel()
+        loadingTimeoutJob = viewModelScope.launch {
+            delay(15000)
+            if (_state.value.isLoading) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = "Veri yükleme zaman aşımına uğradı. Lütfen tekrar deneyin."
+                )
+            }
+        }
+    }
+
+    private fun stopLoadingTimeout() {
+        loadingTimeoutJob?.cancel()
+        loadingTimeoutJob = null
     }
 
     sealed class UiEvent {
         object NavigateToLogin : UiEvent()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        loadingTimeoutJob?.cancel()
     }
 }

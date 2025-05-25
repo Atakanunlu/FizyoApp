@@ -38,6 +38,7 @@ import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBanne
 import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBannerViewModel
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
@@ -47,7 +48,7 @@ private val backgroundColor = Color(245, 245, 250)
 private val surfaceColor = Color.White
 private val accentColor = Color(59, 62, 104)
 private val textColor = Color.DarkGray
-private val socialMediaColor = Color(76, 175, 80) // Yeşil renk
+private val socialMediaColor = Color(76, 175, 80)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -61,18 +62,51 @@ fun UserMainScreen(
     val adState = advertisementBannerViewModel.state.collectAsState().value
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val showLogoutDialog = remember { mutableStateOf(false) }
+    val retryCount = remember { mutableStateOf(0) }
 
     LaunchedEffect(key1 = Unit) {
         advertisementBannerViewModel.loadActiveAdvertisements()
+
+        if (state.userProfile == null && !state.isLoading) {
+            viewModel.onEvent(UserEvent.LoadUserProfile)
+        }
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        try {
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            if (currentUser != null && (state.userProfile == null || state.userProfile.userId != currentUser.uid)) {
+                viewModel.onEvent(UserEvent.LoadUserProfile)
+            }
+        } catch (e: Exception) {
+        }
     }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                val userId = state.userProfile?.userId
-                if (userId != null) {
-                    viewModel.refreshAllData(userId)
-                    advertisementBannerViewModel.loadActiveAdvertisements()
+                try {
+                    val currentUser = FirebaseAuth.getInstance().currentUser
+                    if (currentUser != null) {
+                        if (state.userProfile == null) {
+                            viewModel.onEvent(UserEvent.LoadUserProfile)
+                        } else {
+                            viewModel.refreshAllData(currentUser.uid)
+                            advertisementBannerViewModel.loadActiveAdvertisements()
+                        }
+                    } else if (!state.isLoading) {
+                        navController.navigate("login_screen") {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    }
+                } catch (e: Exception) {
+                    val userId = state.userProfile?.userId
+                    if (userId != null) {
+                        viewModel.refreshAllData(userId)
+                        advertisementBannerViewModel.loadActiveAdvertisements()
+                    } else if (!state.isLoading) {
+                        viewModel.onEvent(UserEvent.LoadUserProfile)
+                    }
                 }
             }
         }
@@ -101,6 +135,16 @@ fun UserMainScreen(
         }
     }
 
+    if (state.isLoading && retryCount.value < 3) {
+        LaunchedEffect(key1 = state.isLoading) {
+            delay(10000)
+            if (state.isLoading) {
+                retryCount.value++
+                viewModel.onEvent(UserEvent.LoadUserProfile)
+            }
+        }
+    }
+
     if (showLogoutDialog.value) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog.value = false },
@@ -110,7 +154,14 @@ fun UserMainScreen(
                 TextButton(
                     onClick = {
                         showLogoutDialog.value = false
-                        viewModel.onEvent(UserEvent.SignOut)
+                        try {
+                            FirebaseAuth.getInstance().signOut()
+                            navController.navigate("login_screen") {
+                                popUpTo(navController.graph.id) { inclusive = true }
+                            }
+                        } catch (e: Exception) {
+                            viewModel.onEvent(UserEvent.SignOut)
+                        }
                     }
                 ) {
                     Text("Evet", color = primaryColor)
@@ -189,11 +240,97 @@ fun UserMainScreen(
                         .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(60.dp),
-                        color = primaryColor,
-                        strokeWidth = 5.dp
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(60.dp),
+                            color = primaryColor,
+                            strokeWidth = 5.dp
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Veriler yükleniyor...",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = primaryColor
+                        )
+
+                        var showEmergencyButton by remember { mutableStateOf(false) }
+                        LaunchedEffect(key1 = true) {
+                            delay(3000)
+                            showEmergencyButton = true
+                        }
+
+                        if (showEmergencyButton) {
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Button(
+                                onClick = {
+                                    viewModel.onEvent(UserEvent.LoadUserProfile)
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = primaryColor
+                                )
+                            ) {
+                                Text("Yeniden Dene")
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(
+                                onClick = {
+                                    try {
+                                        FirebaseAuth.getInstance().signOut()
+                                    } catch (e: Exception) { }
+                                    navController.navigate("login_screen") {
+                                        popUpTo(navController.graph.id) { inclusive = true }
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Red
+                                )
+                            ) {
+                                Text("Acil Çıkış", color = Color.White)
+                            }
+                        }
+                    }
+                }
+            } else if (state.userProfile == null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Kullanıcı verileri yüklenemedi",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = primaryColor
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { viewModel.onEvent(UserEvent.LoadUserProfile) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = primaryColor
+                            )
+                        ) {
+                            Text("Yeniden Dene")
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextButton(
+                            onClick = {
+                                try {
+                                    FirebaseAuth.getInstance().signOut()
+                                } catch (e: Exception) { }
+                                navController.navigate("login_screen") {
+                                    popUpTo(navController.graph.id) { inclusive = true }
+                                }
+                            }
+                        ) {
+                            Text("Çıkış Yap", color = Color.Red)
+                        }
+                    }
                 }
             } else {
                 LazyColumn(
@@ -218,14 +355,21 @@ fun UserMainScreen(
                     }
                 }
             }
+
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
                     action = {
-                        TextButton(onClick = { viewModel.onEvent(UserEvent.DismissError) }) {
-                            Text("Tamam", color = Color.White)
+                        Row {
+                            TextButton(onClick = { viewModel.onEvent(UserEvent.LoadUserProfile) }) {
+                                Text("Yeniden Dene", color = Color.White)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            TextButton(onClick = { viewModel.onEvent(UserEvent.DismissError) }) {
+                                Text("Kapat", color = Color.White)
+                            }
                         }
                     },
                     containerColor = Color(0xFFB71C1C)
@@ -303,8 +447,12 @@ fun WelcomeCard(state: UserState) {
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = when {
-                        state.userProfile?.firstName?.isNotEmpty() == true ->
+                        state.userProfile?.firstName?.isNotEmpty() == true && state.userProfile.lastName?.isNotEmpty() == true ->
                             "${state.userProfile.firstName} ${state.userProfile.lastName}".trim()
+                        state.userProfile?.firstName?.isNotEmpty() == true ->
+                            state.userProfile.firstName.trim()
+                        state.userProfile?.lastName?.isNotEmpty() == true ->
+                            state.userProfile.lastName.trim()
                         else -> "Hasta"
                     },
                     color = Color.White,
