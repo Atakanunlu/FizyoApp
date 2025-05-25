@@ -90,19 +90,46 @@ class ExerciseRepositoryImpl @Inject constructor(
                 }
                 try {
                     val mediaUrlsList = snapshot.get("mediaUrls") as? List<String> ?: emptyList()
-                    val mediaTypeRaw = snapshot.get("mediaType") as? Map<String, String> ?: emptyMap()
-                    val mediaTypes = mediaTypeRaw.mapValues { entry ->
-                        when (entry.value) {
-                            "VIDEO" -> ExerciseType.VIDEO
-                            else -> ExerciseType.IMAGE
+
+                    // MediaType'ı doğru şekilde çözümleme - BU KISMI DÜZELTİN
+                    // getExerciseById fonksiyonunda, mediaType çözümleme kısmı:
+                    val mediaTypeRaw = snapshot.get("mediaType") as? Map<String, Any> ?: emptyMap()
+                    val mediaTypes = mutableMapOf<String, ExerciseType>()
+
+// Önce mediaType haritasını çözümle
+                    for ((url, typeValue) in mediaTypeRaw) {
+                        val typeStr = when (typeValue) {
+                            is String -> typeValue
+                            else -> typeValue.toString()
                         }
+
+                        // ExerciseType değerine dönüştür
+                        val type = when (typeStr.uppercase()) {
+                            "VIDEO" -> ExerciseType.VIDEO
+                            "IMAGE" -> ExerciseType.IMAGE
+                            else -> {
+                                // Eğer tip belirtilmemişse, URL'den tahmin et
+                                if (url.contains("video") || url.contains(".mp4") ||
+                                    url.contains(".mov") || url.contains(".avi")) {
+                                    ExerciseType.VIDEO
+                                } else {
+                                    ExerciseType.IMAGE
+                                }
+                            }
+                        }
+
+                        mediaTypes[url] = type
                     }
+                    // Hata ayıklama
+                    println("REPOSITORY - Media URLs: $mediaUrlsList")
+                    println("REPOSITORY - Media Types: $mediaTypes")
                     val difficultyStr = snapshot.getString("difficulty") ?: ExerciseDifficulty.MEDIUM.name
                     val difficulty = try {
                         ExerciseDifficulty.valueOf(difficultyStr)
                     } catch (e: Exception) {
                         ExerciseDifficulty.MEDIUM
                     }
+
                     val exercise = Exercise(
                         id = snapshot.id,
                         physiotherapistId = snapshot.getString("physiotherapistId") ?: "",
@@ -110,7 +137,7 @@ class ExerciseRepositoryImpl @Inject constructor(
                         description = snapshot.getString("description") ?: "",
                         category = snapshot.getString("category") ?: "",
                         mediaUrls = mediaUrlsList,
-                        mediaType = mediaTypes,
+                        mediaType = mediaTypes,  // DÖNÜŞTÜRÜLMÜŞ mediaTypes'ı KULLANIN
                         instructions = snapshot.getString("instructions") ?: "",
                         duration = snapshot.getLong("duration")?.toInt() ?: 0,
                         repetitions = snapshot.getLong("repetitions")?.toInt() ?: 0,

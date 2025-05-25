@@ -1,4 +1,5 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexercise
+
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,8 +28,10 @@ class AddExerciseViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = MutableStateFlow(AddExerciseState())
     val state: StateFlow<AddExerciseState> = _state.asStateFlow()
+
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+
     private var currentUser: User? = null
 
     init {
@@ -107,18 +110,33 @@ class AddExerciseViewModel @Inject constructor(
                 )
             }
             is AddExerciseEvent.AddMedia -> {
-                val isVideo = event.type == "video"
+                // Video türünü daha güvenilir şekilde belirleme
+                val isVideo = event.type == "video" ||
+                        event.uri.contains("video") ||
+                        event.uri.contains(".mp4") ||
+                        event.uri.contains(".mov") ||
+                        event.uri.contains(".avi") ||
+                        event.uri.contains(".webm")
+
                 val mediaType = if (isVideo) ExerciseType.VIDEO else ExerciseType.IMAGE
 
+                println("AddExerciseViewModel - Adding media: ${event.uri}, Type: $mediaType, IsVideo: $isVideo")
+
+                // Medya ekle
                 _state.value = _state.value.copy(
                     mediaUris = _state.value.mediaUris + event.uri,
-                    // Yeni eklenen medyanın tipini sakla
                     mediaTypes = _state.value.mediaTypes + (event.uri to mediaType)
                 )
             }
             is AddExerciseEvent.RemoveMedia -> {
+                val updatedMediaUris = _state.value.mediaUris.filter { it != event.uri }
+                val updatedMediaTypes = _state.value.mediaTypes.toMutableMap().apply {
+                    remove(event.uri)
+                }
+
                 _state.value = _state.value.copy(
-                    mediaUris = _state.value.mediaUris.filter { it != event.uri }
+                    mediaUris = updatedMediaUris,
+                    mediaTypes = updatedMediaTypes
                 )
             }
             is AddExerciseEvent.SaveExercise -> saveExercise()
@@ -163,17 +181,27 @@ class AddExerciseViewModel @Inject constructor(
                     for (mediaUri in _state.value.mediaUris) {
                         val uri = Uri.parse(mediaUri)
                         val fileName = "exercise_media_${UUID.randomUUID()}"
+
+                        // Orijinal URI'nin medya tipini belirle
+                        val originalMediaType = _state.value.mediaTypes[mediaUri] ?:
+                        if (mediaUri.contains("video") || mediaUri.contains(".mp4") ||
+                            mediaUri.contains(".mov") || mediaUri.contains(".avi") ||
+                            mediaUri.contains(".webm")) {
+                            ExerciseType.VIDEO
+                        } else {
+                            ExerciseType.IMAGE
+                        }
+
+                        println("Uploading media: $mediaUri, Type: $originalMediaType")
+
                         exerciseRepository.uploadExerciseMedia(uri, userId, fileName).collect { result ->
                             when (result) {
                                 is Resource.Success -> {
                                     val downloadUrl = result.data
                                     mediaUrls.add(downloadUrl)
-                                    val mediaType = when {
-                                        mediaUri.contains("image") -> ExerciseType.IMAGE
-                                        mediaUri.contains("video") -> ExerciseType.VIDEO
-                                        else -> ExerciseType.IMAGE
-                                    }
-                                    mediaTypes[downloadUrl] = mediaType
+                                    // Önemli: Orijinal URI'nin tipini yeni URL'ye kopyala
+                                    mediaTypes[downloadUrl] = originalMediaType
+                                    println("Media uploaded: $downloadUrl, Type: $originalMediaType")
                                 }
                                 is Resource.Error -> {
                                     _state.value = _state.value.copy(isLoading = false)
@@ -189,6 +217,9 @@ class AddExerciseViewModel @Inject constructor(
                     _uiEvent.send(UiEvent.ShowError("Medya yükleme hatası: ${e.message}"))
                     return@launch
                 }
+
+                // Tür bilgilerini kontrol et
+                println("Saving exercise with mediaTypes: ${mediaTypes.map { "${it.key}: ${it.value}" }}")
 
                 val exercise = Exercise(
                     physiotherapistId = userId,
@@ -247,8 +278,7 @@ data class AddExerciseState(
     val mediaUris: List<String> = emptyList(),
     val isLoading: Boolean = false,
     val saveSuccess: Boolean = false,
-    val mediaTypes: Map<String, ExerciseType> = emptyMap(),
-
+    val mediaTypes: Map<String, ExerciseType> = emptyMap()
 )
 
 sealed class AddExerciseEvent {
