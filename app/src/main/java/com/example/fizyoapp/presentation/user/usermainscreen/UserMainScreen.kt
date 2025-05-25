@@ -8,6 +8,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,44 +18,74 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.fizyoapp.domain.model.usermainscreen.PainRecord
+import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBannerState
+import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBannerViewModel
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
+
+private val primaryColor = Color(59, 62, 104)
+private val backgroundColor = Color(245, 245, 250)
+private val surfaceColor = Color.White
+private val accentColor = Color(59, 62, 104)
+private val textColor = Color.DarkGray
+private val socialMediaColor = Color(76, 175, 80) // Yeşil renk
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun UserMainScreen(
     navController: NavController,
-    viewModel: UserViewModel = hiltViewModel()
+    viewModel: UserViewModel = hiltViewModel(),
+    advertisementBannerViewModel: AdvertisementBannerViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.collectAsState().value
+    val adState = advertisementBannerViewModel.state.collectAsState().value
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val showLogoutDialog = remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = Unit) {
+        advertisementBannerViewModel.loadActiveAdvertisements()
+    }
+
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 val userId = state.userProfile?.userId
                 if (userId != null) {
                     viewModel.refreshAllData(userId)
+                    advertisementBannerViewModel.loadActiveAdvertisements()
                 }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        while (true) {
+            delay(60000)
+            advertisementBannerViewModel.loadActiveAdvertisements()
         }
     }
 
@@ -68,34 +101,74 @@ fun UserMainScreen(
         }
     }
 
+    if (showLogoutDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog.value = false },
+            title = { Text("Çıkış Yap") },
+            text = { Text("Çıkış yapmak istediğinize emin misiniz?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog.value = false
+                        viewModel.onEvent(UserEvent.SignOut)
+                    }
+                ) {
+                    Text("Evet", color = primaryColor)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showLogoutDialog.value = false }
+                ) {
+                    Text("Hayır", color = primaryColor)
+                }
+            },
+            containerColor = surfaceColor,
+            titleContentColor = primaryColor,
+            textContentColor = textColor
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Column {
+                        Text(
+                            "Merhaba,",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
                         val displayName = when {
                             state.userProfile?.firstName?.isNotEmpty() == true ->
-                                "${state.userProfile.firstName} ${state.userProfile.lastName}".trim()
-                            state.userName != null -> state.userName
+                                state.userProfile.firstName.trim()
                             else -> "Hasta"
                         }
-                        Text("Merhaba, $displayName")
                         Text(
-                            "İyi günler",
-                            style = MaterialTheme.typography.bodySmall
+                            displayName,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 },
                 actions = {
-                    IconButton(onClick = { navController.navigate("settings") }) {
+                    IconButton(onClick = { navController.navigate(AppScreens.UserInformationScreen.route) }) {
                         Icon(
-                            Icons.Default.Settings,
-                            contentDescription = "Ayarlar"
+                            Icons.Default.Person,
+                            contentDescription = "Profil"
+                        )
+                    }
+                    IconButton(onClick = { showLogoutDialog.value = true }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = "Çıkış"
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(59, 62, 104),
+                    containerColor = primaryColor,
                     titleContentColor = Color.White,
                     actionIconContentColor = Color.White
                 )
@@ -106,34 +179,45 @@ fun UserMainScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(59, 62, 104))
+                .background(backgroundColor)
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
             if (state.isLoading) {
-                CircularProgressIndicator(
+                Box(
                     modifier = Modifier
-                        .size(50.dp)
-                        .align(Alignment.Center),
-                    color = Color.White
-                )
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(60.dp),
+                        color = primaryColor,
+                        strokeWidth = 5.dp
+                    )
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 10.dp, vertical = 10.dp),
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     item {
-                        MainNavigationButtons(navController)
-                        PainSymptomSummaryCard(navController, state.latestPainRecord)
+                        AdvertisementBanner(
+                            navController = navController,
+                            adState = adState,
+                            viewModel = advertisementBannerViewModel
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        WelcomeCard(state)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        MainNavigationButtonsRedesigned(navController, state.latestPainRecord)
                     }
-
                     item {
                         Spacer(modifier = Modifier.height(70.dp))
                     }
                 }
             }
-
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
@@ -154,185 +238,394 @@ fun UserMainScreen(
 }
 
 @Composable
-fun MainNavigationButtons(navController: NavController) {
-
-    Row(
-        modifier = Modifier.fillMaxWidth()
+fun WelcomeCard(state: UserState) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = primaryColor
+        )
     ) {
-        Button(
-            onClick = { navController.navigate(AppScreens.UserExercisePlansScreen.route)},
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 10.dp)
-                .height(130.dp),
-            shape = RoundedCornerShape(10.dp),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 10.dp,
-                pressedElevation = 6.dp
-            ),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
-                contentColor = Color.DarkGray
-            )
+                .padding(20.dp),
+            horizontalAlignment = Alignment.Start
         ) {
             Text(
-                text = "EGZERSİZLERİM",
-                fontStyle = FontStyle.Italic,
-                style = TextStyle(fontSize = 20.sp)
+                text = "Hoş Geldiniz",
+                color = Color.White,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
             )
-            Icon(
-                imageVector = Icons.Filled.AccessibilityNew,
-                contentDescription = null,
-                Modifier
-                    .padding(start = 17.dp)
-                    .size(40.dp)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Fizyoterapi uygulamanıza hoş geldiniz. Egzersizlerinizi takip edebilir, ağrılarınızı kaydedebilir ve rehabilitasyon sürecinizi yönetebilirsiniz.",
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = 14.sp,
+                lineHeight = 20.sp
             )
-        }
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 10.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Button(
-            onClick = { navController.navigate(AppScreens.OrnekEgzersizler.route) },
-            modifier = Modifier
-                .height(130.dp)
-                .weight(1f),
-            shape = RoundedCornerShape(10.dp),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 10.dp,
-                pressedElevation = 6.dp
-            ),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
-                contentColor = Color.DarkGray
-            )
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Filled.AccessibilityNew,
-                    contentDescription = null,
-                    modifier = Modifier.size(30.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (!state.userProfile?.profilePhotoUrl.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(state.userProfile?.profilePhotoUrl)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Profil Fotoğrafı",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop,
+                            error = painterResource(id = android.R.drawable.ic_menu_myplaces)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Örnek Egzersizler",
-                    style = TextStyle(fontSize = 17.sp),
-                    fontStyle = FontStyle.Italic,
-                    textAlign = TextAlign.Center
+                    text = when {
+                        state.userProfile?.firstName?.isNotEmpty() == true ->
+                            "${state.userProfile.firstName} ${state.userProfile.lastName}".trim()
+                        else -> "Hasta"
+                    },
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
                 )
             }
         }
-        Button(
-            onClick = { navController.navigate(AppScreens.HastaliklarimScreen.route) },
-            colors = ButtonDefaults.buttonColors(
-                contentColor = Color.DarkGray,
-                containerColor = Color.White
-            ),
-            modifier = Modifier
-                .height(130.dp)
-                .weight(1f),
-            shape = RoundedCornerShape(10.dp),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 10.dp,
-                pressedElevation = 6.dp
-            )
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Healing,
-                    contentDescription = null,
-                    modifier = Modifier.size(30.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Hastalıklarım",
-                    fontStyle = FontStyle.Italic,
-                    style = TextStyle(fontSize = 17.sp),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-    Row(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Button(
-            onClick = { navController.navigate(AppScreens.RehabilitationHistoryScreen.route) },
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
-                contentColor = Color.DarkGray
-            ),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 10.dp,
-                pressedElevation = 6.dp
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp)
-                .height(130.dp),
-        ) {
-            Text(
-                text = "Rehabilitasyon Geçmişim  ",
-                fontStyle = FontStyle.Italic,
-                style = TextStyle(fontSize = 20.sp)
-            )
-            Icon(
-                imageVector = Icons.Filled.History,
-                contentDescription = null,
-                modifier = Modifier.size(30.dp)
-            )
-        }
-    }
-    Button(
-        onClick = { navController.navigate(AppScreens.SocialMediaScreen.route) },
-        shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.White,
-            contentColor = Color.DarkGray
-        ),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 10.dp,
-            pressedElevation = 6.dp
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 20.dp)
-            .height(150.dp),
-    ) {
-        Text(
-            text = "Sosyal Medya  ",
-            fontStyle = FontStyle.Italic,
-            style = TextStyle(fontSize = 20.sp)
-        )
-        Icon(
-            imageVector = Icons.Default.Share,
-            contentDescription = null,
-            modifier = Modifier.size(30.dp)
-        )
     }
 }
 
 @Composable
-fun PainSymptomSummaryCard(navController: NavController, painRecord: PainRecord?) {
-    val intensity = painRecord?.intensity ?: 0
-    val location = painRecord?.location ?: "Veri yok"
+fun AdvertisementBanner(
+    navController: NavController,
+    adState: AdvertisementBannerState,
+    viewModel: AdvertisementBannerViewModel
+) {
+    if (adState.advertisements.isNotEmpty()) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                adState.currentAdvertisement?.let { ad ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable {
+                                navController.navigate(AppScreens.AdvertisementDetailScreen.createRoute(ad.id))
+                            }
+                    ) {
+                        AsyncImage(
+                            model = ad.imageUrl,
+                            contentDescription = "Reklam",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                                .background(
+                                    color = primaryColor.copy(alpha = 0.7f),
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 6.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                text = "Reklam",
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(
+                        onClick = { viewModel.moveToPreviousAd() },
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .size(36.dp)
+                            .background(
+                                color = Color.Black.copy(alpha = 0.3f),
+                                shape = CircleShape
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                            contentDescription = "Önceki",
+                            tint = Color.White
+                        )
+                    }
+                    IconButton(
+                        onClick = { viewModel.moveToNextAd() },
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .size(36.dp)
+                            .background(
+                                color = Color.Black.copy(alpha = 0.3f),
+                                shape = CircleShape
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "Sonraki",
+                            tint = Color.White
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    adState.advertisements.forEachIndexed { index, _ ->
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 4.dp)
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (index == adState.currentIndex)
+                                        primaryColor
+                                    else
+                                        Color.White.copy(alpha = 0.6f)
+                                )
+                                .clickable { viewModel.moveToAd(index) }
+                        )
+                    }
+                }
+            }
+        }
+    } else if (adState.isLoading) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = primaryColor)
+            }
+        }
+    }
+}
 
+@Composable
+fun MainNavigationButtonsRedesigned(navController: NavController, painRecord: PainRecord?) {
+    Text(
+        text = "Hizmetler",
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp),
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold,
+        color = primaryColor
+    )
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp)
-            .clickable { navController.navigate("pain_tracking") },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            .clickable { navController.navigate(AppScreens.UserExercisePlansScreen.route) },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = surfaceColor
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(primaryColor.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AccessibilityNew,
+                    contentDescription = null,
+                    tint = primaryColor,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "EGZERSİZLERİM",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor
+                )
+                Text(
+                    text = "Kişisel egzersiz planlarınıza göz atın ve takip edin",
+                    fontSize = 14.sp,
+                    color = textColor.copy(alpha = 0.7f)
+                )
+            }
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = primaryColor
+            )
+        }
+    }
+    Spacer(modifier = Modifier.height(12.dp))
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        ServiceCard(
+            title = "Örnek Egzersizler",
+            icon = Icons.Default.FitnessCenter,
+            onClick = { navController.navigate(AppScreens.OrnekEgzersizler.route) },
+            modifier = Modifier.weight(1f)
+        )
+        ServiceCard(
+            title = "Hastalıklarım",
+            icon = Icons.Default.Healing,
+            onClick = { navController.navigate(AppScreens.HastaliklarimScreen.route) },
+            modifier = Modifier.weight(1f)
+        )
+    }
+    Spacer(modifier = Modifier.height(12.dp))
+    ServiceCard(
+        title = "Rehabilitasyon Geçmişim",
+        icon = Icons.Default.History,
+        description = "Geçmiş tedavi ve rehabilitasyon süreçlerinizi görüntüleyin",
+        onClick = { navController.navigate(AppScreens.RehabilitationHistoryScreen.route) }
+    )
+    Spacer(modifier = Modifier.height(12.dp))
+    ServiceCard(
+        title = "Sosyal Medya",
+        icon = Icons.Default.Share,
+        description = "Paylaşımları görüntüleyin ve fizyoterapistlerle etkileşime geçin",
+        onClick = { navController.navigate(AppScreens.SocialMediaScreen.route) },
+        accentColor = socialMediaColor
+    )
+    Spacer(modifier = Modifier.height(12.dp))
+    PainTrackingCard(painRecord, navController)
+}
+
+@Composable
+fun ServiceCard(
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    description: String? = null,
+    accentColor: Color = primaryColor
+) {
+    Card(
+        modifier = modifier
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = surfaceColor
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(accentColor.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = accentColor,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = accentColor,
+                textAlign = TextAlign.Center
+            )
+            if (description != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = description,
+                    fontSize = 12.sp,
+                    color = textColor.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PainTrackingCard(painRecord: PainRecord?, navController: NavController) {
+    val intensity = painRecord?.intensity ?: 0
+    val location = painRecord?.location ?: "Veri yok"
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { navController.navigate("pain_tracking") },
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = surfaceColor
         )
     ) {
         Column(
@@ -345,12 +638,29 @@ fun PainSymptomSummaryCard(navController: NavController, painRecord: PainRecord?
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Ağrı Takibi",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.DarkGray
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(primaryColor.copy(alpha = 0.1f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MonitorHeart,
+                            contentDescription = null,
+                            tint = primaryColor,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Ağrı Takibi",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor
+                    )
+                }
                 Text(
                     text = if (painRecord != null) {
                         val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
@@ -359,11 +669,10 @@ fun PainSymptomSummaryCard(navController: NavController, painRecord: PainRecord?
                         "Bugün"
                     },
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = textColor.copy(alpha = 0.7f)
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
-
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -371,7 +680,8 @@ fun PainSymptomSummaryCard(navController: NavController, painRecord: PainRecord?
                 Text(
                     text = "Şiddet:",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.DarkGray
+                    color = textColor,
+                    fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Row(
@@ -400,19 +710,45 @@ fun PainSymptomSummaryCard(navController: NavController, painRecord: PainRecord?
                 Text(
                     text = "$intensity/10",
                     fontWeight = FontWeight.Bold,
-                    color = Color(59, 62, 104),
+                    color = primaryColor,
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Lokasyon: $location",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.DarkGray
+                    text = "Lokasyon:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = textColor,
+                    fontWeight = FontWeight.Medium
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = location,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = primaryColor,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = { navController.navigate("pain_tracking") },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = primaryColor.copy(alpha = 0.1f),
+                    contentColor = primaryColor
+                ),
+                modifier = Modifier.align(Alignment.End),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text("Detayları Görüntüle")
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }

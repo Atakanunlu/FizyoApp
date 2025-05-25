@@ -3,9 +3,9 @@ package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_s
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
-import com.example.fizyoapp.domain.model.auth.UserRole
-import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
+import com.example.fizyoapp.domain.usecase.auth.GetCurrentPhysiotherapistUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignOutUseCase
+import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +17,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PhysiotherapistViewModel @Inject constructor(
-    private val getCurrentUserUseCase: GetCurrentUseCase,
-    private val signOutUseCase: SignOutUseCase
+    private val getCurrentPhysiotherapistUseCase: GetCurrentPhysiotherapistUseCase,
+    private val signOutUseCase: SignOutUseCase,
+    private val getPhysiotherapistProfileUseCase: GetPhysiotherapistProfileUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PhysiotherapistState())
@@ -28,30 +29,47 @@ class PhysiotherapistViewModel @Inject constructor(
     val uiEvent = _uiEvent.receiveAsFlow()
 
     init {
-        getCurrentUser()
+        fetchPhysiotherapistData()
     }
 
-    private fun getCurrentUser() {
+    private fun fetchPhysiotherapistData() {
         viewModelScope.launch {
-            getCurrentUserUseCase().collect { result ->
+            _state.value = _state.value.copy(isLoading = true)
+
+            getCurrentPhysiotherapistUseCase().collect { result ->
                 when (result) {
-                    is Resource.Loading -> {
-                        _state.value = _state.value.copy(isLoading = true)
-                    }
                     is Resource.Success -> {
-                        val user = result.data
-                        if (user != null && user.role == UserRole.PHYSIOTHERAPIST) {
+                        val physiotherapist = result.data
+                        if (physiotherapist != null) {
                             _state.value = _state.value.copy(
-                                isLoading = false,
-                                user = user,
-                                errorMessage = null
+                                physiotherapistId = physiotherapist.id,
+                                physiotherapistName = physiotherapist.email
                             )
+
+                            getPhysiotherapistProfileUseCase(physiotherapist.id).collect { profileResult ->
+                                when (profileResult) {
+                                    is Resource.Success -> {
+                                        val profile = profileResult.data
+                                        _state.value = _state.value.copy(
+                                            isLoading = false,
+                                            physiotherapistProfile = profile
+                                        )
+                                    }
+                                    is Resource.Error -> {
+                                        _state.value = _state.value.copy(
+                                            isLoading = false,
+                                            errorMessage = profileResult.message
+                                        )
+                                    }
+                                    is Resource.Loading -> {
+                                    }
+                                }
+                            }
                         } else {
                             _state.value = _state.value.copy(
                                 isLoading = false,
-                                errorMessage = "Yetkiniz yok veya oturum açılmamış"
+                                errorMessage = "Fizyoterapist bilgisi bulunamadı"
                             )
-                            _uiEvent.send(UiEvent.NavigateToLogin)
                         }
                     }
                     is Resource.Error -> {
@@ -59,7 +77,8 @@ class PhysiotherapistViewModel @Inject constructor(
                             isLoading = false,
                             errorMessage = result.message
                         )
-                        _uiEvent.send(UiEvent.NavigateToLogin)
+                    }
+                    is Resource.Loading -> {
                     }
                 }
             }
@@ -69,26 +88,27 @@ class PhysiotherapistViewModel @Inject constructor(
     fun onEvent(event: PhysiotherapistEvent) {
         when (event) {
             is PhysiotherapistEvent.SignOut -> {
-                viewModelScope.launch {
-                    signOutUseCase().collect { result ->
-                        when (result) {
-                            is Resource.Loading -> {
-                                _state.value = _state.value.copy(isLoading = true)
-                            }
-                            is Resource.Success -> {
-                                _state.value = _state.value.copy(
-                                    isLoading = false,
-                                    user = null
-                                )
-                                _uiEvent.send(UiEvent.NavigateToLogin)
-                            }
-                            is Resource.Error -> {
-                                _state.value = _state.value.copy(
-                                    isLoading = false,
-                                    errorMessage = result.message
-                                )
-                            }
-                        }
+                signOut()
+            }
+        }
+    }
+
+    private fun signOut() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
+
+            signOutUseCase().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        _uiEvent.send(UiEvent.NavigateToLogin)
+                    }
+                    is Resource.Error -> {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            errorMessage = result.message
+                        )
+                    }
+                    is Resource.Loading -> {
                     }
                 }
             }
@@ -96,6 +116,6 @@ class PhysiotherapistViewModel @Inject constructor(
     }
 
     sealed class UiEvent {
-        data object NavigateToLogin : UiEvent()
+        object NavigateToLogin : UiEvent()
     }
 }
