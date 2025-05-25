@@ -107,8 +107,13 @@ class AddExerciseViewModel @Inject constructor(
                 )
             }
             is AddExerciseEvent.AddMedia -> {
+                val isVideo = event.type == "video"
+                val mediaType = if (isVideo) ExerciseType.VIDEO else ExerciseType.IMAGE
+
                 _state.value = _state.value.copy(
-                    mediaUris = _state.value.mediaUris + event.uri
+                    mediaUris = _state.value.mediaUris + event.uri,
+                    // Yeni eklenen medyanın tipini sakla
+                    mediaTypes = _state.value.mediaTypes + (event.uri to mediaType)
                 )
             }
             is AddExerciseEvent.RemoveMedia -> {
@@ -241,7 +246,9 @@ data class AddExerciseState(
     val difficulty: ExerciseDifficulty = ExerciseDifficulty.MEDIUM,
     val mediaUris: List<String> = emptyList(),
     val isLoading: Boolean = false,
-    val saveSuccess: Boolean = false
+    val saveSuccess: Boolean = false,
+    val mediaTypes: Map<String, ExerciseType> = emptyMap(),
+
 )
 
 sealed class AddExerciseEvent {

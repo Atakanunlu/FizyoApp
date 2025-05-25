@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -43,8 +44,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.fizyoapp.R
 import com.example.fizyoapp.domain.model.exercisemanagescreen.DEFAULT_EXERCISE_CATEGORIES
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseDifficulty
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
 import kotlinx.coroutines.flow.collectLatest
@@ -442,10 +445,11 @@ fun AddExerciseScreen(
                                     items(state.mediaUris) { uri ->
                                         MediaPreviewItem(
                                             uri = uri,
+                                            mediaTypes = state.mediaTypes,  // mediaTypes haritasını geçir
                                             onRemove = { viewModel.onEvent(AddExerciseEvent.RemoveMedia(uri)) },
                                             onClick = {
                                                 selectedMediaUrl = uri
-                                                selectedMediaType = if (uri.contains("video")) "video" else "image"
+                                                selectedMediaType = if (state.mediaTypes[uri] == ExerciseType.VIDEO) "video" else "image"
                                                 showMediaViewer = true
                                             }
                                         )
@@ -699,9 +703,13 @@ fun MediaButton(
 @Composable
 fun MediaPreviewItem(
     uri: String,
+    mediaTypes: Map<String, ExerciseType> = emptyMap(),
     onRemove: () -> Unit,
     onClick: () -> Unit
 ) {
+    // Uri'nin tipini belirle
+    val isVideo = mediaTypes[uri] == ExerciseType.VIDEO || uri.contains("video")
+
     Box(
         modifier = Modifier
             .size(110.dp)
@@ -717,6 +725,7 @@ fun MediaPreviewItem(
             )
             .clickable(onClick = onClick)
     ) {
+        // Video veya görsel
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(uri)
@@ -726,6 +735,8 @@ fun MediaPreviewItem(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
+
+        // Gradyan arka plan
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -740,6 +751,8 @@ fun MediaPreviewItem(
                     )
                 )
         )
+
+        // Kaldır butonu
         IconButton(
             onClick = onRemove,
             modifier = Modifier
@@ -758,27 +771,29 @@ fun MediaPreviewItem(
                 modifier = Modifier.size(16.dp)
             )
         }
-        if (uri.contains("video")) {
-            Surface(
+
+        // Video göstergesi
+        if (isVideo) {
+            Box(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(8.dp),
-                shape = RoundedCornerShape(4.dp),
-                color = Color.Black.copy(alpha = 0.6f)
+                    .align(Alignment.Center)
+                    .size(36.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.6f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Videocam,
-                    contentDescription = null,
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Video",
                     tint = Color.White,
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .size(16.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
     }
 }
-
 @Composable
 fun DifficultyOption(
     title: String,

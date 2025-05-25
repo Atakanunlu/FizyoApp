@@ -40,7 +40,6 @@ class ExerciseRepositoryImpl @Inject constructor(
                         val mediaTypeRaw = document.get("mediaType") as? Map<String, String> ?: emptyMap()
                         val mediaTypes = mediaTypeRaw.mapValues { entry ->
                             when (entry.value) {
-                                "IMAGE" -> ExerciseType.IMAGE
                                 "VIDEO" -> ExerciseType.VIDEO
                                 else -> ExerciseType.IMAGE
                             }
@@ -94,7 +93,6 @@ class ExerciseRepositoryImpl @Inject constructor(
                     val mediaTypeRaw = snapshot.get("mediaType") as? Map<String, String> ?: emptyMap()
                     val mediaTypes = mediaTypeRaw.mapValues { entry ->
                         when (entry.value) {
-                            "IMAGE" -> ExerciseType.IMAGE
                             "VIDEO" -> ExerciseType.VIDEO
                             else -> ExerciseType.IMAGE
                         }
