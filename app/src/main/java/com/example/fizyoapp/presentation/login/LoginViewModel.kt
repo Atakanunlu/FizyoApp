@@ -21,7 +21,6 @@ import com.example.fizyoapp.domain.model.auth.User
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.CheckPhysiotherapistProfileCompletedUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.CheckProfileCompletedUseCase
 import kotlinx.coroutines.delay
-import android.util.Log
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -34,7 +33,6 @@ class LoginViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = MutableStateFlow(LoginState())
     val state: StateFlow<LoginState> = _state.asStateFlow()
-
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
@@ -70,7 +68,6 @@ class LoginViewModel @Inject constructor(
                             }
                         }
                         is Resource.Error -> {
-                            Log.e("LoginViewModel", "Error checking current user: ${result.message}", result.exception)
                             _state.value = _state.value.copy(
                                 isLoading = false,
                                 errorMessage = result.message,
@@ -82,7 +79,7 @@ class LoginViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                Log.e("LoginViewModel", "Exception in checkCurrentUser: ${e.message}", e)
+
                 _state.value = _state.value.copy(
                     isLoading = false,
                     errorMessage = "Kullanıcı kontrolü yapılırken hata oluştu: ${e.message}",
@@ -113,13 +110,9 @@ class LoginViewModel @Inject constructor(
                                                     }
                                                 }
                                                 is Resource.Error -> {
-                                                    Log.e("LoginViewModel", "Error checking user profile: ${result.message}", result.exception)
-                                                    // Profil kontrol edilemese bile ana ekrana yönlendir
                                                     _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
                                                 }
-                                                is Resource.Loading -> {
-                                                    // Loading state'i işleme
-                                                }
+                                                is Resource.Loading -> {}
                                             }
                                         }
                                     }
@@ -135,13 +128,9 @@ class LoginViewModel @Inject constructor(
                                                     }
                                                 }
                                                 is Resource.Error -> {
-                                                    Log.e("LoginViewModel", "Error checking physiotherapist profile: ${result.message}", result.exception)
-                                                    // Profil kontrol edilemese bile ana ekrana yönlendir
                                                     _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
                                                 }
-                                                is Resource.Loading -> {
-                                                    // Loading state'i işleme
-                                                }
+                                                is Resource.Loading -> {}
                                             }
                                         }
                                     }
@@ -155,37 +144,29 @@ class LoginViewModel @Inject constructor(
                                 )
                                 try {
                                     signOutUseCase().collect {}
-                                } catch (e: Exception) {
-                                    Log.e("LoginViewModel", "Error signing out unverified user: ${e.message}", e)
-                                }
+                                } catch (e: Exception) {}
                             }
                         }
                         is Resource.Error -> {
-                            Log.e("LoginViewModel", "Error checking email verification: ${verifiedResult.message}", verifiedResult.exception)
                             _state.value = _state.value.copy(
                                 errorMessage = verifiedResult.message ?: "E-posta doğrulama durumu kontrol edilemedi"
                             )
-                            // Hata olsa bile yönlendirmeyi yap
                             _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
                         }
-                        is Resource.Loading -> {
-                            // Loading state'i işleme
-                        }
+                        is Resource.Loading -> {}
                     }
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                Log.e("LoginViewModel", "Exception in onLoginSuccess: ${e.message}", e)
+
                 _state.value = _state.value.copy(
                     isLoading = false,
                     errorMessage = "Giriş yapılırken bir hata oluştu: ${e.message}"
                 )
-                // Hata durumunda bile yönlendirmeyi dene
+
                 try {
                     _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
-                } catch (navError: Exception) {
-                    Log.e("LoginViewModel", "Error navigating after exception: ${navError.message}", navError)
-                }
+                } catch (navError: Exception) {}
             }
         }
     }
@@ -230,7 +211,7 @@ class LoginViewModel @Inject constructor(
             )
 
             val timeoutJob = launch {
-                delay(15000) // 15 saniye zaman aşımı
+                delay(15000)
                 if (_state.value.isLoading) {
                     _state.value = _state.value.copy(
                         isLoading = false,
@@ -252,7 +233,6 @@ class LoginViewModel @Inject constructor(
                         is Resource.Success -> {
                             timeoutJob.cancel()
 
-                            // Email doğrulamasını kontrol et
                             checkEmailVerifiedUseCase().collect { verifiedResult ->
                                 when (verifiedResult) {
                                     is Resource.Success -> {
@@ -270,27 +250,21 @@ class LoginViewModel @Inject constructor(
                                             )
                                             try {
                                                 signOutUseCase().collect {}
-                                            } catch (e: Exception) {
-                                                Log.e("LoginViewModel", "Error signing out unverified user: ${e.message}", e)
-                                            }
+                                            } catch (e: Exception) {}
                                         }
                                     }
                                     is Resource.Error -> {
-                                        Log.e("LoginViewModel", "Error checking email verification: ${verifiedResult.message}", verifiedResult.exception)
                                         _state.value = _state.value.copy(
                                             isLoading = false,
                                             errorMessage = verifiedResult.message
                                         )
                                     }
-                                    is Resource.Loading -> {
-                                        // Loading state zaten set edildi
-                                    }
+                                    is Resource.Loading -> {}
                                 }
                             }
                         }
                         is Resource.Error -> {
                             timeoutJob.cancel()
-                            Log.e("LoginViewModel", "Error signing in: ${result.message}", result.exception)
                             _state.value = _state.value.copy(
                                 isLoading = false,
                                 errorMessage = result.message
@@ -301,7 +275,7 @@ class LoginViewModel @Inject constructor(
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 timeoutJob.cancel()
-                Log.e("LoginViewModel", "Exception in signIn: ${e.message}", e)
+
                 _state.value = _state.value.copy(
                     isLoading = false,
                     errorMessage = "Giriş sırasında bir hata oluştu: ${e.message}"
