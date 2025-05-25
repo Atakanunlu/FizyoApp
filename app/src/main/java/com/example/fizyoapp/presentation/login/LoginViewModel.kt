@@ -1,4 +1,5 @@
 package com.example.fizyoapp.presentation.login
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.util.Resource
@@ -8,6 +9,7 @@ import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignInUseCase
 import com.example.fizyoapp.domain.usecase.auth.SignOutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,31 +42,50 @@ class LoginViewModel @Inject constructor(
 
     private fun checkCurrentUser() {
         viewModelScope.launch {
-            getCurrentUserUseCase().collect { result ->
-                when (result) {
-                    is Resource.Loading -> {
-                        _state.value = _state.value.copy(isLoading = true)
-                    }
-                    is Resource.Success -> {
-                        val user = result.data
-                        if (user != null) {
+            try {
+                _state.value = _state.value.copy(isLoading = true, errorMessage = null)
+
+                getCurrentUserUseCase().collect { result ->
+                    when (result) {
+                        is Resource.Loading -> {
+                            _state.value = _state.value.copy(isLoading = true)
+                        }
+                        is Resource.Success -> {
+                            val user = result.data
+                            if (user != null) {
+                                _state.value = _state.value.copy(
+                                    isLoading = false,
+                                    isLoggedIn = true,
+                                    user = user
+                                )
+                                onLoginSuccess(user)
+                            } else {
+                                _state.value = _state.value.copy(
+                                    isLoading = false,
+                                    isLoggedIn = false,
+                                    user = null
+                                )
+                            }
+                        }
+                        is Resource.Error -> {
                             _state.value = _state.value.copy(
                                 isLoading = false,
-                                isLoggedIn = true,
-                                user = user
+                                errorMessage = result.message,
+                                isLoggedIn = false,
+                                user = null
                             )
-                            onLoginSuccess(user)
-                        } else {
-                            _state.value = _state.value.copy(isLoading = false)
                         }
                     }
-                    is Resource.Error -> {
-                        _state.value = _state.value.copy(
-                            isLoading = false,
-                            errorMessage = result.message
-                        )
-                    }
                 }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    errorMessage = "Kullanıcı kontrolü yapılırken hata oluştu: ${e.message}",
+                    isLoggedIn = false,
+                    user = null
+                )
             }
         }
     }
@@ -91,8 +112,7 @@ class LoginViewModel @Inject constructor(
                                                 is Resource.Error -> {
                                                     _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
                                                 }
-                                                is Resource.Loading -> {
-                                                }
+                                                is Resource.Loading -> {}
                                             }
                                         }
                                     }
@@ -110,8 +130,7 @@ class LoginViewModel @Inject constructor(
                                                 is Resource.Error -> {
                                                     _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
                                                 }
-                                                is Resource.Loading -> {
-                                                }
+                                                is Resource.Loading -> {}
                                             }
                                         }
                                     }
@@ -123,7 +142,9 @@ class LoginViewModel @Inject constructor(
                                 _state.value = _state.value.copy(
                                     errorMessage = "Hesabınızı kullanmadan önce e-posta adresinizi doğrulamanız gerekiyor. Lütfen e-postanızı kontrol edin."
                                 )
-                                signOutUseCase().collect {}
+                                try {
+                                    signOutUseCase().collect {}
+                                } catch (e: Exception) {}
                             }
                         }
                         is Resource.Error -> {
@@ -132,16 +153,20 @@ class LoginViewModel @Inject constructor(
                             )
                             _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
                         }
-                        is Resource.Loading -> {
-                        }
+                        is Resource.Loading -> {}
                     }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
+
                 _state.value = _state.value.copy(
                     isLoading = false,
                     errorMessage = "Giriş yapılırken bir hata oluştu: ${e.message}"
                 )
-                _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
+
+                try {
+                    _uiEvent.send(UiEvent.NavigateBasedOnRole(user.role))
+                } catch (navError: Exception) {}
             }
         }
     }
@@ -179,12 +204,14 @@ class LoginViewModel @Inject constructor(
     private fun signIn() {
         viewModelScope.launch {
             if (!validateInput()) return@launch
+
             _state.value = _state.value.copy(
                 isLoading = true,
                 errorMessage = null
             )
+
             val timeoutJob = launch {
-                delay(10000)
+                delay(15000)
                 if (_state.value.isLoading) {
                     _state.value = _state.value.copy(
                         isLoading = false,
@@ -192,6 +219,7 @@ class LoginViewModel @Inject constructor(
                     )
                 }
             }
+
             try {
                 signInUseCase(
                     _state.value.email,
@@ -204,6 +232,7 @@ class LoginViewModel @Inject constructor(
                         }
                         is Resource.Success -> {
                             timeoutJob.cancel()
+
                             checkEmailVerifiedUseCase().collect { verifiedResult ->
                                 when (verifiedResult) {
                                     is Resource.Success -> {
@@ -219,7 +248,9 @@ class LoginViewModel @Inject constructor(
                                                 isLoading = false,
                                                 errorMessage = "Hesabınız doğrulanmamış. Lütfen e-posta adresinize gönderilen doğrulama bağlantısını tıklayın."
                                             )
-                                            signOutUseCase().collect {}
+                                            try {
+                                                signOutUseCase().collect {}
+                                            } catch (e: Exception) {}
                                         }
                                     }
                                     is Resource.Error -> {
@@ -228,8 +259,7 @@ class LoginViewModel @Inject constructor(
                                             errorMessage = verifiedResult.message
                                         )
                                     }
-                                    is Resource.Loading -> {
-                                    }
+                                    is Resource.Loading -> {}
                                 }
                             }
                         }
@@ -243,7 +273,9 @@ class LoginViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 timeoutJob.cancel()
+
                 _state.value = _state.value.copy(
                     isLoading = false,
                     errorMessage = "Giriş sırasında bir hata oluştu: ${e.message}"
@@ -263,6 +295,10 @@ class LoginViewModel @Inject constructor(
         }
         if (_state.value.password.isBlank()) {
             _state.value = _state.value.copy(errorMessage = "Şifre boş olamaz")
+            return false
+        }
+        if (_state.value.password.length < 6) {
+            _state.value = _state.value.copy(errorMessage = "Şifre en az 6 karakter olmalıdır")
             return false
         }
         return true
