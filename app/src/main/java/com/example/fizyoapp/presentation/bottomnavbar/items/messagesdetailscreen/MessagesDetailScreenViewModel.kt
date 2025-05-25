@@ -103,11 +103,11 @@ class MessagesDetailScreenViewModel @Inject constructor(
                 loadMessages()
             }
             is MessageDetailScreenEvent.StartVideoCall -> {
-                // Sadece fizyoterapistler video arama başlatabilir
+
                 if (!state.value.isPhysiotherapist) {
                     _state.update { it.copy(isVideoCallActive = true) }
                 } else {
-                    // Fizyoterapist olmayan kullanıcılar için hata mesajı
+
                     _state.update { it.copy(
                         error = "Sadece fizyoterapistler görüntülü arama başlatabilir."
                     ) }
@@ -116,7 +116,6 @@ class MessagesDetailScreenViewModel @Inject constructor(
             is MessageDetailScreenEvent.EndVideoCall -> {
                 _state.update { it.copy(isVideoCallActive = false) }
 
-                // Daha önce video araması olduğunu görmek için mesajları kontrol et
                 val lastMessage = state.value.messages.lastOrNull()
                 val isDuplicateCallMessage = lastMessage != null &&
                         (lastMessage.messageType == "video_call" || lastMessage.messageType == "missed_video_call") &&
@@ -124,10 +123,10 @@ class MessagesDetailScreenViewModel @Inject constructor(
 
                 if (!isDuplicateCallMessage) {
                     if (!event.wasAnswered) {
-                        // Cevapsız arama mesajı gönder
+
                         sendVideoCallMessage(false, event.metadata)
                     } else {
-                        // Tamamlanan arama mesajı gönder
+
                         sendVideoCallMessage(true, event.metadata)
                     }
                 }
@@ -208,7 +207,7 @@ class MessagesDetailScreenViewModel @Inject constructor(
             }
         }
     }
-    // Süreyi formatlamak için yardımcı fonksiyon
+
     private fun formatDuration(seconds: Long): String {
         val minutes = seconds / 60
         val remainingSeconds = seconds % 60

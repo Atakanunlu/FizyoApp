@@ -1,11 +1,6 @@
 package com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscreen
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -64,7 +59,7 @@ fun MessagesDetailScreen(
     var selectedMedicalReportMessage by remember { mutableStateOf<Message?>(null) }
     var selectedEvaluationFormMessage by remember { mutableStateOf<Message?>(null) }
 
-    // Mesajları günlere göre grupla
+
     val groupedMessages = remember(state.messages) {
         state.messages.groupBy { message ->
             DateFormatter.getMessageDay(message.timestamp)
@@ -90,7 +85,7 @@ fun MessagesDetailScreen(
 
     LaunchedEffect(state.messages, state.isLoading) {
         if (state.messages.isNotEmpty() && !state.isLoading) {
-            // Mesajlar yüklendikten hemen sonra en alta kaydır
+
             scrollState.scrollToItem(state.messages.size - 1, scrollOffset = 0)
         }
     }
@@ -180,7 +175,7 @@ fun MessagesDetailScreen(
                     }
                 },
                 actions = {
-                    // Sadece fizyoterapistler için görüntülü arama butonu göster
+
                     if (!state.isPhysiotherapist) {
                         IconButton(
                             onClick = { viewModel.onEvent(MessageDetailScreenEvent.StartVideoCall) }
@@ -305,7 +300,7 @@ fun MessagesDetailScreen(
                                         }
                                     }
 
-                                    // Günün mesajları
+
                                     items(messagesForDate) { message ->
                                         ModernMessageItem(
                                             message = message,
@@ -469,13 +464,13 @@ fun ModernMessageItem(
     otherMessageColor: Color,
     onMessageClick: (Message) -> Unit = {}
 ) {
-    // Bu fonksiyonu ekleyin:
+
     fun shouldShowUnreadIndicator(message: Message, isFromCurrentUser: Boolean): Boolean {
-        // Eğer mesaj benden geldiyse, okunma göstergesini hiç gösterme
+
         if (isFromCurrentUser) {
             return false
         }
-        // Başkasından gelen mesajlar için okunma durumunu göster
+
         return !message.isRead
     }
     Column(
@@ -513,7 +508,7 @@ fun ModernMessageItem(
                 )
             }
             else -> {
-                // Normal metin mesajı
+
                 Box(
                     modifier = Modifier
                         .widthIn(max = 280.dp)
@@ -573,7 +568,7 @@ fun VideoCallNotificationBubble(
 ) {
     val isMissedCall = message.messageType == "missed_video_call"
 
-    // Animasyon için
+
     var isVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -609,7 +604,7 @@ fun VideoCallNotificationBubble(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Üst Kısım: İkon ve Başlık
+
                     Box(
                         modifier = Modifier
                             .size(60.dp)
@@ -648,7 +643,7 @@ fun VideoCallNotificationBubble(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Orta Kısım: Süre (eğer tamamlanmış arama ise)
+
                     if (!isMissedCall && message.metadata.containsKey("duration")) {
                         val duration = message.metadata["duration"] as? Long ?: 0L
                         if (duration > 0) {
@@ -675,7 +670,6 @@ fun VideoCallNotificationBubble(
                         }
                     }
 
-                    // Alt Kısım: Tarih ve Zaman
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,

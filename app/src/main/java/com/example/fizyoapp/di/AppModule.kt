@@ -26,8 +26,8 @@ import com.example.fizyoapp.data.repository.illnessrecordscreen.radiologicalimag
 import com.example.fizyoapp.data.repository.illnessrecordscreen.radiologicalimagesscreen.RadyolojikGoruntuRepositoryImpl
 import com.example.fizyoapp.data.repository.follow.FollowRepository
 import com.example.fizyoapp.data.repository.follow.FollowRepositoryImpl
-import com.example.fizyoapp.data.repository.illnessrecordscreen.medicalreport.MedicalReportRepositoryImpl
-import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainTrackingRepository
+import com.example.fizyoapp.data.repository.illnessrecordscreen.medicalrecord.MedicalReportRepositoryImpl
+import com.example.fizyoapp.data.repository.mainscreen.PainTrackingRepository
 import com.example.fizyoapp.data.repository.mainscreen.PainTrackingRepositoryImpl
 import com.example.fizyoapp.data.repository.messagesscreen.MessageRepositoryImpl
 import com.example.fizyoapp.data.repository.messagesscreen.MessagesRepository
@@ -516,7 +516,7 @@ object AppModule {
     @Singleton
     fun provideRadyolojikGoruntuRepository(
 
-        storage: FirebaseStorage
+        storage: FirebaseStorage,
     ): RadyolojikGoruntuRepository {
         return RadyolojikGoruntuRepositoryImpl(storage)
     }

@@ -2,7 +2,6 @@ package com.example.fizyoapp.presentation.user.illnessrecord.medicalrecord
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -51,16 +51,28 @@ fun MedicalReportScreen(
     val context = LocalContext.current
     var selectedReport by remember { mutableStateOf<MedicalReport?>(null) }
     var showShareDialog by remember { mutableStateOf(false) }
-    var showAddDialog by remember { mutableStateOf(false) }
+    var showFileTypeDialog by remember { mutableStateOf(false) }
+    var showAddPdfDialog by remember { mutableStateOf(false) }
+    var showAddImageDialog by remember { mutableStateOf(false) }
 
-    val filePickerLauncher = rememberLauncherForActivityResult(
+    val pdfPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            viewModel.onEvent(MedicalReportEvent.FileSelected(uri))
-            showAddDialog = true
+            viewModel.onEvent(MedicalReportEvent.FileSelected(uri, "pdf"))
+            showAddPdfDialog = true
         }
     }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            viewModel.onEvent(MedicalReportEvent.FileSelected(uri, "image"))
+            showAddImageDialog = true
+        }
+    }
+
     val openPdf = { pdfUrl: String ->
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -100,7 +112,7 @@ fun MedicalReportScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { filePickerLauncher.launch("application/pdf") },
+                onClick = { showFileTypeDialog = true },
                 containerColor = Color(59, 62, 104),
                 contentColor = Color.White
             ) {
@@ -191,19 +203,19 @@ fun MedicalReportScreen(
                         color = Color.Gray
                     )
                     Spacer(modifier = Modifier.height(32.dp))
-                    OutlinedButton(
-                        onClick = { filePickerLauncher.launch("application/pdf") },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color(59, 62, 104)
-                        ),
-                        border = BorderStroke(1.dp, Color(59, 62, 104))
+
+                    Button(
+                        onClick = { showFileTypeDialog = true },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(59, 62, 104)
+                        )
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.CloudUpload,
+                            imageVector = Icons.Default.Add,
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Upload Report")
+                        Text("Add Medical Report")
                     }
                 }
             } else {
@@ -218,7 +230,9 @@ fun MedicalReportScreen(
                             report = report,
                             onViewClicked = {
                                 selectedReport = report
-                                // Open the report in a PDF viewer or browser
+                                if (report.fileType == "pdf") {
+                                    openPdf(report.fileUrl)
+                                }
                             },
                             onShareClicked = {
                                 selectedReport = report
@@ -294,7 +308,65 @@ fun MedicalReportScreen(
         }
     }
 
-    if (selectedReport != null && !showShareDialog) {
+    if (showFileTypeDialog) {
+        AlertDialog(
+            onDismissRequest = { showFileTypeDialog = false },
+            title = { Text("Add Medical Report") },
+            text = { Text("Choose the type of file you want to upload") },
+            confirmButton = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Button(
+                        onClick = {
+                            pdfPickerLauncher.launch("application/pdf")
+                            showFileTypeDialog = false
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(59, 62, 104))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PictureAsPdf,
+                            contentDescription = "PDF"
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Upload PDF")
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = {
+                            imagePickerLauncher.launch("image/*")
+                            showFileTypeDialog = false
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(59, 62, 104))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = "Image"
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Upload Image")
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TextButton(
+                        onClick = { showFileTypeDialog = false },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            },
+            dismissButton = null
+        )
+    }
+
+    if (selectedReport != null && selectedReport!!.fileType == "image" && !showShareDialog) {
         Dialog(onDismissRequest = { selectedReport = null }) {
             Card(
                 modifier = Modifier
@@ -327,13 +399,11 @@ fun MedicalReportScreen(
                             )
                         }
                     }
-
                     Text(
                         text = selectedReport!!.description,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
                     )
-
                     if (selectedReport!!.doctorName.isNotBlank()) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
@@ -342,7 +412,6 @@ fun MedicalReportScreen(
                             color = Color.DarkGray
                         )
                     }
-
                     if (selectedReport!!.hospitalName.isNotBlank()) {
                         Text(
                             text = "Hospital: ${selectedReport!!.hospitalName}",
@@ -350,15 +419,123 @@ fun MedicalReportScreen(
                             color = Color.DarkGray
                         )
                     }
-
                     Text(
                         text = "Date: ${SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(selectedReport!!.timestamp)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xFFF5F5F5))
+                    ) {
+                        AsyncImage(
+                            model = selectedReport!!.fileUrl,
+                            contentDescription = selectedReport!!.title,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(4.dp),
+                            contentScale = ContentScale.Fit,
+                            error = ColorPainter(Color(0xFFEEEEEE)),
+                            fallback = ColorPainter(Color(0xFFEEEEEE))
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        OutlinedButton(
+                            onClick = { selectedReport = null }
+                        ) {
+                            Text("Close")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                showShareDialog = true
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(59, 62, 104)
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Share"
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Share")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (selectedReport != null && selectedReport!!.fileType == "pdf" && !showShareDialog) {
+        Dialog(onDismissRequest = { selectedReport = null }) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.8f),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = selectedReport!!.title,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        IconButton(onClick = { selectedReport = null }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close"
+                            )
+                        }
+                    }
+                    Text(
+                        text = selectedReport!!.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                    if (selectedReport!!.doctorName.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Doctor: ${selectedReport!!.doctorName}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.DarkGray
+                        )
+                    }
+                    if (selectedReport!!.hospitalName.isNotBlank()) {
+                        Text(
+                            text = "Hospital: ${selectedReport!!.hospitalName}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.DarkGray
+                        )
+                    }
+                    Text(
+                        text = "Date: ${SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(selectedReport!!.timestamp)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -387,7 +564,6 @@ fun MedicalReportScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             OutlinedButton(
                                 onClick = {
-                                    // PDF'i açmak için çağrı yap
                                     openPdf(selectedReport!!.fileUrl)
                                 },
                                 colors = ButtonDefaults.outlinedButtonColors(
@@ -403,9 +579,7 @@ fun MedicalReportScreen(
                             }
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End
@@ -438,9 +612,6 @@ fun MedicalReportScreen(
     }
 
     if (showShareDialog && selectedReport != null) {
-        // Açmadan önce debug için bir log
-        Log.d("MedicalReportScreen", "Opening ShareDialog, threads count: ${state.recentThreads.size}")
-
         ShareDialog(
             threads = state.recentThreads,
             currentUserId = state.currentUserId,
@@ -461,20 +632,43 @@ fun MedicalReportScreen(
         )
     }
 
-    if (showAddDialog) {
+    if (showAddPdfDialog) {
         AddMedicalReportDialog(
-            onDismiss = { showAddDialog = false },
+            onDismiss = { showAddPdfDialog = false },
             onConfirm = { title, description, doctorName, hospitalName ->
                 viewModel.onEvent(
                     MedicalReportEvent.AddReport(
                         title = title,
                         description = description,
                         doctorName = doctorName,
-                        hospitalName = hospitalName
+                        hospitalName = hospitalName,
+                        fileType = "pdf"
                     )
                 )
-                showAddDialog = false
-            }
+                showAddPdfDialog = false
+            },
+            dialogTitle = "Add PDF Medical Report",
+            icon = Icons.Default.PictureAsPdf
+        )
+    }
+
+    if (showAddImageDialog) {
+        AddMedicalReportDialog(
+            onDismiss = { showAddImageDialog = false },
+            onConfirm = { title, description, doctorName, hospitalName ->
+                viewModel.onEvent(
+                    MedicalReportEvent.AddReport(
+                        title = title,
+                        description = description,
+                        doctorName = doctorName,
+                        hospitalName = hospitalName,
+                        fileType = "image"
+                    )
+                )
+                showAddImageDialog = false
+            },
+            dialogTitle = "Add Image Medical Report",
+            icon = Icons.Default.Image
         )
     }
 }
@@ -512,18 +706,27 @@ fun MedicalReportCard(
                         .background(Color(59, 62, 104, 0x20)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Assignment,
-                        contentDescription = "Report",
-                        tint = Color(59, 62, 104),
-                        modifier = Modifier
-                            .size(32.dp)
-                            .padding(4.dp)
-                    )
+                    if (report.fileType == "image") {
+                        AsyncImage(
+                            model = report.thumbnailUrl,
+                            contentDescription = report.title,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            error = ColorPainter(Color(0xFFEEEEEE)),
+                            fallback = ColorPainter(Color(0xFFEEEEEE))
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Outlined.Assignment,
+                            contentDescription = "Report",
+                            tint = Color(59, 62, 104),
+                            modifier = Modifier
+                                .size(32.dp)
+                                .padding(4.dp)
+                        )
+                    }
                 }
-
                 Spacer(modifier = Modifier.width(16.dp))
-
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
@@ -541,7 +744,6 @@ fun MedicalReportCard(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-
                     if (report.doctorName.isNotBlank() || report.hospitalName.isNotBlank()) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
@@ -562,14 +764,23 @@ fun MedicalReportCard(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-
-                    Text(
-                        text = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(report.timestamp),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(report.timestamp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (report.fileType == "pdf") "PDF" else "Image",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(59, 62, 104),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
-
                 IconButton(onClick = { showDeleteConfirmation = true }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
@@ -578,9 +789,7 @@ fun MedicalReportCard(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
@@ -593,15 +802,13 @@ fun MedicalReportCard(
                     border = BorderStroke(1.dp, Color(59, 62, 104))
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Visibility,
+                        imageVector = if (report.fileType == "pdf") Icons.Default.OpenInNew else Icons.Default.Visibility,
                         contentDescription = "View"
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("View")
                 }
-
                 Spacer(modifier = Modifier.width(8.dp))
-
                 Button(
                     onClick = onShareClicked,
                     colors = ButtonDefaults.buttonColors(
@@ -645,137 +852,13 @@ fun MedicalReportCard(
         )
     }
 }
-@Composable
-fun ShareDialog(
-    threads: List<ChatThread>,
-    currentUserId: String,
-    onDismiss: () -> Unit,
-    onShareClicked: (String) -> Unit
-) {
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 500.dp),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "Tıbbi Raporu Paylaş",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Raporu göndermek istediğiniz kişiyi seçin",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                if (threads.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Mesajlaştığınız kimse bulunmuyor",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(threads) { thread ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        val otherUserId = thread.participantIds.firstOrNull {
-                                            it != currentUserId
-                                        } ?: return@clickable
-                                        onShareClicked(otherUserId)
-                                    },
-                                shape = RoundedCornerShape(8.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = Color(0xFFF5F5F5)
-                                ),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(59, 62, 104, 0x33))
-                                    ) {
-                                        if (thread.otherParticipantPhotoUrl.isNotEmpty()) {
-                                            AsyncImage(
-                                                model = thread.otherParticipantPhotoUrl,
-                                                contentDescription = "Profil fotoğrafı",
-                                                modifier = Modifier.fillMaxSize(),
-                                                contentScale = ContentScale.Crop
-                                            )
-                                        } else {
-                                            Icon(
-                                                imageVector = Icons.Default.Person,
-                                                contentDescription = "Profil",
-                                                tint = Color(59, 62, 104),
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .padding(8.dp)
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(
-                                        text = thread.otherParticipantName,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    OutlinedButton(
-                        onClick = onDismiss
-                    ) {
-                        Text("İptal")
-                    }
-                }
-            }
-        }
-    }
-}
+
 @Composable
 fun AddMedicalReportDialog(
     onDismiss: () -> Unit,
-    onConfirm: (title: String, description: String, doctorName: String, hospitalName: String) -> Unit
+    onConfirm: (title: String, description: String, doctorName: String, hospitalName: String) -> Unit,
+    dialogTitle: String,
+    icon: ImageVector
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -798,11 +881,21 @@ fun AddMedicalReportDialog(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Text(
-                    text = "Add Medical Report",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = Color(59, 62, 104)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = dialogTitle,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -877,6 +970,134 @@ fun AddMedicalReportDialog(
                         )
                     ) {
                         Text("Save")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ShareDialog(
+    threads: List<ChatThread>,
+    currentUserId: String,
+    onDismiss: () -> Unit,
+    onShareClicked: (String) -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 500.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Share Medical Report",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Select a person to share this report with",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                if (threads.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "You don't have any conversations yet",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(threads) { thread ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        val otherUserId = thread.participantIds.firstOrNull {
+                                            it != currentUserId
+                                        } ?: return@clickable
+                                        onShareClicked(otherUserId)
+                                    },
+                                shape = RoundedCornerShape(8.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFFF5F5F5)
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(59, 62, 104, 0x33))
+                                    ) {
+                                        if (thread.otherParticipantPhotoUrl.isNotEmpty()) {
+                                            AsyncImage(
+                                                model = thread.otherParticipantPhotoUrl,
+                                                contentDescription = "Profile photo",
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        } else {
+                                            Icon(
+                                                imageVector = Icons.Default.Person,
+                                                contentDescription = "Profile",
+                                                tint = Color(59, 62, 104),
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .padding(8.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = thread.otherParticipantName,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss
+                    ) {
+                        Text("Cancel")
                     }
                 }
             }
