@@ -84,7 +84,7 @@ fun MedicalReportScreen(
         } catch (e: Exception) {
             Toast.makeText(
                 context,
-                "Cannot open PDF: ${e.localizedMessage}",
+                "PDF açılamadı: ${e.localizedMessage}",
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -93,12 +93,12 @@ fun MedicalReportScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Medical Reports") },
+                title = { Text("Tıbbi Raporlar") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Geri"
                         )
                     }
                 },
@@ -118,7 +118,7 @@ fun MedicalReportScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add Medical Report"
+                    contentDescription = "Tıbbi Rapor Ekle"
                 )
             }
         }
@@ -171,7 +171,7 @@ fun MedicalReportScreen(
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Refresh")
+                        Text("Yenile")
                     }
                 }
             } else if (state.reports.isEmpty()) {
@@ -190,14 +190,14 @@ fun MedicalReportScreen(
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Text(
-                        text = "You don't have any medical reports yet",
+                        text = "Henüz bir tıbbi raporunuz bulunmuyor",
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = Color.DarkGray
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Click the + button in the bottom right to add a report",
+                        text = "Sağ alttaki + butonuna tıklayarak rapor ekleyebilirsiniz",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         color = Color.Gray
@@ -215,7 +215,7 @@ fun MedicalReportScreen(
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Add Medical Report")
+                        Text("Tıbbi Rapor Ekle")
                     }
                 }
             } else {
@@ -256,7 +256,7 @@ fun MedicalReportScreen(
                         .align(Alignment.BottomCenter),
                     action = {
                         TextButton(onClick = { viewModel.onEvent(MedicalReportEvent.DismissError) }) {
-                            Text("OK", color = Color.White)
+                            Text("TAMAM", color = Color.White)
                         }
                     },
                     containerColor = Color(0xFFB71C1C),
@@ -311,8 +311,8 @@ fun MedicalReportScreen(
     if (showFileTypeDialog) {
         AlertDialog(
             onDismissRequest = { showFileTypeDialog = false },
-            title = { Text("Add Medical Report") },
-            text = { Text("Choose the type of file you want to upload") },
+            title = { Text("Tıbbi Rapor Ekle") },
+            text = { Text("Eklemek istediğiniz dosya türünü seçin") },
             confirmButton = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
@@ -331,7 +331,7 @@ fun MedicalReportScreen(
                             contentDescription = "PDF"
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Upload PDF")
+                        Text("PDF Yükle")
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -346,10 +346,10 @@ fun MedicalReportScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Image,
-                            contentDescription = "Image"
+                            contentDescription = "Görüntü"
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Upload Image")
+                        Text("Görüntü Yükle")
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -358,7 +358,7 @@ fun MedicalReportScreen(
                         onClick = { showFileTypeDialog = false },
                         modifier = Modifier.align(Alignment.End)
                     ) {
-                        Text("Cancel")
+                        Text("İptal")
                     }
                 }
             },
@@ -395,7 +395,7 @@ fun MedicalReportScreen(
                         IconButton(onClick = { selectedReport = null }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Close"
+                                contentDescription = "Kapat"
                             )
                         }
                     }
@@ -407,25 +407,24 @@ fun MedicalReportScreen(
                     if (selectedReport!!.doctorName.isNotBlank()) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Doctor: ${selectedReport!!.doctorName}",
+                            text = "Doktor: ${selectedReport!!.doctorName}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.DarkGray
                         )
                     }
                     if (selectedReport!!.hospitalName.isNotBlank()) {
                         Text(
-                            text = "Hospital: ${selectedReport!!.hospitalName}",
+                            text = "Hastane: ${selectedReport!!.hospitalName}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.DarkGray
                         )
                     }
                     Text(
-                        text = "Date: ${SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(selectedReport!!.timestamp)}",
+                        text = "Tarih: ${SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(selectedReport!!.timestamp)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -444,7 +443,6 @@ fun MedicalReportScreen(
                             fallback = ColorPainter(Color(0xFFEEEEEE))
                         )
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -453,7 +451,7 @@ fun MedicalReportScreen(
                         OutlinedButton(
                             onClick = { selectedReport = null }
                         ) {
-                            Text("Close")
+                            Text("Kapat")
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
@@ -466,10 +464,10 @@ fun MedicalReportScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Share,
-                                contentDescription = "Share"
+                                contentDescription = "Paylaş"
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Share")
+                            Text("Paylaş")
                         }
                     }
                 }
@@ -506,7 +504,7 @@ fun MedicalReportScreen(
                         IconButton(onClick = { selectedReport = null }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Close"
+                                contentDescription = "Kapat"
                             )
                         }
                     }
@@ -518,20 +516,20 @@ fun MedicalReportScreen(
                     if (selectedReport!!.doctorName.isNotBlank()) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Doctor: ${selectedReport!!.doctorName}",
+                            text = "Doktor: ${selectedReport!!.doctorName}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.DarkGray
                         )
                     }
                     if (selectedReport!!.hospitalName.isNotBlank()) {
                         Text(
-                            text = "Hospital: ${selectedReport!!.hospitalName}",
+                            text = "Hastane: ${selectedReport!!.hospitalName}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.DarkGray
                         )
                     }
                     Text(
-                        text = "Date: ${SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(selectedReport!!.timestamp)}",
+                        text = "Tarih: ${SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(selectedReport!!.timestamp)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )
@@ -557,7 +555,7 @@ fun MedicalReportScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "PDF Report",
+                                text = "PDF Rapor",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = Color(59, 62, 104)
                             )
@@ -572,10 +570,10 @@ fun MedicalReportScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.OpenInNew,
-                                    contentDescription = "View"
+                                    contentDescription = "Görüntüle"
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("View")
+                                Text("Görüntüle")
                             }
                         }
                     }
@@ -587,7 +585,7 @@ fun MedicalReportScreen(
                         OutlinedButton(
                             onClick = { selectedReport = null }
                         ) {
-                            Text("Close")
+                            Text("Kapat")
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
@@ -600,10 +598,10 @@ fun MedicalReportScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Share,
-                                contentDescription = "Share"
+                                contentDescription = "Paylaş"
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Share")
+                            Text("Paylaş")
                         }
                     }
                 }
@@ -647,7 +645,7 @@ fun MedicalReportScreen(
                 )
                 showAddPdfDialog = false
             },
-            dialogTitle = "Add PDF Medical Report",
+            dialogTitle = "PDF Tıbbi Rapor Ekle",
             icon = Icons.Default.PictureAsPdf
         )
     }
@@ -667,7 +665,7 @@ fun MedicalReportScreen(
                 )
                 showAddImageDialog = false
             },
-            dialogTitle = "Add Image Medical Report",
+            dialogTitle = "Görüntü Tıbbi Rapor Ekle",
             icon = Icons.Default.Image
         )
     }
@@ -718,7 +716,7 @@ fun MedicalReportCard(
                     } else {
                         Icon(
                             imageVector = Icons.Outlined.Assignment,
-                            contentDescription = "Report",
+                            contentDescription = "Rapor",
                             tint = Color(59, 62, 104),
                             modifier = Modifier
                                 .size(32.dp)
@@ -774,7 +772,7 @@ fun MedicalReportCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (report.fileType == "pdf") "PDF" else "Image",
+                            text = if (report.fileType == "pdf") "PDF" else "Görüntü",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(59, 62, 104),
                             fontWeight = FontWeight.Medium
@@ -784,7 +782,7 @@ fun MedicalReportCard(
                 IconButton(onClick = { showDeleteConfirmation = true }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
+                        contentDescription = "Sil",
                         tint = Color.Red.copy(alpha = 0.7f)
                     )
                 }
@@ -803,10 +801,10 @@ fun MedicalReportCard(
                 ) {
                     Icon(
                         imageVector = if (report.fileType == "pdf") Icons.Default.OpenInNew else Icons.Default.Visibility,
-                        contentDescription = "View"
+                        contentDescription = "Görüntüle"
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("View")
+                    Text("Görüntüle")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
@@ -817,10 +815,10 @@ fun MedicalReportCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Share,
-                        contentDescription = "Share"
+                        contentDescription = "Paylaş"
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Share")
+                    Text("Paylaş")
                 }
             }
         }
@@ -829,8 +827,8 @@ fun MedicalReportCard(
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text("Delete Medical Report") },
-            text = { Text("Are you sure you want to delete this medical report?") },
+            title = { Text("Tıbbi Raporu Sil") },
+            text = { Text("Bu tıbbi raporu silmek istediğinize emin misiniz?") },
             confirmButton = {
                 Button(
                     onClick = {
@@ -841,12 +839,12 @@ fun MedicalReportCard(
                         containerColor = Color.Red
                     )
                 ) {
-                    Text("Delete")
+                    Text("Sil")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmation = false }) {
-                    Text("Cancel")
+                    Text("İptal")
                 }
             }
         )
@@ -903,9 +901,9 @@ fun AddMedicalReportDialog(
                     value = title,
                     onValueChange = {
                         title = it
-                        titleError = if (it.isBlank()) "Title cannot be empty" else null
+                        titleError = if (it.isBlank()) "Başlık boş olamaz" else null
                     },
-                    label = { Text("Title") },
+                    label = { Text("Başlık") },
                     modifier = Modifier.fillMaxWidth(),
                     isError = titleError != null,
                     supportingText = {
@@ -920,7 +918,7 @@ fun AddMedicalReportDialog(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Description (Optional)") },
+                    label = { Text("Açıklama (İsteğe Bağlı)") },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2
                 )
@@ -930,7 +928,7 @@ fun AddMedicalReportDialog(
                 OutlinedTextField(
                     value = doctorName,
                     onValueChange = { doctorName = it },
-                    label = { Text("Doctor Name (Optional)") },
+                    label = { Text("Doktor Adı (İsteğe Bağlı)") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -939,7 +937,7 @@ fun AddMedicalReportDialog(
                 OutlinedTextField(
                     value = hospitalName,
                     onValueChange = { hospitalName = it },
-                    label = { Text("Hospital / Clinic Name (Optional)") },
+                    label = { Text("Hastane / Klinik Adı (İsteğe Bağlı)") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -952,7 +950,7 @@ fun AddMedicalReportDialog(
                     TextButton(
                         onClick = onDismiss
                     ) {
-                        Text("Cancel")
+                        Text("İptal")
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))
@@ -960,7 +958,7 @@ fun AddMedicalReportDialog(
                     Button(
                         onClick = {
                             if (title.isBlank()) {
-                                titleError = "Title cannot be empty"
+                                titleError = "Başlık boş olamaz"
                                 return@Button
                             }
                             onConfirm(title, description, doctorName, hospitalName)
@@ -969,7 +967,7 @@ fun AddMedicalReportDialog(
                             containerColor = Color(59, 62, 104)
                         )
                     ) {
-                        Text("Save")
+                        Text("Kaydet")
                     }
                 }
             }
@@ -1000,13 +998,13 @@ fun ShareDialog(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "Share Medical Report",
+                    text = "Tıbbi Rapor Paylaş",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Select a person to share this report with",
+                    text = "Bu raporu paylaşmak istediğiniz kişiyi seçin",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
@@ -1019,7 +1017,7 @@ fun ShareDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "You don't have any conversations yet",
+                            text = "Henüz bir konuşmanız bulunmuyor",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Gray,
                             textAlign = TextAlign.Center
@@ -1063,14 +1061,14 @@ fun ShareDialog(
                                         if (thread.otherParticipantPhotoUrl.isNotEmpty()) {
                                             AsyncImage(
                                                 model = thread.otherParticipantPhotoUrl,
-                                                contentDescription = "Profile photo",
+                                                contentDescription = "Profil fotoğrafı",
                                                 modifier = Modifier.fillMaxSize(),
                                                 contentScale = ContentScale.Crop
                                             )
                                         } else {
                                             Icon(
                                                 imageVector = Icons.Default.Person,
-                                                contentDescription = "Profile",
+                                                contentDescription = "Profil",
                                                 tint = Color(59, 62, 104),
                                                 modifier = Modifier
                                                     .fillMaxSize()
@@ -1097,7 +1095,7 @@ fun ShareDialog(
                     OutlinedButton(
                         onClick = onDismiss
                     ) {
-                        Text("Cancel")
+                        Text("İptal")
                     }
                 }
             }

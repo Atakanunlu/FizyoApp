@@ -911,5 +911,5 @@ data class RadyolojikGoruntu(
     val thumbnailUrl: String,
     val timestamp: Date,
     val userId: String,
-    val fileType: String // "image" veya "pdf"
+    val fileType: String
 )
