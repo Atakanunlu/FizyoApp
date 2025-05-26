@@ -35,7 +35,7 @@ class EditExercisePlanViewModel @Inject constructor(
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
-    // planId parametresini navArgs'dan al
+
     private val planId: String = savedStateHandle.get<String>("planId") ?: ""
 
     fun loadExercisePlan(planId: String) {
@@ -46,12 +46,12 @@ class EditExercisePlanViewModel @Inject constructor(
                     is Resource.Success -> {
                         val plan = result.data
                         if (plan != null) {
-                            // Hasta adını getir
+
                             loadPatientName(plan.patientId)
 
-                            // Medya tiplerini doğru şekilde yükle
+
                             val updatedExercises = plan.exercises.map { exerciseItem ->
-                                // Eğer mediaTypes boşsa, URL'lerden tahmin et
+
                                 val mediaTypes = if (exerciseItem.mediaTypes.isEmpty() && exerciseItem.mediaUrls.isNotEmpty()) {
                                     exerciseItem.mediaUrls.associateWith { url ->
                                         if (url.contains("video") || url.contains(".mp4") ||
@@ -66,7 +66,7 @@ class EditExercisePlanViewModel @Inject constructor(
                                     exerciseItem.mediaTypes
                                 }
 
-                                // Güncellenmiş mediaTypes ile yeni bir ExercisePlanItem oluştur
+
                                 exerciseItem.copy(mediaTypes = mediaTypes)
                             }
 
@@ -127,12 +127,12 @@ class EditExercisePlanViewModel @Inject constructor(
                                 it.copy(patientName = "${profile.firstName} ${profile.lastName}")
                             }
                         } else {
-                            // Profil yoksa e-posta adresini göster
+
                             fallbackToEmailName(patientId)
                         }
                     }
                     else -> {
-                        // Hata durumunda e-posta adresini göster
+
                         fallbackToEmailName(patientId)
                     }
                 }
@@ -142,7 +142,7 @@ class EditExercisePlanViewModel @Inject constructor(
 
     private suspend fun fallbackToEmailName(patientId: String) {
         try {
-            // User koleksiyonundan e-posta adresini al
+
             com.google.firebase.firestore.FirebaseFirestore.getInstance()
                 .collection("user")
                 .document(patientId)
@@ -195,7 +195,7 @@ class EditExercisePlanViewModel @Inject constructor(
                     repetitions = reps.toIntOrNull() ?: 0,
                     duration = duration.toIntOrNull() ?: 0,
                     notes = notes
-                    // mediaUrls ve mediaTypes korunuyor, copy kullandığımız için değiştirilmeyen özellikler aynı kalır
+
                 )
             } else {
                 item
@@ -246,15 +246,15 @@ class EditExercisePlanViewModel @Inject constructor(
 
     fun saveExercisePlan() {
         val currentPlan = _state.value.plan ?: return
-        // Tüm alanları kontrol et
+
         if (_state.value.title.isBlank()) {
             sendUiEvent(UiEvent.ShowError("Plan başlığı boş olamaz"))
             return
         }
 
-        // Her egzersiz için mediaTypes alanını güncelle/kontrol et
+
         val updatedExercises = _state.value.exercises.map { item ->
-            // Eğer mediaTypes boşsa ve mediaUrls doluysa, mediaTypes'ı doldur
+
             val mediaTypes = if (item.mediaTypes.isEmpty() && item.mediaUrls.isNotEmpty()) {
                 item.mediaUrls.associateWith { url ->
                     if (url.contains("video") || url.contains(".mp4") ||

@@ -1,10 +1,8 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen
 
-import android.content.Intent
-import android.net.Uri
+
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -14,14 +12,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -30,12 +26,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
+
 
 private val primaryColor = Color(59, 62, 104)
 
@@ -63,13 +57,11 @@ fun MediaViewer(
         ) {
             if (isVideo) {
                 if (isPlaying) {
-                    // Dahili video oynatıcı
                     VideoPlayerMedia3(
                         videoUri = mediaUrl,
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    // Video önizleme - oynatma düğmesi
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -107,7 +99,6 @@ fun MediaViewer(
                         )
                     } }
             } else {
-                // Resim gösterimi
                 AsyncImage(
                     model = mediaUrl,
                     contentDescription = "Görsel",
@@ -115,7 +106,6 @@ fun MediaViewer(
                     modifier = Modifier.fillMaxSize()
                 )
             }
-            // Kapat butonu - video oynatılmıyorsa göster
             if (!isPlaying || !isVideo) {
                 IconButton(
                     onClick = onDismiss,

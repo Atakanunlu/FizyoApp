@@ -983,11 +983,11 @@ fun ExerciseListItem(
         }
 
         if (showMediaViewer && selectedMediaUrl.isNotEmpty()) {
-            // Medya tipini exercise.mediaTypes'dan al, yoksa URL'den tahmin et
+
             val mediaType = if (exercise.mediaTypes.containsKey(selectedMediaUrl)) {
                 if (exercise.mediaTypes[selectedMediaUrl] == ExerciseType.VIDEO) "video" else "image"
             } else {
-                // URL'den tahmin et
+
                 if (selectedMediaUrl.contains("video") ||
                     selectedMediaUrl.contains(".mp4") ||
                     selectedMediaUrl.contains(".mov") ||
@@ -1012,7 +1012,7 @@ fun MediaPreviewItem(
     size: androidx.compose.ui.unit.Dp = 110.dp,
     onRemove: (() -> Unit)? = null
 ) {
-    // Uri'nin tipini belirle
+
     val isVideo = mediaTypes[uri] == ExerciseType.VIDEO ||
             uri.contains("video") || uri.contains(".mp4") ||
             uri.contains(".mov") || uri.contains(".avi") ||
@@ -1033,7 +1033,7 @@ fun MediaPreviewItem(
             )
             .clickable(onClick = onClick)
     ) {
-        // Video veya görsel
+
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(uri)
@@ -1044,7 +1044,7 @@ fun MediaPreviewItem(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Gradyan arka plan
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -1060,7 +1060,7 @@ fun MediaPreviewItem(
                 )
         )
 
-        // Kaldır butonu (eğer verilmişse)
+
         onRemove?.let {
             IconButton(
                 onClick = it,
@@ -1082,7 +1082,7 @@ fun MediaPreviewItem(
             }
         }
 
-        // Video göstergesi ve Oynat butonu
+
         if (isVideo) {
             Box(
                 modifier = Modifier
@@ -1103,7 +1103,7 @@ fun MediaPreviewItem(
             }
 
             if (size >= 80.dp) {
-                // Video etiketi (sadece daha büyük boyutlar için)
+
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomStart)

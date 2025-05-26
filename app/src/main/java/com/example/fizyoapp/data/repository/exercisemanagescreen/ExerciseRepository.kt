@@ -21,9 +21,10 @@ interface ExerciseRepository {
     fun getExercisePlansByPatient(patientId: String): Flow<Resource<List<ExercisePlan>>>
     fun createExercisePlan(exercisePlan: ExercisePlan): Flow<Resource<ExercisePlan>>
     fun updateExercisePlan(exercisePlan: ExercisePlan): Flow<Resource<ExercisePlan>>
-    fun deleteExercisePlan(exercisePlanId: String): Flow<Resource<Boolean>> // Boolean değil, Boolean olmalı
-    fun getExercisePlanById(planId: String): Flow<Resource<ExercisePlan>> // Exercise değil, ExercisePlan olmalı
+    fun deleteExercisePlan(exercisePlanId: String): Flow<Resource<Boolean>>
+    fun getExercisePlanById(planId: String): Flow<Resource<ExercisePlan>>
     fun getPatientsList(physiotherapistId: String): Flow<Resource<List<PatientListItem>>>
+
 }
 
 data class PatientListItem(

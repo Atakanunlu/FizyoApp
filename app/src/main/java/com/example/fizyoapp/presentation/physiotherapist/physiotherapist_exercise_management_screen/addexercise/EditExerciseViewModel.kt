@@ -1,4 +1,4 @@
-package com.example.fizyoapp.presentation.physiotherapist.exercise
+package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexercise
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -47,14 +47,14 @@ class EditExerciseViewModel @Inject constructor(
                         val exercise = result.data
                         originalExercise = exercise
 
-                        // Hata ayıklama
+
                         println("EditVM - Media URLs: ${exercise.mediaUrls}")
                         println("EditVM - Media Types Original: ${exercise.mediaType}")
 
-                        // mediaTypes'ı URL'lere göre eşleştirin ve kontrol edin
+
                         val mediaTypes = mutableMapOf<String, ExerciseType>()
                         exercise.mediaUrls.forEach { url ->
-                            // URL'yi mediaType haritasında kontrol et veya tahmin et
+
                             val type = exercise.mediaType[url] ?:
                             if (url.contains("video") || url.contains(".mp4") ||
                                 url.contains(".mov") || url.contains(".avi") ||
@@ -66,7 +66,7 @@ class EditExerciseViewModel @Inject constructor(
                             mediaTypes[url] = type
                         }
 
-                        // Son hata ayıklama
+
                         println("EditVM - Processed Media Types: $mediaTypes")
 
                         _state.update {
@@ -122,7 +122,7 @@ class EditExerciseViewModel @Inject constructor(
                 _state.update { it.copy(difficulty = event.difficulty) }
             }
             is EditExerciseEvent.AddMedia -> {
-                // Video türünü daha güvenilir şekilde belirleme
+
                 val isVideo = event.type == "video" ||
                         event.uri.contains("video") ||
                         event.uri.contains(".mp4") ||
@@ -136,7 +136,6 @@ class EditExerciseViewModel @Inject constructor(
                 val updatedMediaUris = _state.value.mediaUris.toMutableList()
                 updatedMediaUris.add(event.uri)
 
-                // MediaTypes'ı güncelle
                 val updatedMediaTypes = _state.value.mediaTypes.toMutableMap()
                 updatedMediaTypes[event.uri] = mediaType
 
@@ -149,7 +148,6 @@ class EditExerciseViewModel @Inject constructor(
                 val updatedMediaUris = _state.value.mediaUris.toMutableList()
                 updatedMediaUris.remove(event.uri)
 
-                // MediaTypes'dan da kaldır
                 val updatedMediaTypes = _state.value.mediaTypes.toMutableMap()
                 updatedMediaTypes.remove(event.uri)
 
@@ -181,7 +179,7 @@ class EditExerciseViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
-            // Güncellenmiş Exercise nesnesini oluştur
+
             val updatedExercise = Exercise(
                 id = state.exerciseId,
                 physiotherapistId = originalExercise?.physiotherapistId ?: "",
@@ -199,7 +197,6 @@ class EditExerciseViewModel @Inject constructor(
                 updatedAt = Date()
             )
 
-            // Tür bilgilerini kontrol et
             println("Updating exercise with mediaTypes: ${state.mediaTypes.map { "${it.key}: ${it.value}" }}")
 
             exerciseRepository.updateExercise(updatedExercise).collect { result ->

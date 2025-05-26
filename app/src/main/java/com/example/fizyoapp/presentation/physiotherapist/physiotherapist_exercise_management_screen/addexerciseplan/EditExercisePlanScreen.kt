@@ -714,7 +714,7 @@ fun ExerciseItemCard(
                                     modifier = Modifier.fillMaxSize()
                                 )
 
-                                // Video ise oynat düğmesi göster
+
                                 val isVideo = exerciseItem.mediaTypes[firstMediaUrl] == ExerciseType.VIDEO ||
                                         firstMediaUrl.contains("video") ||
                                         firstMediaUrl.contains(".mp4") ||
@@ -846,11 +846,11 @@ fun ExerciseItemCard(
             }
 
             if (showMediaViewer && selectedMediaUrl.isNotEmpty()) {
-                // Medya tipini belirleme
+
                 val mediaType = if (exerciseItem.mediaTypes.containsKey(selectedMediaUrl)) {
                     if (exerciseItem.mediaTypes[selectedMediaUrl] == ExerciseType.VIDEO) "video" else "image"
                 } else {
-                    // URL'den tahmin et
+
                     if (selectedMediaUrl.contains("video") ||
                         selectedMediaUrl.contains(".mp4") ||
                         selectedMediaUrl.contains(".mov") ||
@@ -877,7 +877,7 @@ fun EditScreenMediaPreviewItem(
     size: Dp = 110.dp,
     onRemove: (() -> Unit)? = null
 ) {
-    // Uri'nin tipini belirle
+
     val isVideo = mediaTypes[uri] == ExerciseType.VIDEO ||
             uri.contains("video") || uri.contains(".mp4") ||
             uri.contains(".mov") || uri.contains(".avi") ||
@@ -897,7 +897,7 @@ fun EditScreenMediaPreviewItem(
             )
             .clickable(onClick = onClick)
     ) {
-        // Video veya görsel
+
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(uri)
@@ -907,7 +907,7 @@ fun EditScreenMediaPreviewItem(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
-        // Gradyan arka plan
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -922,7 +922,7 @@ fun EditScreenMediaPreviewItem(
                     )
                 )
         )
-        // Kaldır butonu (eğer verilmişse)
+
         onRemove?.let {
             IconButton(
                 onClick = it,
@@ -943,7 +943,7 @@ fun EditScreenMediaPreviewItem(
                 )
             }
         }
-        // Video göstergesi ve Oynat butonu
+
         if (isVideo) {
             Box(
                 modifier = Modifier
@@ -963,7 +963,7 @@ fun EditScreenMediaPreviewItem(
                 )
             }
             if (size >= 80.dp) {
-                // Video etiketi (sadece daha büyük boyutlar için)
+
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomStart)

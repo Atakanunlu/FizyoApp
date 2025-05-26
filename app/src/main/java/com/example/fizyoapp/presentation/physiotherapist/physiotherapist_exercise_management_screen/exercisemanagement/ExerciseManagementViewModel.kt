@@ -174,7 +174,6 @@ class ExerciseManagementViewModel @Inject constructor(
         }
     }
 
-    // Hasta isimlerini yükleme
     private fun loadPatientNames(plans: List<ExercisePlan>) {
         viewModelScope.launch {
             val patientIds = plans.map { it.patientId }.distinct()
@@ -183,7 +182,6 @@ class ExerciseManagementViewModel @Inject constructor(
             val patientNamesMap = mutableMapOf<String, String>()
 
             for (patientId in patientIds) {
-                // Önce kullanıcı profilini almaya çalışalım
                 userProfileRepository.getUserProfile(patientId).collect { result ->
                     when (result) {
                         is Resource.Success -> {
@@ -191,12 +189,10 @@ class ExerciseManagementViewModel @Inject constructor(
                             if (profile != null && profile.firstName.isNotEmpty() && profile.lastName.isNotEmpty()) {
                                 patientNamesMap[patientId] = "${profile.firstName} ${profile.lastName}"
                             } else {
-                                // Profil yoksa veya isim bilgileri yoksa e-posta adresini gösterelim
                                 fallbackToEmailName(patientId, patientNamesMap)
                             }
                         }
                         else -> {
-                            // Profil getirilemezse e-posta adresini gösterelim
                             fallbackToEmailName(patientId, patientNamesMap)
                         }
                     }
@@ -207,9 +203,7 @@ class ExerciseManagementViewModel @Inject constructor(
         }
     }
 
-    // E-posta adresini alma yedek fonksiyonu
     private suspend fun fallbackToEmailName(patientId: String, patientNamesMap: MutableMap<String, String>) {
-        // Firestore'dan doğrudan bilgileri alalım
         try {
             val userDoc = FirebaseFirestore.getInstance().collection("user").document(patientId).get().await()
             if (userDoc.exists()) {
@@ -227,7 +221,6 @@ class ExerciseManagementViewModel @Inject constructor(
         _state.value = _state.value.copy(
             selectedCategory = category
         )
-        // Tüm filtreleri uygula
         applyAllFilters()
     }
 
@@ -237,9 +230,7 @@ class ExerciseManagementViewModel @Inject constructor(
             exerciseRepository.deleteExercise(exerciseId).collect { result ->
                 when (result) {
                     is Resource.Success -> {
-                        // Egzersizi listeden kaldır
                         val updatedExercises = _state.value.exercises.filter { it.id != exerciseId }
-                        // Filtrelenmiş listeyi de güncelle
                         val updatedFilteredExercises =
                             if (_state.value.selectedCategory.isNotEmpty()) {
                                 updatedExercises.filter { it.category == _state.value.selectedCategory }
@@ -271,23 +262,19 @@ class ExerciseManagementViewModel @Inject constructor(
         _state.value = _state.value.copy(
             selectedDifficulty = difficulty
         )
-        // Tüm filtreleri uygula
         applyAllFilters()
     }
 
-    // Tüm filtreleri birlikte uygulayan metot
     private fun applyAllFilters() {
-        // Başlangıçta tüm egzersizleri al
         var filtered = _state.value.exercises
-        // Kategori filtresi varsa uygula
         if (_state.value.selectedCategory.isNotEmpty()) {
             filtered = filtered.filter { it.category == _state.value.selectedCategory }
         }
-        // Zorluk seviyesi filtresi varsa uygula
+
         if (_state.value.selectedDifficulty != null) {
             filtered = filtered.filter { it.difficulty == _state.value.selectedDifficulty }
         }
-        // Zorluk seviyesine göre sırala (kolaydan zora)
+
         filtered = filtered.sortedBy { it.difficulty.ordinal }
         _state.value = _state.value.copy(
             filteredExercises = filtered
@@ -300,7 +287,7 @@ class ExerciseManagementViewModel @Inject constructor(
             exerciseRepository.deleteExercisePlan(planId).collect { result ->
                 when (result) {
                     is Resource.Success -> {
-                        // Update the list by removing the deleted plan
+
                         val updatedPlans = _state.value.exercisePlans.filter { it.id != planId }
                         _state.value = _state.value.copy(
                             exercisePlans = updatedPlans,

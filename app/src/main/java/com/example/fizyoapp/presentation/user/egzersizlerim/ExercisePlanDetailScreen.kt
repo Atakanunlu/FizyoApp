@@ -87,7 +87,6 @@ fun ExercisePlanDetailScreen(
     var isPlaying by remember { mutableStateOf(true) }
     var currentMediaType by remember { mutableStateOf("image") }
 
-    // Şu anda seçilen medya URL'sini izlemek için bunu ekleyin
     var currentMediaUrl by remember { mutableStateOf("") }
 
     val navigateBack = {
@@ -133,17 +132,15 @@ fun ExercisePlanDetailScreen(
         }
     }
 
-    // Egzersiz değiştiğinde ilk medya yükleme
     LaunchedEffect(currentExerciseIndex, state.plan) {
         if (state.plan != null && state.plan.exercises.isNotEmpty()) {
             val currentExercise = state.plan.exercises[currentExerciseIndex]
             if (currentExercise.mediaUrls.isNotEmpty()) {
                 val mediaUrl = currentExercise.mediaUrls.first()
-                currentMediaUrl = mediaUrl // Geçerli medya URL'sini sakla
+                currentMediaUrl = mediaUrl
 
-                // Egzersiz öğesinde belirtilen bir medya türümüz olup olmadığını kontrol edin
+
                 val isVideoFromType = currentExercise.mediaTypes[mediaUrl]?.name?.equals("VIDEO", ignoreCase = true) ?: false
-                // Medya türü belirtilmemişse URL pattern eşleştirmesine geri dön
                 val isVideoFromUrl = mediaUrl.contains("video", ignoreCase = true) ||
                         mediaUrl.endsWith(".mp4", ignoreCase = true) ||
                         mediaUrl.endsWith(".mov", ignoreCase = true) ||
@@ -164,7 +161,6 @@ fun ExercisePlanDetailScreen(
         }
     }
 
-    // ExoPlayer hata ayıklama dinleyicisi
     DisposableEffect(Unit) {
         exoPlayer.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(state: Int) {
@@ -300,7 +296,6 @@ fun ExercisePlanDetailScreen(
                     )
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // onMediaSelected callback ile güncellenen MediaContainer
                     MediaContainerRedesigned(
                         currentExercise = state.plan.exercises[currentExerciseIndex],
                         mediaType = currentMediaType,
@@ -717,7 +712,6 @@ fun MediaContainerRedesigned(
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            // Ana medya gösterimi
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -788,7 +782,6 @@ fun MediaContainerRedesigned(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Medya tipi göstergesi
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -840,13 +833,11 @@ fun MediaContainerRedesigned(
                 }
             }
 
-            // Birden fazla medya öğesi varsa Media Gallery ekle
             if (currentExercise.mediaUrls.size > 1) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Divider(color = Color(230, 230, 250))
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Burada yeni MediaGallery bileşenimizi ekliyoruz
                 MediaGallery(
                     mediaUrls = currentExercise.mediaUrls,
                     mediaTypes = currentExercise.mediaTypes,
@@ -878,7 +869,6 @@ fun MediaGallery(
                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
             ) {
                 items(mediaUrls) { mediaUrl ->
-                    // Medya video mu yoksa resim mi belirle
                     val isVideo = mediaTypes[mediaUrl] == ExerciseType.VIDEO ||
                             mediaUrl.contains("video") ||
                             mediaUrl.endsWith(".mp4") ||
@@ -930,7 +920,6 @@ fun MediaGalleryItem(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Gradyan kaplama
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -946,7 +935,6 @@ fun MediaGalleryItem(
                 )
         )
 
-        // Video göstergesi
         if (mediaType == "video") {
             Box(
                 modifier = Modifier

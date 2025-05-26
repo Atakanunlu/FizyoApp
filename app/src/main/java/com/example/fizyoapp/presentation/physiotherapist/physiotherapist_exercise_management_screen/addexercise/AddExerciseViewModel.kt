@@ -110,7 +110,7 @@ class AddExerciseViewModel @Inject constructor(
                 )
             }
             is AddExerciseEvent.AddMedia -> {
-                // Video türünü daha güvenilir şekilde belirleme
+
                 val isVideo = event.type == "video" ||
                         event.uri.contains("video") ||
                         event.uri.contains(".mp4") ||
@@ -122,7 +122,7 @@ class AddExerciseViewModel @Inject constructor(
 
                 println("AddExerciseViewModel - Adding media: ${event.uri}, Type: $mediaType, IsVideo: $isVideo")
 
-                // Medya ekle
+
                 _state.value = _state.value.copy(
                     mediaUris = _state.value.mediaUris + event.uri,
                     mediaTypes = _state.value.mediaTypes + (event.uri to mediaType)
@@ -182,7 +182,7 @@ class AddExerciseViewModel @Inject constructor(
                         val uri = Uri.parse(mediaUri)
                         val fileName = "exercise_media_${UUID.randomUUID()}"
 
-                        // Orijinal URI'nin medya tipini belirle
+
                         val originalMediaType = _state.value.mediaTypes[mediaUri] ?:
                         if (mediaUri.contains("video") || mediaUri.contains(".mp4") ||
                             mediaUri.contains(".mov") || mediaUri.contains(".avi") ||
@@ -199,7 +199,7 @@ class AddExerciseViewModel @Inject constructor(
                                 is Resource.Success -> {
                                     val downloadUrl = result.data
                                     mediaUrls.add(downloadUrl)
-                                    // Önemli: Orijinal URI'nin tipini yeni URL'ye kopyala
+
                                     mediaTypes[downloadUrl] = originalMediaType
                                     println("Media uploaded: $downloadUrl, Type: $originalMediaType")
                                 }
@@ -218,7 +218,7 @@ class AddExerciseViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Tür bilgilerini kontrol et
+
                 println("Saving exercise with mediaTypes: ${mediaTypes.map { "${it.key}: ${it.value}" }}")
 
                 val exercise = Exercise(

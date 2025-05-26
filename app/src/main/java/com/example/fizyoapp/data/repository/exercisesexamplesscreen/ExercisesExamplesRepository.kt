@@ -1,4 +1,3 @@
-// com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepository.kt
 package com.example.fizyoapp.data.repository.exercisesexamplesscreen
 
 import com.example.fizyoapp.data.local.entity.exerciseexamplesscreen.OrnekEgzersizlerGiris
