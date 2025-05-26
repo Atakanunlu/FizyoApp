@@ -354,16 +354,35 @@ class ExerciseRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
         try {
             val exerciseItemsData = exercisePlan.exercises.map { item ->
-                mapOf(
+                // Firebstore'a kaydedilecek veri haritası
+                val itemMap = mutableMapOf<String, Any>(
                     "exerciseId" to item.exerciseId,
                     "exerciseTitle" to item.exerciseTitle,
                     "sets" to item.sets,
                     "repetitions" to item.repetitions,
                     "duration" to item.duration,
-                    "notes" to item.notes,
-                    "mediaUrls" to item.mediaUrls
+                    "notes" to item.notes
                 )
+
+                // mediaUrls'yi sadece boş değilse ekle
+                if (item.mediaUrls.isNotEmpty()) {
+                    itemMap["mediaUrls"] = item.mediaUrls
+
+                    // Eğer ilk medya URL'si bir video ise, bunu belirt
+                    val isVideo = item.mediaUrls.firstOrNull()?.let { url ->
+                        url.contains("video") || url.contains(".mp4") || url.contains(".mov")
+                    } ?: false
+
+                    if (isVideo) {
+                        itemMap["mediaType"] = "video"
+                    } else {
+                        itemMap["mediaType"] = "image"
+                    }
+                }
+
+                itemMap
             }
+
             val planMap = hashMapOf(
                 "physiotherapistId" to exercisePlan.physiotherapistId,
                 "patientId" to exercisePlan.patientId,
@@ -378,12 +397,16 @@ class ExerciseRepositoryImpl @Inject constructor(
                 "createdAt" to Date(),
                 "updatedAt" to Date()
             )
+
             val docRef = if (exercisePlan.id.isNotEmpty()) {
                 firestore.collection("exercise_plans").document(exercisePlan.id)
             } else {
                 firestore.collection("exercise_plans").document()
             }
+
             docRef.set(planMap).await()
+
+            // Hastaya bildirim gönder
             val notification = hashMapOf(
                 "userId" to exercisePlan.patientId,
                 "title" to "Yeni Egzersiz Planı",
@@ -393,7 +416,9 @@ class ExerciseRepositoryImpl @Inject constructor(
                 "createdAt" to Date(),
                 "isRead" to false
             )
+
             firestore.collection("notifications").add(notification).await()
+
             val savedPlan = exercisePlan.copy(id = docRef.id)
             emit(Resource.Success(savedPlan))
         } catch (e: Exception) {

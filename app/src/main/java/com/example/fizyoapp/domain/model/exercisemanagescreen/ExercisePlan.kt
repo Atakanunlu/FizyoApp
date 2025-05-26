@@ -66,7 +66,8 @@ data class ExercisePlanItem(
     val repetitions: Int = 0,
     val duration: Int = 0,
     val notes: String = "",
-    val mediaUrls: List<String> = emptyList()
+    val mediaUrls: List<String> = emptyList(),
+    val mediaTypes: Map<String, ExerciseType> = emptyMap() // Yeni eklenen alan
 )
 
 enum class ExercisePlanStatus {

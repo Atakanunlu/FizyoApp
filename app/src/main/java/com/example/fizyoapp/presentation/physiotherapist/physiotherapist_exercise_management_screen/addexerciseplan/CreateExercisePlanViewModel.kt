@@ -213,7 +213,8 @@ class CreateExercisePlanViewModel @Inject constructor(
                     repetitions = 10,
                     duration = 30,
                     notes = "",
-                    mediaUrls = event.exercise.mediaUrls
+                    mediaUrls = event.exercise.mediaUrls,
+                    mediaTypes = event.exercise.mediaType // Medya tiplerini aktar
                 )
                 _state.update {
                     it.copy(exercises = it.exercises + exerciseItem)

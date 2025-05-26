@@ -7,10 +7,14 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
@@ -44,7 +48,6 @@ fun MediaViewer(
     val context = LocalContext.current
     val isVideo = mediaType == "video"
     var isPlaying by remember { mutableStateOf(false) }
-
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
@@ -89,7 +92,6 @@ fun MediaViewer(
                                 modifier = Modifier.size(48.dp)
                             )
                         }
-
                         Text(
                             text = "Videoyu oynatmak için tıklayın",
                             color = Color.White,
@@ -103,8 +105,7 @@ fun MediaViewer(
                                 )
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         )
-                    }
-                }
+                    } }
             } else {
                 // Resim gösterimi
                 AsyncImage(
@@ -114,7 +115,6 @@ fun MediaViewer(
                     modifier = Modifier.fillMaxSize()
                 )
             }
-
             // Kapat butonu - video oynatılmıyorsa göster
             if (!isPlaying || !isVideo) {
                 IconButton(
@@ -127,38 +127,33 @@ fun MediaViewer(
                             color = Color.White.copy(alpha = 0.5f),
                             shape = CircleShape
                         )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Kapat",
-                        tint = Color.Black
-                    )
+                ) {  Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Kapat",
+                    tint = Color.Black
+                )
                 }
             }
         }
     }
 }
-
 @Composable
 fun VideoPlayerMedia3(
     videoUri: String,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(videoUri))
             prepare()
         }
     }
-
     DisposableEffect(key1 = Unit) {
         onDispose {
             exoPlayer.release()
         }
     }
-
     Box(modifier = modifier) {
         AndroidView(
             factory = {
