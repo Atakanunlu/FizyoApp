@@ -42,7 +42,7 @@ class ExercisePlanDetailViewModel @Inject constructor(
                     is Resource.Success -> {
                         val plan = result.data
                         if (plan != null) {
-                            Log.d("ExercisePlanDetailVM", "Plan loaded: ${plan.title}, exercises: ${plan.exercises.size}")
+                            logExercisePlanDetails(plan)
                             _state.update {
                                 it.copy(
                                     plan = plan,
@@ -75,6 +75,14 @@ class ExercisePlanDetailViewModel @Inject constructor(
                 }
             }
         }
+    }
+}
+private fun logExercisePlanDetails(plan: ExercisePlan) {
+    Log.d("ExercisePlanDetailVM", "Plan details: ${plan.title}, exercises: ${plan.exercises.size}")
+    plan.exercises.forEachIndexed { index, exercise ->
+        Log.d("ExercisePlanDetailVM", "Exercise $index: ${exercise.exerciseTitle}")
+        Log.d("ExercisePlanDetailVM", "Media URLs: ${exercise.mediaUrls}")
+        Log.d("ExercisePlanDetailVM", "Media Types: ${exercise.mediaTypes}")
     }
 }
 

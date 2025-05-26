@@ -258,20 +258,60 @@ class ExerciseRepositoryImpl @Inject constructor(
                     try {
                         val exerciseItemsData = document.get("exercises") as? List<Map<String, Any>> ?: emptyList()
                         val exerciseItems = exerciseItemsData.map { itemData ->
+                            // Medya URL'lerini al
+                            val mediaUrls = itemData["mediaUrls"] as? List<String> ?: emptyList()
+
+                            // Medya tiplerini al
+                            val mediaTypesRaw = itemData["mediaTypes"] as? Map<String, String> ?: emptyMap()
+                            val mediaTypes = mediaTypesRaw.mapValues { entry ->
+                                when (entry.value.uppercase()) {
+                                    "VIDEO" -> ExerciseType.VIDEO
+                                    else -> ExerciseType.IMAGE
+                                }
+                            }
+
+                            // Eğer mediaTypes haritası boşsa ve eski "mediaType" alanı varsa, onu kullan
+                            val singleMediaType = if (mediaTypes.isEmpty() && mediaUrls.isNotEmpty()) {
+                                when ((itemData["mediaType"] as? String)?.uppercase()) {
+                                    "VIDEO" -> ExerciseType.VIDEO
+                                    else -> null
+                                }
+                            } else null
+
+                            // Eğer hala tür belirlenemezse, URL'lerden tahmin et
+                            val finalMediaTypes = if (mediaTypes.isEmpty() && mediaUrls.isNotEmpty()) {
+                                mediaUrls.associateWith { url ->
+                                    singleMediaType ?: if (url.contains("video") ||
+                                        url.contains(".mp4") || url.contains(".mov") ||
+                                        url.contains(".avi") || url.contains(".webm")) {
+                                        ExerciseType.VIDEO
+                                    } else {
+                                        ExerciseType.IMAGE
+                                    }
+                                }
+                            } else {
+                                mediaTypes
+                            }
+
                             ExercisePlanItem(
                                 exerciseId = itemData["exerciseId"] as? String ?: "",
+                                exerciseTitle = itemData["exerciseTitle"] as? String ?: "",
                                 sets = (itemData["sets"] as? Long)?.toInt() ?: 0,
                                 repetitions = (itemData["repetitions"] as? Long)?.toInt() ?: 0,
                                 duration = (itemData["duration"] as? Long)?.toInt() ?: 0,
-                                notes = itemData["notes"] as? String ?: ""
+                                notes = itemData["notes"] as? String ?: "",
+                                mediaUrls = mediaUrls,
+                                mediaTypes = finalMediaTypes
                             )
                         }
+
                         val statusStr = document.getString("status") ?: ExercisePlanStatus.ACTIVE.name
                         val status = try {
                             ExercisePlanStatus.valueOf(statusStr)
                         } catch (e: Exception) {
                             ExercisePlanStatus.ACTIVE
                         }
+
                         ExercisePlan(
                             id = document.id,
                             physiotherapistId = document.getString("physiotherapistId") ?: "",
@@ -354,7 +394,7 @@ class ExerciseRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
         try {
             val exerciseItemsData = exercisePlan.exercises.map { item ->
-                // Firebstore'a kaydedilecek veri haritası
+                // Firestore'a kaydedilecek veri haritası
                 val itemMap = mutableMapOf<String, Any>(
                     "exerciseId" to item.exerciseId,
                     "exerciseTitle" to item.exerciseTitle,
@@ -368,21 +408,29 @@ class ExerciseRepositoryImpl @Inject constructor(
                 if (item.mediaUrls.isNotEmpty()) {
                     itemMap["mediaUrls"] = item.mediaUrls
 
-                    // Eğer ilk medya URL'si bir video ise, bunu belirt
-                    val isVideo = item.mediaUrls.firstOrNull()?.let { url ->
-                        url.contains("video") || url.contains(".mp4") || url.contains(".mov")
-                    } ?: false
-
-                    if (isVideo) {
-                        itemMap["mediaType"] = "video"
+                    // mediaTypes alanını ekle
+                    if (item.mediaTypes.isNotEmpty()) {
+                        // Her medya URL'si için tipini string olarak kaydet
+                        itemMap["mediaTypes"] = item.mediaTypes.mapValues { it.value.name }
                     } else {
-                        itemMap["mediaType"] = "image"
+                        // mediaTypes boşsa, URL'den tahmin et
+                        val mediaTypesMap = item.mediaUrls.associateWith { url ->
+                            if (url.contains("video") || url.contains(".mp4") ||
+                                url.contains(".mov") || url.contains(".avi") ||
+                                url.contains(".webm")) {
+                                ExerciseType.VIDEO.name
+                            } else {
+                                ExerciseType.IMAGE.name
+                            }
+                        }
+                        itemMap["mediaTypes"] = mediaTypesMap
                     }
                 }
 
                 itemMap
             }
 
+            // Geri kalan kod aynı...
             val planMap = hashMapOf(
                 "physiotherapistId" to exercisePlan.physiotherapistId,
                 "patientId" to exercisePlan.patientId,
@@ -418,28 +466,50 @@ class ExerciseRepositoryImpl @Inject constructor(
             )
 
             firestore.collection("notifications").add(notification).await()
-
             val savedPlan = exercisePlan.copy(id = docRef.id)
             emit(Resource.Success(savedPlan))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Egzersiz planı kaydedilemedi"))
         }
     }
-
     override fun updateExercisePlan(exercisePlan: ExercisePlan): Flow<Resource<ExercisePlan>> = flow {
         emit(Resource.Loading())
         try {
             val exerciseItemsData = exercisePlan.exercises.map { item ->
-                mapOf(
+                val itemMap = mutableMapOf<String, Any>(
                     "exerciseId" to item.exerciseId,
                     "exerciseTitle" to item.exerciseTitle,
                     "sets" to item.sets,
                     "repetitions" to item.repetitions,
                     "duration" to item.duration,
-                    "notes" to item.notes,
-                    "mediaUrls" to item.mediaUrls
+                    "notes" to item.notes
                 )
+
+                if (item.mediaUrls.isNotEmpty()) {
+                    itemMap["mediaUrls"] = item.mediaUrls
+
+                    // mediaTypes alanını ekle
+                    if (item.mediaTypes.isNotEmpty()) {
+                        // Her medya URL'si için tipini string olarak kaydet
+                        itemMap["mediaTypes"] = item.mediaTypes.mapValues { it.value.name }
+                    } else {
+                        // mediaTypes boşsa, URL'den tahmin et
+                        val mediaTypesMap = item.mediaUrls.associateWith { url ->
+                            if (url.contains("video") || url.contains(".mp4") ||
+                                url.contains(".mov") || url.contains(".avi") ||
+                                url.contains(".webm")) {
+                                ExerciseType.VIDEO.name
+                            } else {
+                                ExerciseType.IMAGE.name
+                            }
+                        }
+                        itemMap["mediaTypes"] = mediaTypesMap
+                    }
+                }
+
+                itemMap
             }
+
             val planMap = hashMapOf(
                 "physiotherapistId" to exercisePlan.physiotherapistId,
                 "patientId" to exercisePlan.patientId,
@@ -453,10 +523,12 @@ class ExerciseRepositoryImpl @Inject constructor(
                 "notes" to exercisePlan.notes,
                 "updatedAt" to Date()
             )
+
             firestore.collection("exercise_plans")
                 .document(exercisePlan.id)
                 .update(planMap as Map<String, Any>)
                 .await()
+
             val notification = hashMapOf(
                 "userId" to exercisePlan.patientId,
                 "title" to "Egzersiz Planı Güncellendi",
@@ -466,6 +538,7 @@ class ExerciseRepositoryImpl @Inject constructor(
                 "createdAt" to Date(),
                 "isRead" to false
             )
+
             firestore.collection("notifications").add(notification).await()
             emit(Resource.Success(exercisePlan))
         } catch (e: Exception) {
@@ -529,12 +602,51 @@ class ExerciseRepositoryImpl @Inject constructor(
                 .document(planId)
                 .get()
                 .await()
+
             if (!documentSnapshot.exists()) {
                 emit(Resource.Error("Plan bulunamadı"))
                 return@flow
             }
+
             val exerciseItemsData = documentSnapshot.get("exercises") as? List<Map<String, Any>> ?: emptyList()
             val exerciseItems = exerciseItemsData.map { itemData ->
+                // Medya URL'lerini al
+                val mediaUrls = itemData["mediaUrls"] as? List<String> ?: emptyList()
+
+                // Medya tiplerini al
+                val mediaTypesRaw = itemData["mediaTypes"] as? Map<String, String> ?: emptyMap()
+                val mediaTypes = mediaTypesRaw.mapValues { entry ->
+                    when (entry.value.uppercase()) {
+                        "VIDEO" -> ExerciseType.VIDEO
+                        else -> ExerciseType.IMAGE
+                    }
+                }
+
+                // Eğer mediaTypes haritası boşsa ve eski "mediaType" alanı varsa, onu kullan
+                val singleMediaType = if (mediaTypes.isEmpty() && mediaUrls.isNotEmpty()) {
+                    when ((itemData["mediaType"] as? String)?.uppercase()) {
+                        "VIDEO" -> ExerciseType.VIDEO
+                        else -> null
+                    }
+                } else null
+
+                // Eğer hala tür belirlenemezse, URL'lerden tahmin et
+                val finalMediaTypes = if (mediaTypes.isEmpty() && mediaUrls.isNotEmpty()) {
+                    mediaUrls.associateWith { url ->
+                        singleMediaType ?: if (url.contains("video") ||
+                            url.contains(".mp4") || url.contains(".mov") ||
+                            url.contains(".avi") || url.contains(".webm")) {
+                            ExerciseType.VIDEO
+                        } else {
+                            ExerciseType.IMAGE
+                        }
+                    }
+                } else {
+                    mediaTypes
+                }
+
+                println("URL: $mediaUrls, Types: $finalMediaTypes")
+
                 ExercisePlanItem(
                     exerciseId = itemData["exerciseId"] as? String ?: "",
                     exerciseTitle = itemData["exerciseTitle"] as? String ?: "",
@@ -542,15 +654,18 @@ class ExerciseRepositoryImpl @Inject constructor(
                     repetitions = (itemData["repetitions"] as? Long)?.toInt() ?: 0,
                     duration = (itemData["duration"] as? Long)?.toInt() ?: 0,
                     notes = itemData["notes"] as? String ?: "",
-                    mediaUrls = itemData["mediaUrls"] as? List<String> ?: emptyList()
+                    mediaUrls = mediaUrls,
+                    mediaTypes = finalMediaTypes
                 )
             }
+
             val statusStr = documentSnapshot.getString("status") ?: ExercisePlanStatus.ACTIVE.name
             val status = try {
                 ExercisePlanStatus.valueOf(statusStr)
             } catch (e: Exception) {
                 ExercisePlanStatus.ACTIVE
             }
+
             val plan = ExercisePlan(
                 id = documentSnapshot.id,
                 physiotherapistId = documentSnapshot.getString("physiotherapistId") ?: "",
@@ -566,6 +681,7 @@ class ExerciseRepositoryImpl @Inject constructor(
                 createdAt = documentSnapshot.getDate("createdAt") ?: Date(),
                 updatedAt = documentSnapshot.getDate("updatedAt") ?: Date()
             )
+
             emit(Resource.Success(plan))
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "Plan detayları yüklenemedi"))

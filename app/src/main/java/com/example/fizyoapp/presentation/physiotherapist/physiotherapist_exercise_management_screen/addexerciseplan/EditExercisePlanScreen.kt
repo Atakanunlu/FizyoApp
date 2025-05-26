@@ -1,9 +1,12 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexerciseplan
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -15,6 +18,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -22,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -29,6 +35,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanItem
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanStatus
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.DatePickerField
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
 import kotlinx.coroutines.flow.collectLatest
@@ -109,7 +116,6 @@ fun EditExercisePlanScreen(
                     navigationIconContentColor = Color.White
                 ),
                 actions = {
-
                     if (!state.isLoading && state.plan != null) {
                         IconButton(onClick = { viewModel.toggleStatusSelectionDialog() }) {
                             Icon(
@@ -123,7 +129,6 @@ fun EditExercisePlanScreen(
             )
         }
     ) { paddingValues ->
-
         if (state.showStatusSelectionDialog) {
             AlertDialog(
                 onDismissRequest = { viewModel.toggleStatusSelectionDialog() },
@@ -143,18 +148,14 @@ fun EditExercisePlanScreen(
                             isSelected = state.selectedStatus == ExercisePlanStatus.ACTIVE,
                             onClick = { viewModel.onStatusSelected(ExercisePlanStatus.ACTIVE) }
                         )
-
                         Spacer(modifier = Modifier.height(8.dp))
-
                         StatusOption(
                             title = "Tamamlandı",
                             description = "Plan başarıyla tamamlandı",
                             isSelected = state.selectedStatus == ExercisePlanStatus.COMPLETED,
                             onClick = { viewModel.onStatusSelected(ExercisePlanStatus.COMPLETED) }
                         )
-
                         Spacer(modifier = Modifier.height(8.dp))
-
                         StatusOption(
                             title = "İptal Edildi",
                             description = "Plan iptal edildi veya durduruldu",
@@ -228,7 +229,6 @@ fun EditExercisePlanScreen(
                     }
                 }
             } else if (state.plan != null) {
-
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -258,7 +258,6 @@ fun EditExercisePlanScreen(
                                 )
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-
                             OutlinedTextField(
                                 value = state.title,
                                 onValueChange = { viewModel.onTitleChanged(it) },
@@ -278,9 +277,7 @@ fun EditExercisePlanScreen(
                                     cursorColor = primaryColor
                                 )
                             )
-
                             Spacer(modifier = Modifier.height(16.dp))
-
                             OutlinedTextField(
                                 value = state.patientName,
                                 onValueChange = { },
@@ -303,9 +300,7 @@ fun EditExercisePlanScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -329,7 +324,6 @@ fun EditExercisePlanScreen(
                                 )
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-
                             OutlinedTextField(
                                 value = state.description,
                                 onValueChange = { viewModel.onDescriptionChanged(it) },
@@ -351,21 +345,17 @@ fun EditExercisePlanScreen(
                                     cursorColor = primaryColor
                                 )
                             )
-
                             Spacer(modifier = Modifier.height(16.dp))
-
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-
                                 DatePickerField(
                                     date = state.startDate,
                                     onDateSelected = { viewModel.onStartDateChanged(it) },
                                     label = "Başlangıç Tarihi",
                                     modifier = Modifier.weight(1f)
                                 )
-
                                 DatePickerField(
                                     date = state.endDate,
                                     onDateSelected = { viewModel.onEndDateChanged(it) },
@@ -373,9 +363,7 @@ fun EditExercisePlanScreen(
                                     modifier = Modifier.weight(1f)
                                 )
                             }
-
                             Spacer(modifier = Modifier.height(16.dp))
-
                             OutlinedTextField(
                                 value = state.frequency,
                                 onValueChange = { viewModel.onFrequencyChanged(it) },
@@ -395,7 +383,6 @@ fun EditExercisePlanScreen(
                                     cursorColor = primaryColor
                                 )
                             )
-
                             Spacer(modifier = Modifier.height(16.dp))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -407,13 +394,11 @@ fun EditExercisePlanScreen(
                                     color = textColor
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-
                                 val statusColor = when(state.selectedStatus) {
                                     ExercisePlanStatus.ACTIVE -> Color(0, 150, 136) // Teal
                                     ExercisePlanStatus.COMPLETED -> Color(76, 175, 80) // Green
                                     ExercisePlanStatus.CANCELLED -> Color(244, 67, 54) // Red
                                 }
-
                                 Surface(
                                     color = statusColor.copy(alpha = 0.1f),
                                     shape = RoundedCornerShape(16.dp)
@@ -429,9 +414,7 @@ fun EditExercisePlanScreen(
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
-
                                 Spacer(modifier = Modifier.weight(1f))
-
                                 TextButton(
                                     onClick = { viewModel.toggleStatusSelectionDialog() },
                                     colors = ButtonDefaults.textButtonColors(
@@ -441,7 +424,6 @@ fun EditExercisePlanScreen(
                                     Text("Değiştir")
                                 }
                             }
-
                             Spacer(modifier = Modifier.height(16.dp))
                             OutlinedTextField(
                                 value = state.notes,
@@ -466,9 +448,7 @@ fun EditExercisePlanScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -491,9 +471,7 @@ fun EditExercisePlanScreen(
                                     color = primaryColor
                                 )
                             )
-
                             Spacer(modifier = Modifier.height(16.dp))
-
                             if (state.exercises.isEmpty()) {
                                 Box(
                                     modifier = Modifier
@@ -525,9 +503,7 @@ fun EditExercisePlanScreen(
                             }
                         }
                     }
-
                     Spacer(modifier = Modifier.height(24.dp))
-
                     Button(
                         onClick = { viewModel.saveExercisePlan() },
                         modifier = Modifier
@@ -567,7 +543,6 @@ fun EditExercisePlanScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(24.dp))
                 }
             }
@@ -678,27 +653,18 @@ fun ExerciseItemCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 if (exerciseItem.mediaUrls.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                selectedMediaUrl = exerciseItem.mediaUrls.first()
-                                showMediaViewer = true
-                            }
-                    ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(exerciseItem.mediaUrls.first())
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = exerciseItem.exerciseTitle,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                    val firstMediaUrl = exerciseItem.mediaUrls.first()
+                    // Her zaman MediaPreviewItem kullan
+                    EditScreenMediaPreviewItem(
+                        uri = firstMediaUrl,
+                        mediaTypes = exerciseItem.mediaTypes,
+                        onClick = {
+                            selectedMediaUrl = firstMediaUrl
+                            showMediaViewer = true
+                        },
+                        size = 48.dp
+                    )
                     Spacer(modifier = Modifier.width(12.dp))
                 }
 
@@ -709,7 +675,6 @@ fun ExerciseItemCard(
                     modifier = Modifier.weight(1f),
                     color = textColor
                 )
-
                 IconButton(onClick = { expanded = !expanded }) {
                     Icon(
                         imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
@@ -726,26 +691,71 @@ fun ExerciseItemCard(
                         .padding(top = 8.dp)
                 ) {
                     if (exerciseItem.mediaUrls.isNotEmpty()) {
+                        val firstMediaUrl = exerciseItem.mediaUrls.first()
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(180.dp)
                                 .clickable {
-                                    selectedMediaUrl = exerciseItem.mediaUrls.first()
+                                    selectedMediaUrl = firstMediaUrl
                                     showMediaViewer = true
                                 },
                             shape = RoundedCornerShape(12.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(exerciseItem.mediaUrls.first())
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = exerciseItem.exerciseTitle,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(firstMediaUrl)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = exerciseItem.exerciseTitle,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+
+                                // Video ise oynat düğmesi göster
+                                val isVideo = exerciseItem.mediaTypes[firstMediaUrl] == ExerciseType.VIDEO ||
+                                        firstMediaUrl.contains("video") ||
+                                        firstMediaUrl.contains(".mp4") ||
+                                        firstMediaUrl.contains(".mov") ||
+                                        firstMediaUrl.contains(".avi") ||
+                                        firstMediaUrl.contains(".webm")
+
+                                if (isVideo) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.PlayArrow,
+                                            contentDescription = "Video",
+                                            tint = Color.White,
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                                .padding(8.dp)
+                                        )
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.BottomStart)
+                                            .padding(16.dp)
+                                            .background(
+                                                color = Color.Black.copy(alpha = 0.6f),
+                                                shape = RoundedCornerShape(4.dp)
+                                            )
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = "Video",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                            }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                     }
@@ -773,7 +783,6 @@ fun ExerciseItemCard(
                                 cursorColor = primaryColor
                             )
                         )
-
                         OutlinedTextField(
                             value = repetitions,
                             onValueChange = {
@@ -793,7 +802,6 @@ fun ExerciseItemCard(
                                 cursorColor = primaryColor
                             )
                         )
-
                         OutlinedTextField(
                             value = duration,
                             onValueChange = {
@@ -838,12 +846,142 @@ fun ExerciseItemCard(
             }
 
             if (showMediaViewer && selectedMediaUrl.isNotEmpty()) {
+                // Medya tipini belirleme
+                val mediaType = if (exerciseItem.mediaTypes.containsKey(selectedMediaUrl)) {
+                    if (exerciseItem.mediaTypes[selectedMediaUrl] == ExerciseType.VIDEO) "video" else "image"
+                } else {
+                    // URL'den tahmin et
+                    if (selectedMediaUrl.contains("video") ||
+                        selectedMediaUrl.contains(".mp4") ||
+                        selectedMediaUrl.contains(".mov") ||
+                        selectedMediaUrl.contains(".avi") ||
+                        selectedMediaUrl.contains(".webm")) "video" else "image"
+                }
+
                 MediaViewer(
                     mediaUrl = selectedMediaUrl,
-                    mediaType = if (selectedMediaUrl.contains("video")) "video" else "image",
+                    mediaType = mediaType,
                     onDismiss = { showMediaViewer = false }
                 )
             }
         }
     }
 }
+
+
+@Composable
+fun EditScreenMediaPreviewItem(
+    uri: String,
+    mediaTypes: Map<String, ExerciseType> = emptyMap(),
+    onClick: () -> Unit,
+    size: Dp = 110.dp,
+    onRemove: (() -> Unit)? = null
+) {
+    // Uri'nin tipini belirle
+    val isVideo = mediaTypes[uri] == ExerciseType.VIDEO ||
+            uri.contains("video") || uri.contains(".mp4") ||
+            uri.contains(".mov") || uri.contains(".avi") ||
+            uri.contains(".webm")
+    Box(
+        modifier = Modifier
+            .size(size)
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clip(RoundedCornerShape(8.dp))
+            .border(
+                width = 1.dp,
+                color = textColor.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clickable(onClick = onClick)
+    ) {
+        // Video veya görsel
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(uri)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        // Gradyan arka plan
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.1f),
+                            Color.Black.copy(alpha = 0.3f)
+                        ),
+                        startY = 0f,
+                        endY = size.value
+                    )
+                )
+        )
+        // Kaldır butonu (eğer verilmişse)
+        onRemove?.let {
+            IconButton(
+                onClick = it,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(4.dp)
+                    .size(24.dp)
+                    .background(
+                        color = Color.Red.copy(alpha = 0.7f),
+                        shape = CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Kaldır",
+                    tint = Color.White,
+                    modifier = Modifier.size(14.dp)
+                )
+            }
+        }
+        // Video göstergesi ve Oynat butonu
+        if (isVideo) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(size / 3)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.6f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Video",
+                    tint = Color.White,
+                    modifier = Modifier.size(size / 5)
+                )
+            }
+            if (size >= 80.dp) {
+                // Video etiketi (sadece daha büyük boyutlar için)
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(4.dp)
+                        .background(
+                            color = Color.Black.copy(alpha = 0.6f),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "Video",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+    }
+}
+

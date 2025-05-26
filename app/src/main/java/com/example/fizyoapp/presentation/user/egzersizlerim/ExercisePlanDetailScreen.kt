@@ -35,6 +35,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
@@ -106,17 +107,27 @@ fun ExercisePlanDetailScreen(
     LaunchedEffect(planId) {
         viewModel.loadExercisePlan(planId)
     }
-
     LaunchedEffect(currentExerciseIndex, state.plan) {
         if (state.plan != null && state.plan.exercises.isNotEmpty()) {
             val currentExercise = state.plan.exercises[currentExerciseIndex]
             if (currentExercise.mediaUrls.isNotEmpty()) {
                 val mediaUrl = currentExercise.mediaUrls.first()
 
-                currentMediaType = if (mediaUrl.contains("video") ||
-                    mediaUrl.contains(".mp4") ||
-                    mediaUrl.contains(".mov")) {
+                // Check if we have a media type specified in the exercise item
+                val isVideoFromType = currentExercise.mediaTypes[mediaUrl]?.name?.equals("VIDEO", ignoreCase = true) ?: false
 
+                // Fallback to URL pattern matching if no media type specified
+                val isVideoFromUrl = mediaUrl.contains("video", ignoreCase = true) ||
+                        mediaUrl.endsWith(".mp4", ignoreCase = true) ||
+                        mediaUrl.endsWith(".mov", ignoreCase = true) ||
+                        mediaUrl.endsWith(".webm", ignoreCase = true) ||
+                        mediaUrl.endsWith(".avi", ignoreCase = true) ||
+                        mediaUrl.endsWith(".3gp", ignoreCase = true) ||
+                        mediaUrl.endsWith(".mkv", ignoreCase = true)
+
+                val isVideo = isVideoFromType || isVideoFromUrl
+
+                currentMediaType = if (isVideo) {
                     showPlayer = true
                     val videoUri = Uri.parse(mediaUrl)
                     exoPlayer.stop()
@@ -129,10 +140,37 @@ fun ExercisePlanDetailScreen(
                     showPlayer = false
                     "image"
                 }
+
             } else {
                 showPlayer = false
                 currentMediaType = "none"
             }
+        }
+    }
+    // Add this in the ExercisePlanDetailScreen Composable, right after ExoPlayer initialization
+    DisposableEffect(Unit) {
+        // Add player listener for debugging
+        exoPlayer.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(state: Int) {
+                val stateStr = when (state) {
+                    Player.STATE_IDLE -> "IDLE"
+                    Player.STATE_BUFFERING -> "BUFFERING"
+                    Player.STATE_READY -> "READY"
+                    Player.STATE_ENDED -> "ENDED"
+                    else -> "UNKNOWN"
+                }
+                Log.d("ExoPlayer", "State: $stateStr")
+            }
+
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                Log.e("ExoPlayer", "Error: ${error.message}")
+            }
+        })
+
+        onDispose {
+            exoPlayer.stop()
+            playerView?.player = null
+            exoPlayer.release()
         }
     }
 
@@ -703,7 +741,6 @@ fun MediaContainerRedesigned(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-
             Text(
                 text = "Egzersiz Gösterimi",
                 fontSize = 18.sp,
@@ -711,8 +748,6 @@ fun MediaContainerRedesigned(
                 color = primaryColor,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
-
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -731,13 +766,24 @@ fun MediaContainerRedesigned(
                                     PlayerView(ctx).apply {
                                         player = exoPlayer
                                         useController = true
-                                        controllerShowTimeoutMs = 1500
+                                        // Set a longer timeout so controls don't disappear too quickly
+                                        controllerShowTimeoutMs = 3000
+                                        // Show buffering indicator
                                         setShowBuffering(PlayerView.SHOW_BUFFERING_ALWAYS)
+                                        // Make sure player controls are enabled
+                                        useController = true
                                         onPlayerViewCreated(this)
                                     }
                                 },
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier.fillMaxSize(),
+                                update = { view ->
+                                    // Ensure player is connected to view
+                                    view.player = exoPlayer
+                                }
                             )
+                        } else {
+                            // Show loading or error state
+                            CircularProgressIndicator(color = primaryColor)
                         }
                     }
                     "image" -> {
@@ -764,9 +810,7 @@ fun MediaContainerRedesigned(
                                 tint = primaryColor.copy(alpha = 0.3f),
                                 modifier = Modifier.size(80.dp)
                             )
-
                             Spacer(modifier = Modifier.height(16.dp))
-
                             Text(
                                 text = "Görsel içerik bulunamadı",
                                 color = textColor.copy(alpha = 0.5f),
@@ -776,10 +820,7 @@ fun MediaContainerRedesigned(
                     }
                 }
             }
-
-
             Spacer(modifier = Modifier.height(12.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -969,7 +1010,9 @@ fun ExerciseControlButtonsRedesigned(
     onPrevious: () -> Unit,
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
-    showPlayPause: Boolean
+    showPlayPause: Boolean,
+    mediaType: String = ""
+
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -990,7 +1033,7 @@ fun ExerciseControlButtonsRedesigned(
         ) {
 
             AnimatedVisibility(
-                visible = totalExercises > 1,
+                visible = showPlayPause && mediaType == "video",  // <-- Update this condition
                 enter = fadeIn() + scaleIn(),
                 exit = fadeOut() + scaleOut()
             ) {
