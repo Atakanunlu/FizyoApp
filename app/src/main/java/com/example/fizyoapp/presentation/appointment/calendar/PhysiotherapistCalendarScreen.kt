@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.appointment.calendar
-
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -30,8 +29,7 @@ import com.example.fizyoapp.presentation.appointment.booking.CalendarView
 import com.example.fizyoapp.presentation.appointment.booking.TimeSlotGrid
 import java.text.SimpleDateFormat
 import java.util.*
-
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingValues")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PhysiotherapistCalendarScreen(
@@ -45,13 +43,9 @@ fun PhysiotherapistCalendarScreen(
     var showRehabilitationDialog by remember { mutableStateOf(false) }
     var showUserDetailsDialog by remember { mutableStateOf(false) }
     var selectedUserId by remember { mutableStateOf<String?>(null) }
-
-
     var showBlockConfirmationDialog by remember { mutableStateOf(false) }
     var timeSlotToBlock by remember { mutableStateOf<String?>(null) }
-
     var selectedMonth by remember { mutableStateOf(0) }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -183,7 +177,7 @@ fun PhysiotherapistCalendarScreen(
                             )
                             IconButton(
                                 onClick = {
-                                    if (selectedMonth < 5) selectedMonth++ // Maksimum 5 ay ileri
+                                    if (selectedMonth < 12) selectedMonth++ // Maksimum 12 ay ileri
                                 }
                             ) {
                                 Icon(
@@ -194,7 +188,6 @@ fun PhysiotherapistCalendarScreen(
                             }
                         }
                     }
-
                     CalendarView(
                         currentMonth = selectedMonth,
                         onDateSelected = { date ->
@@ -203,7 +196,6 @@ fun PhysiotherapistCalendarScreen(
                         selectedDate = state.selectedDate
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Text(
                         text = "Bugünkü Randevular",
                         style = LocalTextStyle.current.copy(
@@ -321,10 +313,119 @@ fun PhysiotherapistCalendarScreen(
                             }
                         )
                     }
-                    Spacer(modifier = Modifier.height(60.dp)) // Bottom padding for scrolling
+                    Spacer(modifier = Modifier.height(16.dp))
+                    // Bilgilendirici Notlar Bölümü
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = null,
+                                    tint = Color(0xFF1976D2),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Önemli Bilgiler",
+                                    style = LocalTextStyle.current.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp,
+                                        color = Color(0xFF1976D2)
+                                    )
+                                )
+                            }
+                            // Not 1
+                            Row(
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .background(
+                                            Color(0xFF1976D2),
+                                            CircleShape
+                                        )
+                                        .align(Alignment.Top)
+                                        .padding(top = 8.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Randevudan bir gün önce ilgili hasta ile iletişim kurarak randevu tarihini kesinleştirebilirsiniz.",
+                                    style = LocalTextStyle.current.copy(
+                                        fontSize = 14.sp,
+                                        color = Color(0xFF424242),
+                                        lineHeight = 20.sp
+                                    ),
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            // Not 2
+                            Row(
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .background(
+                                            Color(0xFF1976D2),
+                                            CircleShape
+                                        )
+                                        .align(Alignment.Top)
+                                        .padding(top = 8.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Uzaktan telerehabilitasyon gerçekleştireceğiniz hastalarınıza ödeme işlemi için 'Mesajlar' bölümünden detaylı bilgi verebilirsiniz.",
+                                    style = LocalTextStyle.current.copy(
+                                        fontSize = 14.sp,
+                                        color = Color(0xFF424242),
+                                        lineHeight = 20.sp
+                                    ),
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            // Not 3
+                            Row {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .background(
+                                            Color(0xFF1976D2),
+                                            CircleShape
+                                        )
+                                        .align(Alignment.Top)
+                                        .padding(top = 8.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Hastalarınızın rehabilitasyon sürecini takip edebilmek için randevu sonrası mutlaka notlarınızı kaydetmeyi unutmayın.",
+                                    style = LocalTextStyle.current.copy(
+                                        fontSize = 14.sp,
+                                        color = Color(0xFF424242),
+                                        lineHeight = 20.sp
+                                    ),
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(80.dp)) // Bottom padding for scrolling
                 }
             }
-
             if (state.success != null) {
                 Snackbar(
                     modifier = Modifier
@@ -350,7 +451,6 @@ fun PhysiotherapistCalendarScreen(
             }
         }
     }
-
     if (showRehabilitationDialog && selectedAppointment != null) {
         RehabilitationNoteDialog(
             appointment = selectedAppointment!!,
@@ -361,15 +461,12 @@ fun PhysiotherapistCalendarScreen(
             }
         )
     }
-
     if (showUserDetailsDialog && selectedUserId != null) {
         UserDetailsDialog(
             userId = selectedUserId!!,
             onDismiss = { showUserDetailsDialog = false }
         )
     }
-
-
     if (showBlockConfirmationDialog && timeSlotToBlock != null) {
         TimeBlockConfirmationDialog(
             timeSlot = timeSlotToBlock!!,
@@ -386,7 +483,6 @@ fun PhysiotherapistCalendarScreen(
         )
     }
 }
-
 @Composable
 fun TimeBlockConfirmationDialog(
     timeSlot: String,
@@ -417,7 +513,6 @@ fun TimeBlockConfirmationDialog(
         }
     )
 }
-
 @Composable
 fun AppointmentCard(
     appointment: Appointment,
@@ -442,7 +537,6 @@ fun AppointmentCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Box(
                     modifier = Modifier
                         .size(50.dp)
@@ -467,7 +561,6 @@ fun AppointmentCard(
                     }
                 }
                 Spacer(modifier = Modifier.width(16.dp))
-
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
@@ -486,7 +579,6 @@ fun AppointmentCard(
                             color = Color.Gray
                         )
                     )
-
                     val typeText = when (appointment.appointmentType) {
                         com.example.fizyoapp.domain.model.appointment.AppointmentType.IN_PERSON -> "Yüz Yüze Randevu"
                         com.example.fizyoapp.domain.model.appointment.AppointmentType.REMOTE -> "Uzaktan Randevu"
@@ -500,9 +592,7 @@ fun AppointmentCard(
                         )
                     )
                 }
-
                 Row {
-
                     IconButton(
                         onClick = { onInfoClick(appointment) }
                     ) {
@@ -512,7 +602,6 @@ fun AppointmentCard(
                             tint = primaryColor
                         )
                     }
-
                     IconButton(
                         onClick = { onUserDetailsClick(appointment.userId) }
                     ) {
@@ -524,7 +613,6 @@ fun AppointmentCard(
                     }
                 }
             }
-
             if (appointment.rehabilitationNotes.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider()
@@ -546,7 +634,6 @@ fun AppointmentCard(
         }
     }
 }
-
 @Composable
 fun RehabilitationNoteDialog(
     appointment: Appointment,
@@ -607,7 +694,6 @@ fun RehabilitationNoteDialog(
         }
     )
 }
-
 @Composable
 fun UserDetailsDialog(
     userId: String,
@@ -696,7 +782,6 @@ fun UserDetailsDialog(
         }
     )
 }
-
 @Composable
 fun UserInfoItem(
     label: String,

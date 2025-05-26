@@ -16,13 +16,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.fizyoapp.domain.model.appointment.AppointmentType
 import java.text.SimpleDateFormat
 import java.util.*
@@ -35,6 +41,19 @@ fun RehabilitationHistoryScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val primaryColor = Color(0xFF3B3E68)
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.loadAppointments()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -49,7 +68,16 @@ fun RehabilitationHistoryScreen(
                     containerColor = primaryColor,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { viewModel.loadAppointments() }) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Yenile",
+                            tint = Color.White
+                        )
+                    }
+                }
             )
         }
     ) { innerPadding ->
@@ -60,7 +88,8 @@ fun RehabilitationHistoryScreen(
         ) {
             if (state.isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
+                    color = primaryColor
                 )
             } else if (state.error != null) {
                 Column(
@@ -75,21 +104,19 @@ fun RehabilitationHistoryScreen(
                         tint = Color.Red,
                         modifier = Modifier.size(48.dp)
                     )
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Text(
                         text = state.error ?: "Bir hata oluştu",
-                        style = LocalTextStyle.current.copy(
-                            color = Color.Red,
-                            textAlign = TextAlign.Center
-                        )
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.Red,
+                        textAlign = TextAlign.Center
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Button(
-                        onClick = { viewModel.loadAppointments() }
+                        onClick = { viewModel.loadAppointments() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = primaryColor
+                        )
                     ) {
                         Text("Yeniden Dene")
                     }
@@ -107,26 +134,35 @@ fun RehabilitationHistoryScreen(
                         tint = Color.Gray,
                         modifier = Modifier.size(48.dp)
                     )
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Text(
-                        text = "Henüz rehabilitasyon kaydınız bulunmuyor",
-                        style = LocalTextStyle.current.copy(
-                            color = Color.Gray,
-                            textAlign = TextAlign.Center
-                        )
+                        text = "Henüz tamamlanmış rehabilitasyon kaydınız bulunmuyor.\nSadece tarihi geçmiş randevular burada gösterilir.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center
                     )
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    item {
+                        Text(
+                            text = "Geçmiş Rehabilitasyon Kayıtlarınız",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = primaryColor,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
                     items(state.appointments) { appointment ->
                         RehabilitationHistoryCard(appointment = appointment)
                     }
+                    item { Spacer(modifier = Modifier.height(16.dp)) }
                 }
             }
         }
@@ -138,11 +174,11 @@ fun RehabilitationHistoryCard(
     appointment: AppointmentWithPhysiotherapist
 ) {
     val primaryColor = Color(0xFF3B3E68)
+    val context = LocalContext.current
 
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -160,21 +196,28 @@ fun RehabilitationHistoryCard(
                     modifier = Modifier
                         .size(50.dp)
                         .clip(CircleShape)
-                        .background(primaryColor),
+                        .background(primaryColor.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (appointment.physiotherapistPhotoUrl.isNotEmpty()) {
+                    if (appointment.physiotherapistPhotoUrl.isNotEmpty() &&
+                        appointment.physiotherapistPhotoUrl != "null") {
+
                         AsyncImage(
-                            model = appointment.physiotherapistPhotoUrl,
+                            model = ImageRequest.Builder(context)
+                                .data(appointment.physiotherapistPhotoUrl)
+                                .crossfade(true)
+                                .build(),
                             contentDescription = "Fizyoterapist fotoğrafı",
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            error = painterResource(id = android.R.drawable.ic_menu_myplaces),
+                            fallback = painterResource(id = android.R.drawable.ic_menu_myplaces)
                         )
                     } else {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "Fizyoterapist",
-                            tint = Color.White,
+                            tint = primaryColor,
                             modifier = Modifier.size(30.dp)
                         )
                     }
@@ -186,21 +229,25 @@ fun RehabilitationHistoryCard(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "FZT. ${appointment.physiotherapistName}",
-                        style = LocalTextStyle.current.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = primaryColor
-                        )
+                        text = if (appointment.physiotherapistName.startsWith("Fizyoterapist")) {
+                            appointment.physiotherapistName
+                        } else {
+                            "FZT. ${appointment.physiotherapistName}"
+                        },
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor
                     )
+
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
                         text = "${SimpleDateFormat("dd MMM yyyy", Locale("tr")).format(appointment.appointment.date)}, ${appointment.appointment.timeSlot}",
-                        style = LocalTextStyle.current.copy(
-                            fontSize = 14.sp,
-                            color = Color.Gray
-                        )
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
                     )
+
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     val typeText = when (appointment.appointment.appointmentType) {
                         AppointmentType.IN_PERSON -> "Yüz Yüze Randevu"
@@ -209,36 +256,38 @@ fun RehabilitationHistoryCard(
 
                     Text(
                         text = typeText,
-                        style = LocalTextStyle.current.copy(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = primaryColor
-                        )
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = primaryColor
                     )
                 }
             }
 
             if (appointment.appointment.rehabilitationNotes.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider()
+                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.7f))
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
                     text = "Rehabilitasyon Notları:",
-                    style = LocalTextStyle.current.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
+                    fontWeight = FontWeight.Bold,
+                    color = primaryColor,
+                    fontSize = 14.sp
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Text(
-                    text = appointment.appointment.rehabilitationNotes,
-                    style = LocalTextStyle.current.copy(
-                        fontSize = 14.sp
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    color = primaryColor.copy(alpha = 0.05f)
+                ) {
+                    Text(
+                        text = appointment.appointment.rehabilitationNotes,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(12.dp)
                     )
-                )
+                }
             }
         }
     }
