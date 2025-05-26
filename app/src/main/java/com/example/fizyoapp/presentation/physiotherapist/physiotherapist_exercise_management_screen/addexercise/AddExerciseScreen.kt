@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexercise
-
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,6 +44,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.fizyoapp.domain.model.exercisemanagescreen.DEFAULT_EXERCISE_CATEGORIES
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseDifficulty
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
 import kotlinx.coroutines.flow.collectLatest
@@ -70,6 +70,7 @@ fun AddExerciseScreen(
     var showMediaViewer by remember { mutableStateOf(false) }
     var selectedMediaUrl by remember { mutableStateOf("") }
     var selectedMediaType by remember { mutableStateOf("") }
+
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -77,6 +78,7 @@ fun AddExerciseScreen(
             viewModel.onEvent(AddExerciseEvent.AddMedia(it.toString(), "image"))
         }
     }
+
     val videoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -84,6 +86,7 @@ fun AddExerciseScreen(
             viewModel.onEvent(AddExerciseEvent.AddMedia(it.toString(), "video"))
         }
     }
+
     var showCategoryDialog by remember { mutableStateOf(false) }
     var showDifficultyDialog by remember { mutableStateOf(false) }
 
@@ -151,6 +154,7 @@ fun AddExerciseScreen(
                     .verticalScroll(scrollState)
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -173,7 +177,9 @@ fun AddExerciseScreen(
                                 color = primaryColor
                             )
                         )
+
                         Spacer(modifier = Modifier.height(16.dp))
+
                         OutlinedTextField(
                             value = state.title,
                             onValueChange = { viewModel.onEvent(AddExerciseEvent.TitleChanged(it)) },
@@ -205,7 +211,9 @@ fun AddExerciseScreen(
                                 cursorColor = primaryColor
                             )
                         )
+
                         Spacer(modifier = Modifier.height(16.dp))
+
                         OutlinedTextField(
                             value = state.category,
                             onValueChange = { },
@@ -262,7 +270,9 @@ fun AddExerciseScreen(
                                 color = primaryColor
                             )
                         )
+
                         Spacer(modifier = Modifier.height(16.dp))
+
                         OutlinedTextField(
                             value = state.description,
                             onValueChange = { viewModel.onEvent(AddExerciseEvent.DescriptionChanged(it)) },
@@ -287,7 +297,9 @@ fun AddExerciseScreen(
                                 cursorColor = primaryColor
                             )
                         )
+
                         Spacer(modifier = Modifier.height(16.dp))
+
                         OutlinedTextField(
                             value = state.instructions,
                             onValueChange = { viewModel.onEvent(AddExerciseEvent.InstructionsChanged(it)) },
@@ -336,7 +348,9 @@ fun AddExerciseScreen(
                                 color = primaryColor
                             )
                         )
+
                         Spacer(modifier = Modifier.height(16.dp))
+
                         OutlinedTextField(
                             value = when (state.difficulty) {
                                 ExerciseDifficulty.EASY -> "Kolay"
@@ -397,13 +411,17 @@ fun AddExerciseScreen(
                                 color = primaryColor
                             )
                         )
+
                         Spacer(modifier = Modifier.height(8.dp))
+
                         Text(
                             text = "Egzersiz için görsel veya video ekleyin",
                             style = MaterialTheme.typography.bodyMedium,
                             color = textColor.copy(alpha = 0.7f)
                         )
+
                         Spacer(modifier = Modifier.height(16.dp))
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
@@ -413,12 +431,14 @@ fun AddExerciseScreen(
                                 text = "Fotoğraf",
                                 onClick = { imagePickerLauncher.launch("image/*") }
                             )
+
                             MediaButton(
                                 icon = Icons.Outlined.Videocam,
                                 text = "Video",
                                 onClick = { videoPickerLauncher.launch("video/*") }
                             )
                         }
+
                         AnimatedVisibility(
                             visible = state.mediaUris.isNotEmpty(),
                             enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
@@ -428,13 +448,16 @@ fun AddExerciseScreen(
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Divider(color = textColor.copy(alpha = 0.1f))
                                 Spacer(modifier = Modifier.height(16.dp))
+
                                 Text(
                                     text = "Seçilen Medyalar (${state.mediaUris.size})",
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Medium,
                                     color = primaryColor
                                 )
+
                                 Spacer(modifier = Modifier.height(8.dp))
+
                                 LazyRow(
                                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                                     contentPadding = PaddingValues(vertical = 8.dp)
@@ -442,10 +465,11 @@ fun AddExerciseScreen(
                                     items(state.mediaUris) { uri ->
                                         MediaPreviewItem(
                                             uri = uri,
+                                            mediaTypes = state.mediaTypes,
                                             onRemove = { viewModel.onEvent(AddExerciseEvent.RemoveMedia(uri)) },
                                             onClick = {
                                                 selectedMediaUrl = uri
-                                                selectedMediaType = if (uri.contains("video")) "video" else "image"
+                                                selectedMediaType = if (state.mediaTypes[uri] == ExerciseType.VIDEO) "video" else "image"
                                                 showMediaViewer = true
                                             }
                                         )
@@ -603,7 +627,9 @@ fun AddExerciseScreen(
                                     showDifficultyDialog = false
                                 }
                             )
+
                             Spacer(modifier = Modifier.height(8.dp))
+
                             DifficultyOption(
                                 title = "Orta",
                                 description = "Orta seviye egzersizler",
@@ -614,7 +640,9 @@ fun AddExerciseScreen(
                                     showDifficultyDialog = false
                                 }
                             )
+
                             Spacer(modifier = Modifier.height(8.dp))
+
                             DifficultyOption(
                                 title = "Zor",
                                 description = "İleri seviye egzersizler",
@@ -686,7 +714,9 @@ fun MediaButton(
                 )
             }
         }
+
         Spacer(modifier = Modifier.height(8.dp))
+
         Text(
             text = text,
             style = MaterialTheme.typography.labelMedium,
@@ -699,9 +729,12 @@ fun MediaButton(
 @Composable
 fun MediaPreviewItem(
     uri: String,
+    mediaTypes: Map<String, ExerciseType> = emptyMap(),
     onRemove: () -> Unit,
     onClick: () -> Unit
 ) {
+    val isVideo = mediaTypes[uri] == ExerciseType.VIDEO || uri.contains("video")
+
     Box(
         modifier = Modifier
             .size(110.dp)
@@ -726,6 +759,7 @@ fun MediaPreviewItem(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -740,6 +774,7 @@ fun MediaPreviewItem(
                     )
                 )
         )
+
         IconButton(
             onClick = onRemove,
             modifier = Modifier
@@ -758,21 +793,23 @@ fun MediaPreviewItem(
                 modifier = Modifier.size(16.dp)
             )
         }
-        if (uri.contains("video")) {
-            Surface(
+
+        if (isVideo) {
+            Box(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(8.dp),
-                shape = RoundedCornerShape(4.dp),
-                color = Color.Black.copy(alpha = 0.6f)
+                    .align(Alignment.Center)
+                    .size(36.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.6f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Videocam,
-                    contentDescription = null,
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Video",
                     tint = Color.White,
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .size(16.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
@@ -810,7 +847,9 @@ fun DifficultyOption(
                     selectedColor = primaryColor
                 )
             )
+
             Spacer(modifier = Modifier.width(8.dp))
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -832,6 +871,7 @@ fun DifficultyOption(
                         textColor.copy(alpha = 0.7f)
                 )
             }
+
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,

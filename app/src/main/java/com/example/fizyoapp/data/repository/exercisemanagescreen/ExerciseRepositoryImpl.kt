@@ -19,7 +19,6 @@ import kotlinx.coroutines.tasks.await
 import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
-
 class ExerciseRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val storage: FirebaseStorage
@@ -40,7 +39,6 @@ class ExerciseRepositoryImpl @Inject constructor(
                         val mediaTypeRaw = document.get("mediaType") as? Map<String, String> ?: emptyMap()
                         val mediaTypes = mediaTypeRaw.mapValues { entry ->
                             when (entry.value) {
-                                "IMAGE" -> ExerciseType.IMAGE
                                 "VIDEO" -> ExerciseType.VIDEO
                                 else -> ExerciseType.IMAGE
                             }
@@ -75,7 +73,6 @@ class ExerciseRepositoryImpl @Inject constructor(
             }
         awaitClose { listener.remove() }
     }
-
     override fun getExerciseById(exerciseId: String): Flow<Resource<Exercise>> = callbackFlow {
         trySend(Resource.Loading())
         val listener = firestore.collection("exercises")
@@ -91,13 +88,26 @@ class ExerciseRepositoryImpl @Inject constructor(
                 }
                 try {
                     val mediaUrlsList = snapshot.get("mediaUrls") as? List<String> ?: emptyList()
-                    val mediaTypeRaw = snapshot.get("mediaType") as? Map<String, String> ?: emptyMap()
-                    val mediaTypes = mediaTypeRaw.mapValues { entry ->
-                        when (entry.value) {
-                            "IMAGE" -> ExerciseType.IMAGE
-                            "VIDEO" -> ExerciseType.VIDEO
-                            else -> ExerciseType.IMAGE
+                    val mediaTypeRaw = snapshot.get("mediaType") as? Map<String, Any> ?: emptyMap()
+                    val mediaTypes = mutableMapOf<String, ExerciseType>()
+                    for ((url, typeValue) in mediaTypeRaw) {
+                        val typeStr = when (typeValue) {
+                            is String -> typeValue
+                            else -> typeValue.toString()
                         }
+                        val type = when (typeStr.uppercase()) {
+                            "VIDEO" -> ExerciseType.VIDEO
+                            "IMAGE" -> ExerciseType.IMAGE
+                            else -> {
+                                if (url.contains("video") || url.contains(".mp4") ||
+                                    url.contains(".mov") || url.contains(".avi")) {
+                                    ExerciseType.VIDEO
+                                } else {
+                                    ExerciseType.IMAGE
+                                }
+                            }
+                        }
+                        mediaTypes[url] = type
                     }
                     val difficultyStr = snapshot.getString("difficulty") ?: ExerciseDifficulty.MEDIUM.name
                     val difficulty = try {
@@ -128,7 +138,6 @@ class ExerciseRepositoryImpl @Inject constructor(
             }
         awaitClose { listener.remove() }
     }
-
     override fun createExercise(exercise: Exercise): Flow<Resource<Exercise>> = flow {
         emit(Resource.Loading())
         try {
@@ -159,7 +168,6 @@ class ExerciseRepositoryImpl @Inject constructor(
             emit(Resource.Error(e.localizedMessage ?: "Egzersiz kaydedilemedi"))
         }
     }
-
     override fun updateExercise(exercise: Exercise): Flow<Resource<Exercise>> = flow {
         emit(Resource.Loading())
         try {
@@ -186,7 +194,6 @@ class ExerciseRepositoryImpl @Inject constructor(
             emit(Resource.Error(e.localizedMessage ?: "Egzersiz güncellenemedi"))
         }
     }
-
     override fun deleteExercise(exerciseId: String): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
         try {
@@ -199,7 +206,6 @@ class ExerciseRepositoryImpl @Inject constructor(
             emit(Resource.Error(e.localizedMessage ?: "Egzersiz silinemedi"))
         }
     }
-
     override fun uploadExerciseMedia(
         mediaUri: Uri,
         physiotherapistId: String,
@@ -218,7 +224,6 @@ class ExerciseRepositoryImpl @Inject constructor(
             emit(Resource.Error(e.localizedMessage ?: "Medya yüklenemedi"))
         }
     }
-
     override fun getExercisePlansByPhysiotherapist(physiotherapistId: String): Flow<Resource<List<ExercisePlan>>> = callbackFlow {
         trySend(Resource.Loading())
         val listener = firestore.collection("exercise_plans")
@@ -233,12 +238,42 @@ class ExerciseRepositoryImpl @Inject constructor(
                     try {
                         val exerciseItemsData = document.get("exercises") as? List<Map<String, Any>> ?: emptyList()
                         val exerciseItems = exerciseItemsData.map { itemData ->
+                            val mediaUrls = itemData["mediaUrls"] as? List<String> ?: emptyList()
+                            val mediaTypesRaw = itemData["mediaTypes"] as? Map<String, String> ?: emptyMap()
+                            val mediaTypes = mediaTypesRaw.mapValues { entry ->
+                                when (entry.value.uppercase()) {
+                                    "VIDEO" -> ExerciseType.VIDEO
+                                    else -> ExerciseType.IMAGE
+                                }
+                            }
+                            val singleMediaType = if (mediaTypes.isEmpty() && mediaUrls.isNotEmpty()) {
+                                when ((itemData["mediaType"] as? String)?.uppercase()) {
+                                    "VIDEO" -> ExerciseType.VIDEO
+                                    else -> null
+                                }
+                            } else null
+                            val finalMediaTypes = if (mediaTypes.isEmpty() && mediaUrls.isNotEmpty()) {
+                                mediaUrls.associateWith { url ->
+                                    singleMediaType ?: if (url.contains("video") ||
+                                        url.contains(".mp4") || url.contains(".mov") ||
+                                        url.contains(".avi") || url.contains(".webm")) {
+                                        ExerciseType.VIDEO
+                                    } else {
+                                        ExerciseType.IMAGE
+                                    }
+                                }
+                            } else {
+                                mediaTypes
+                            }
                             ExercisePlanItem(
                                 exerciseId = itemData["exerciseId"] as? String ?: "",
+                                exerciseTitle = itemData["exerciseTitle"] as? String ?: "",
                                 sets = (itemData["sets"] as? Long)?.toInt() ?: 0,
                                 repetitions = (itemData["repetitions"] as? Long)?.toInt() ?: 0,
                                 duration = (itemData["duration"] as? Long)?.toInt() ?: 0,
-                                notes = itemData["notes"] as? String ?: ""
+                                notes = itemData["notes"] as? String ?: "",
+                                mediaUrls = mediaUrls,
+                                mediaTypes = finalMediaTypes
                             )
                         }
                         val statusStr = document.getString("status") ?: ExercisePlanStatus.ACTIVE.name
@@ -270,7 +305,6 @@ class ExerciseRepositoryImpl @Inject constructor(
             }
         awaitClose { listener.remove() }
     }
-
     override fun getExercisePlansByPatient(patientId: String): Flow<Resource<List<ExercisePlan>>> = callbackFlow {
         trySend(Resource.Loading())
         val listener = firestore.collection("exercise_plans")
@@ -324,20 +358,36 @@ class ExerciseRepositoryImpl @Inject constructor(
             }
         awaitClose { listener.remove() }
     }
-
     override fun createExercisePlan(exercisePlan: ExercisePlan): Flow<Resource<ExercisePlan>> = flow {
         emit(Resource.Loading())
         try {
             val exerciseItemsData = exercisePlan.exercises.map { item ->
-                mapOf(
+                val itemMap = mutableMapOf<String, Any>(
                     "exerciseId" to item.exerciseId,
                     "exerciseTitle" to item.exerciseTitle,
                     "sets" to item.sets,
                     "repetitions" to item.repetitions,
                     "duration" to item.duration,
-                    "notes" to item.notes,
-                    "mediaUrls" to item.mediaUrls
+                    "notes" to item.notes
                 )
+                if (item.mediaUrls.isNotEmpty()) {
+                    itemMap["mediaUrls"] = item.mediaUrls
+                    if (item.mediaTypes.isNotEmpty()) {
+                        itemMap["mediaTypes"] = item.mediaTypes.mapValues { it.value.name }
+                    } else {
+                        val mediaTypesMap = item.mediaUrls.associateWith { url ->
+                            if (url.contains("video") || url.contains(".mp4") ||
+                                url.contains(".mov") || url.contains(".avi") ||
+                                url.contains(".webm")) {
+                                ExerciseType.VIDEO.name
+                            } else {
+                                ExerciseType.IMAGE.name
+                            }
+                        }
+                        itemMap["mediaTypes"] = mediaTypesMap
+                    }
+                }
+                itemMap
             }
             val planMap = hashMapOf(
                 "physiotherapistId" to exercisePlan.physiotherapistId,
@@ -375,20 +425,36 @@ class ExerciseRepositoryImpl @Inject constructor(
             emit(Resource.Error(e.localizedMessage ?: "Egzersiz planı kaydedilemedi"))
         }
     }
-
     override fun updateExercisePlan(exercisePlan: ExercisePlan): Flow<Resource<ExercisePlan>> = flow {
         emit(Resource.Loading())
         try {
             val exerciseItemsData = exercisePlan.exercises.map { item ->
-                mapOf(
+                val itemMap = mutableMapOf<String, Any>(
                     "exerciseId" to item.exerciseId,
                     "exerciseTitle" to item.exerciseTitle,
                     "sets" to item.sets,
                     "repetitions" to item.repetitions,
                     "duration" to item.duration,
-                    "notes" to item.notes,
-                    "mediaUrls" to item.mediaUrls
+                    "notes" to item.notes
                 )
+                if (item.mediaUrls.isNotEmpty()) {
+                    itemMap["mediaUrls"] = item.mediaUrls
+                    if (item.mediaTypes.isNotEmpty()) {
+                        itemMap["mediaTypes"] = item.mediaTypes.mapValues { it.value.name }
+                    } else {
+                        val mediaTypesMap = item.mediaUrls.associateWith { url ->
+                            if (url.contains("video") || url.contains(".mp4") ||
+                                url.contains(".mov") || url.contains(".avi") ||
+                                url.contains(".webm")) {
+                                ExerciseType.VIDEO.name
+                            } else {
+                                ExerciseType.IMAGE.name
+                            }
+                        }
+                        itemMap["mediaTypes"] = mediaTypesMap
+                    }
+                }
+                itemMap
             }
             val planMap = hashMapOf(
                 "physiotherapistId" to exercisePlan.physiotherapistId,
@@ -422,7 +488,6 @@ class ExerciseRepositoryImpl @Inject constructor(
             emit(Resource.Error(e.localizedMessage ?: "Egzersiz planı güncellenemedi"))
         }
     }
-
     override fun getPatientsList(physiotherapistId: String): Flow<Resource<List<PatientListItem>>> = callbackFlow {
         trySend(Resource.Loading())
         var chatThreadListener: ListenerRegistration? = null
@@ -471,7 +536,6 @@ class ExerciseRepositoryImpl @Inject constructor(
             chatThreadListener?.remove()
         }
     }
-
     override fun getExercisePlanById(planId: String): Flow<Resource<ExercisePlan>> = flow {
         emit(Resource.Loading())
         try {
@@ -485,6 +549,33 @@ class ExerciseRepositoryImpl @Inject constructor(
             }
             val exerciseItemsData = documentSnapshot.get("exercises") as? List<Map<String, Any>> ?: emptyList()
             val exerciseItems = exerciseItemsData.map { itemData ->
+                val mediaUrls = itemData["mediaUrls"] as? List<String> ?: emptyList()
+                val mediaTypesRaw = itemData["mediaTypes"] as? Map<String, String> ?: emptyMap()
+                val mediaTypes = mediaTypesRaw.mapValues { entry ->
+                    when (entry.value.uppercase()) {
+                        "VIDEO" -> ExerciseType.VIDEO
+                        else -> ExerciseType.IMAGE
+                    }
+                }
+                val singleMediaType = if (mediaTypes.isEmpty() && mediaUrls.isNotEmpty()) {
+                    when ((itemData["mediaType"] as? String)?.uppercase()) {
+                        "VIDEO" -> ExerciseType.VIDEO
+                        else -> null
+                    }
+                } else null
+                val finalMediaTypes = if (mediaTypes.isEmpty() && mediaUrls.isNotEmpty()) {
+                    mediaUrls.associateWith { url ->
+                        singleMediaType ?: if (url.contains("video") ||
+                            url.contains(".mp4") || url.contains(".mov") ||
+                            url.contains(".avi") || url.contains(".webm")) {
+                            ExerciseType.VIDEO
+                        } else {
+                            ExerciseType.IMAGE
+                        }
+                    }
+                } else {
+                    mediaTypes
+                }
                 ExercisePlanItem(
                     exerciseId = itemData["exerciseId"] as? String ?: "",
                     exerciseTitle = itemData["exerciseTitle"] as? String ?: "",
@@ -492,7 +583,8 @@ class ExerciseRepositoryImpl @Inject constructor(
                     repetitions = (itemData["repetitions"] as? Long)?.toInt() ?: 0,
                     duration = (itemData["duration"] as? Long)?.toInt() ?: 0,
                     notes = itemData["notes"] as? String ?: "",
-                    mediaUrls = itemData["mediaUrls"] as? List<String> ?: emptyList()
+                    mediaUrls = mediaUrls,
+                    mediaTypes = finalMediaTypes
                 )
             }
             val statusStr = documentSnapshot.getString("status") ?: ExercisePlanStatus.ACTIVE.name
@@ -521,7 +613,6 @@ class ExerciseRepositoryImpl @Inject constructor(
             emit(Resource.Error(e.localizedMessage ?: "Plan detayları yüklenemedi"))
         }
     }
-
     override fun deleteExercisePlan(exercisePlanId: String): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
         try {

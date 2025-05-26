@@ -45,8 +45,11 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.fizyoapp.domain.model.exercisemanagescreen.DEFAULT_EXERCISE_CATEGORIES
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseDifficulty
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
+import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexercise.EditExerciseEvent
+import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexercise.EditExerciseViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -498,10 +501,23 @@ fun EditExerciseScreen(
                                         items(state.mediaUris) { uri ->
                                             MediaPreviewItem(
                                                 uri = uri,
+                                                mediaTypes = state.mediaTypes,
                                                 onRemove = { viewModel.onEvent(EditExerciseEvent.RemoveMedia(uri)) },
                                                 onClick = {
                                                     selectedMediaUrl = uri
-                                                    selectedMediaType = if (uri.contains("video")) "video" else "image"
+
+                                                    // Video kontrolü
+                                                    val isVideo = state.mediaTypes[uri] == ExerciseType.VIDEO ||
+                                                            uri.contains("video") ||
+                                                            uri.contains(".mp4") ||
+                                                            uri.contains(".mov") ||
+                                                            uri.contains(".avi") ||
+                                                            uri.contains(".webm")
+
+                                                    // Debug log
+                                                    println("Opening MediaViewer: URI=$uri, Type=${state.mediaTypes[uri]}, isVideo=$isVideo")
+
+                                                    selectedMediaType = if (isVideo) "video" else "image"
                                                     showMediaViewer = true
                                                 }
                                             )
@@ -654,7 +670,8 @@ fun EditExerciseScreen(
                                     description = "Başlangıç seviyesi egzersizler",
                                     isSelected = state.difficulty == ExerciseDifficulty.EASY,
                                     onClick = {
-                                        viewModel.onEvent(EditExerciseEvent.DifficultyChanged(
+                                        viewModel.onEvent(
+                                            EditExerciseEvent.DifficultyChanged(
                                             ExerciseDifficulty.EASY))
                                         showDifficultyDialog = false
                                     }
@@ -665,7 +682,8 @@ fun EditExerciseScreen(
                                     description = "Orta seviye egzersizler",
                                     isSelected = state.difficulty == ExerciseDifficulty.MEDIUM,
                                     onClick = {
-                                        viewModel.onEvent(EditExerciseEvent.DifficultyChanged(
+                                        viewModel.onEvent(
+                                            EditExerciseEvent.DifficultyChanged(
                                             ExerciseDifficulty.MEDIUM))
                                         showDifficultyDialog = false
                                     }
@@ -676,7 +694,8 @@ fun EditExerciseScreen(
                                     description = "İleri seviye egzersizler",
                                     isSelected = state.difficulty == ExerciseDifficulty.HARD,
                                     onClick = {
-                                        viewModel.onEvent(EditExerciseEvent.DifficultyChanged(
+                                        viewModel.onEvent(
+                                            EditExerciseEvent.DifficultyChanged(
                                             ExerciseDifficulty.HARD))
                                         showDifficultyDialog = false
                                     }
@@ -752,13 +771,26 @@ fun MediaButton(
         )
     }
 }
-
 @Composable
 fun MediaPreviewItem(
     uri: String,
+    mediaTypes: Map<String, ExerciseType> = emptyMap(),
     onRemove: () -> Unit,
     onClick: () -> Unit
 ) {
+    // Debug için medya türünü yazdır
+    LaunchedEffect(uri) {
+        println("PREVIEW: URI=$uri, Type from mediaTypes=${mediaTypes[uri]}")
+    }
+
+    // Video kontrolü
+    val isVideo = mediaTypes[uri] == ExerciseType.VIDEO ||
+            uri.contains("video") ||
+            uri.contains(".mp4") ||
+            uri.contains(".mov") ||
+            uri.contains(".avi") ||
+            uri.contains(".webm")
+
     Box(
         modifier = Modifier
             .size(110.dp)
@@ -774,6 +806,7 @@ fun MediaPreviewItem(
             )
             .clickable(onClick = onClick)
     ) {
+        // Video veya görsel
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(uri)
@@ -783,6 +816,8 @@ fun MediaPreviewItem(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
+
+        // Gradyan arka plan
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -797,6 +832,8 @@ fun MediaPreviewItem(
                     )
                 )
         )
+
+        // Kaldır butonu
         IconButton(
             onClick = onRemove,
             modifier = Modifier
@@ -815,21 +852,43 @@ fun MediaPreviewItem(
                 modifier = Modifier.size(16.dp)
             )
         }
-        if (uri.contains("video")) {
-            Surface(
+
+        // Video göstergesi
+        if (isVideo) {
+            // Orta noktada oynat simgesi
+            Box(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(8.dp),
-                shape = RoundedCornerShape(4.dp),
-                color = Color.Black.copy(alpha = 0.6f)
+                    .align(Alignment.Center)
+                    .size(42.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.7f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Videocam,
-                    contentDescription = null,
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Video",
                     tint = Color.White,
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .size(16.dp)
+                    modifier = Modifier.size(30.dp)
+                )
+            }
+
+            // Sol alt köşede video etiketi
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(4.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.7f),
+                        shape = RoundedCornerShape(4.dp)
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = "Video",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White
                 )
             }
         }

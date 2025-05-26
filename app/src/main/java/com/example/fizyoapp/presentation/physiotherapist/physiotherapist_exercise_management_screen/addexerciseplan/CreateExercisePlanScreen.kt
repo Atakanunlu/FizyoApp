@@ -3,6 +3,7 @@ package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exerci
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +21,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -35,6 +38,7 @@ import coil.request.ImageRequest
 import com.example.fizyoapp.data.repository.exercisemanagescreen.PatientListItem
 import com.example.fizyoapp.domain.model.exercisemanagescreen.Exercise
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanItem
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.DatePickerField
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
 import kotlinx.coroutines.flow.collectLatest
@@ -144,7 +148,6 @@ fun CreateExercisePlanScreen(
                             )
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.title,
                             onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.TitleChanged(it)) },
@@ -176,9 +179,7 @@ fun CreateExercisePlanScreen(
                                 cursorColor = primaryColor
                             )
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.selectedPatient?.fullName ?: "",
                             onValueChange = { },
@@ -210,9 +211,7 @@ fun CreateExercisePlanScreen(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -236,7 +235,6 @@ fun CreateExercisePlanScreen(
                             )
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.description,
                             onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.DescriptionChanged(it)) },
@@ -261,9 +259,7 @@ fun CreateExercisePlanScreen(
                                 cursorColor = primaryColor
                             )
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -274,7 +270,6 @@ fun CreateExercisePlanScreen(
                                 label = "Başlangıç Tarihi",
                                 modifier = Modifier.weight(1f)
                             )
-
                             DatePickerField(
                                 date = state.endDate,
                                 onDateSelected = { viewModel.onEvent(CreateExercisePlanEvent.EndDateChanged(it)) },
@@ -282,9 +277,7 @@ fun CreateExercisePlanScreen(
                                 modifier = Modifier.weight(1f)
                             )
                         }
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.frequency,
                             onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.FrequencyChanged(it)) },
@@ -307,9 +300,7 @@ fun CreateExercisePlanScreen(
                                 cursorColor = primaryColor
                             )
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.notes,
                             onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.NotesChanged(it)) },
@@ -333,9 +324,7 @@ fun CreateExercisePlanScreen(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -363,7 +352,6 @@ fun CreateExercisePlanScreen(
                                     color = primaryColor
                                 )
                             )
-
                             Button(
                                 onClick = { showExercisesDialog = true },
                                 colors = ButtonDefaults.buttonColors(
@@ -380,9 +368,7 @@ fun CreateExercisePlanScreen(
                                 Text("Egzersiz Ekle")
                             }
                         }
-
                         Spacer(modifier = Modifier.height(8.dp))
-
                         AnimatedVisibility(visible = state.exercises.isNotEmpty()) {
                             Column {
                                 state.exercises.forEachIndexed { index, exercise ->
@@ -399,7 +385,6 @@ fun CreateExercisePlanScreen(
                                             )
                                         }
                                     )
-
                                     if (index < state.exercises.size - 1) {
                                         Divider(
                                             modifier = Modifier.padding(vertical = 8.dp),
@@ -411,9 +396,7 @@ fun CreateExercisePlanScreen(
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(24.dp))
-
                 Button(
                     onClick = {
                         Log.d("CreateExercisePlanScreen", "Save button clicked, isLoading: ${state.isLoading}")
@@ -463,10 +446,8 @@ fun CreateExercisePlanScreen(
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(24.dp))
             }
-
             if (showPatientDialog) {
                 AlertDialog(
                     onDismissRequest = { showPatientDialog = false },
@@ -553,7 +534,6 @@ fun CreateExercisePlanScreen(
                     containerColor = surfaceColor
                 )
             }
-
             if (showExercisesDialog) {
                 AlertDialog(
                     onDismissRequest = { showExercisesDialog = false },
@@ -682,9 +662,7 @@ fun PatientListItem(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.width(16.dp))
-
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -695,7 +673,6 @@ fun PatientListItem(
                     color = if (isSelected) primaryColor else textColor
                 )
             }
-
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
@@ -727,36 +704,32 @@ fun ExerciseSelectionItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(primaryColor.copy(alpha = 0.1f))
-            ) {
-                if (exercise.mediaUrls.isNotEmpty()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(exercise.mediaUrls.first())
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = exercise.title,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
+            if (exercise.mediaUrls.isNotEmpty()) {
+                val firstMediaUrl = exercise.mediaUrls.first()
+                MediaPreviewItem(
+                    uri = firstMediaUrl,
+                    mediaTypes = exercise.mediaType,
+                    onClick = onClick,
+                    size = 48.dp
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(primaryColor.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
                         imageVector = Icons.Default.FitnessCenter,
                         contentDescription = null,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .align(Alignment.Center),
-                        tint = primaryColor
+                        tint = primaryColor,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
-
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -772,7 +745,6 @@ fun ExerciseSelectionItem(
                     color = textColor.copy(alpha = 0.7f)
                 )
             }
-
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
@@ -814,25 +786,16 @@ fun ExerciseListItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (exercise.mediaUrls.isNotEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable {
-                            selectedMediaUrl = exercise.mediaUrls.first()
-                            showMediaViewer = true
-                        }
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(exercise.mediaUrls.first())
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = exercise.exerciseTitle,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                val firstMediaUrl = exercise.mediaUrls.first()
+                MediaPreviewItem(
+                    uri = firstMediaUrl,
+                    mediaTypes = exercise.mediaTypes,
+                    onClick = {
+                        selectedMediaUrl = firstMediaUrl
+                        showMediaViewer = true
+                    },
+                    size = 48.dp
+                )
                 Spacer(modifier = Modifier.width(12.dp))
             }
 
@@ -843,7 +806,6 @@ fun ExerciseListItem(
                 modifier = Modifier.weight(1f),
                 color = textColor
             )
-
             IconButton(onClick = { expanded = !expanded }) {
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
@@ -851,7 +813,6 @@ fun ExerciseListItem(
                     tint = primaryColor
                 )
             }
-
             IconButton(onClick = onRemoveClick) {
                 Icon(
                     imageVector = Icons.Default.Delete,
@@ -868,26 +829,70 @@ fun ExerciseListItem(
                     .padding(top = 8.dp)
             ) {
                 if (exercise.mediaUrls.isNotEmpty()) {
+                    val firstMediaUrl = exercise.mediaUrls.first()
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(180.dp)
                             .clickable {
-                                selectedMediaUrl = exercise.mediaUrls.first()
+                                selectedMediaUrl = firstMediaUrl
                                 showMediaViewer = true
                             },
                         shape = RoundedCornerShape(12.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(exercise.mediaUrls.first())
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = exercise.exerciseTitle,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        Box {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(firstMediaUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = exercise.exerciseTitle,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+
+                            // Video ise oynat simgesi göster
+                            if (exercise.mediaTypes[firstMediaUrl] == ExerciseType.VIDEO ||
+                                firstMediaUrl.contains("video") ||
+                                firstMediaUrl.contains(".mp4") ||
+                                firstMediaUrl.contains(".mov") ||
+                                firstMediaUrl.contains(".avi") ||
+                                firstMediaUrl.contains(".webm")) {
+
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.PlayArrow,
+                                        contentDescription = "Video",
+                                        tint = Color.White,
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                            .padding(8.dp)
+                                    )
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomStart)
+                                        .padding(16.dp)
+                                        .background(
+                                            color = Color.Black.copy(alpha = 0.6f),
+                                            shape = RoundedCornerShape(4.dp)
+                                        )
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        text = "Video",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -915,7 +920,6 @@ fun ExerciseListItem(
                             cursorColor = primaryColor
                         )
                     )
-
                     OutlinedTextField(
                         value = repetitions,
                         onValueChange = {
@@ -935,7 +939,6 @@ fun ExerciseListItem(
                             cursorColor = primaryColor
                         )
                     )
-
                     OutlinedTextField(
                         value = duration,
                         onValueChange = {
@@ -980,11 +983,144 @@ fun ExerciseListItem(
         }
 
         if (showMediaViewer && selectedMediaUrl.isNotEmpty()) {
+
+            val mediaType = if (exercise.mediaTypes.containsKey(selectedMediaUrl)) {
+                if (exercise.mediaTypes[selectedMediaUrl] == ExerciseType.VIDEO) "video" else "image"
+            } else {
+
+                if (selectedMediaUrl.contains("video") ||
+                    selectedMediaUrl.contains(".mp4") ||
+                    selectedMediaUrl.contains(".mov") ||
+                    selectedMediaUrl.contains(".avi") ||
+                    selectedMediaUrl.contains(".webm")) "video" else "image"
+            }
+
             MediaViewer(
                 mediaUrl = selectedMediaUrl,
-                mediaType = if (selectedMediaUrl.contains("video")) "video" else "image",
+                mediaType = mediaType,
                 onDismiss = { showMediaViewer = false }
             )
+        }
+    }
+}
+
+@Composable
+fun MediaPreviewItem(
+    uri: String,
+    mediaTypes: Map<String, ExerciseType> = emptyMap(),
+    onClick: () -> Unit,
+    size: androidx.compose.ui.unit.Dp = 110.dp,
+    onRemove: (() -> Unit)? = null
+) {
+
+    val isVideo = mediaTypes[uri] == ExerciseType.VIDEO ||
+            uri.contains("video") || uri.contains(".mp4") ||
+            uri.contains(".mov") || uri.contains(".avi") ||
+            uri.contains(".webm")
+
+    Box(
+        modifier = Modifier
+            .size(size)
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clip(RoundedCornerShape(8.dp))
+            .border(
+                width = 1.dp,
+                color = textColor.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clickable(onClick = onClick)
+    ) {
+
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(uri)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.1f),
+                            Color.Black.copy(alpha = 0.3f)
+                        ),
+                        startY = 0f,
+                        endY = size.value
+                    )
+                )
+        )
+
+
+        onRemove?.let {
+            IconButton(
+                onClick = it,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(4.dp)
+                    .size(24.dp)
+                    .background(
+                        color = Color.Red.copy(alpha = 0.7f),
+                        shape = CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Kaldır",
+                    tint = Color.White,
+                    modifier = Modifier.size(14.dp)
+                )
+            }
+        }
+
+
+        if (isVideo) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(size / 3)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.6f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Video",
+                    tint = Color.White,
+                    modifier = Modifier.size(size / 5)
+                )
+            }
+
+            if (size >= 80.dp) {
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(4.dp)
+                        .background(
+                            color = Color.Black.copy(alpha = 0.6f),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "Video",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White
+                    )
+                }
+            }
         }
     }
 }

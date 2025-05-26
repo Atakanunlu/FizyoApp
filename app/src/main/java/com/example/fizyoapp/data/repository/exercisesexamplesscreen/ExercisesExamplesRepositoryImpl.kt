@@ -1,5 +1,4 @@
-// com.example.fizyoapp.data.repository.ExercisesExamplesRepositoryImpl.kt
-package com.example.fizyoapp.data.repository
+package com.example.fizyoapp.data.repository.exercisesexamplesscreen
 
 import com.example.fizyoapp.R
 import com.example.fizyoapp.data.local.dao.exerciseexamplesscreen.OrnekEgzersizlerGirisDao
