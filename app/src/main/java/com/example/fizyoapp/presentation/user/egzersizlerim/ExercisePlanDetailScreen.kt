@@ -41,7 +41,8 @@ import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.fizyoapp.domain.model.exercise.ExercisePlanItem
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanItem
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -528,7 +529,7 @@ fun EmptyExercisesViewRedesigned() {
 }
 
 @Composable
-fun PlanInfoCardRedesigned(plan: com.example.fizyoapp.domain.model.exercise.ExercisePlan) {
+fun PlanInfoCardRedesigned(plan: ExercisePlan) {
     val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
 
     Card(

@@ -1,8 +1,6 @@
 package com.example.fizyoapp.presentation.user.illnessrecord.medicalrecord
 
-
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.repository.auth.AuthRepository
@@ -34,6 +32,7 @@ class MedicalReportViewModel @Inject constructor(
     val state: StateFlow<MedicalReportState> = _state.asStateFlow()
 
     private var selectedFileUri: Uri? = null
+    private var selectedFileType: String = "pdf"
 
     init {
         viewModelScope.launch {
@@ -41,12 +40,8 @@ class MedicalReportViewModel @Inject constructor(
             if (currentUser != null) {
                 val userId = currentUser.uid
                 _state.update { it.copy(currentUserId = userId) }
-
-                // Öncelikle threadleri yükle, sonra diğer verileri
                 loadRecentThreads(userId)
-                // Kısa bir gecikme ekleyelim
                 delay(200)
-                // Diğer verileri yükle
                 loadMedicalReports(userId)
             }
         }
@@ -62,9 +57,10 @@ class MedicalReportViewModel @Inject constructor(
             }
             is MedicalReportEvent.FileSelected -> {
                 selectedFileUri = event.uri
+                selectedFileType = event.fileType
             }
             is MedicalReportEvent.AddReport -> {
-                addReport(event.title, event.description, event.doctorName, event.hospitalName)
+                addReport(event.title, event.description, event.doctorName, event.hospitalName, event.fileType)
             }
             is MedicalReportEvent.ShareReport -> {
                 shareReport(event.reportId, event.userId)
@@ -129,18 +125,20 @@ class MedicalReportViewModel @Inject constructor(
                     _state.update {
                         it.copy(recentThreads = result.data ?: emptyList())
                     }
-                    Log.d("MedicalReportVM", "Loaded threads: ${result.data?.size ?: 0}")
                 }
-                is Resource.Error -> {
-                    Log.e("MedicalReportVM", "Error loading threads: ${result.message}")
-                }
-                is Resource.Loading -> {
-                    // Yükleme durumu
-                }
+                is Resource.Error -> {}
+                is Resource.Loading -> {}
             }
         }
     }
-    private fun addReport(title: String, description: String, doctorName: String, hospitalName: String) {
+
+    private fun addReport(
+        title: String,
+        description: String,
+        doctorName: String,
+        hospitalName: String,
+        fileType: String = "pdf"
+    ) {
         if (selectedFileUri == null) {
             _state.update {
                 it.copy(actionError = "No valid file selected")
@@ -158,13 +156,15 @@ class MedicalReportViewModel @Inject constructor(
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
+
             medicalReportRepository.uploadMedicalReport(
                 fileUri = selectedFileUri!!,
                 title = title,
                 description = description,
                 userId = userId,
                 doctorName = doctorName,
-                hospitalName = hospitalName
+                hospitalName = hospitalName,
+                fileType = selectedFileType
             ).collect { result ->
                 when (result) {
                     is Resource.Success -> {
@@ -222,10 +222,9 @@ class MedicalReportViewModel @Inject constructor(
                     put("timestamp", reportToShare.timestamp.time.toString())
                     put("doctorName", reportToShare.doctorName)
                     put("hospitalName", reportToShare.hospitalName)
+                    put("fileType", reportToShare.fileType)
                 }
-
                 val messageContent = "[MEDICAL_REPORT]\n${reportData}"
-
                 val message = Message(
                     id = "",
                     senderId = userId,
@@ -233,9 +232,8 @@ class MedicalReportViewModel @Inject constructor(
                     content = messageContent,
                     timestamp = Date(),
                     isRead = false,
-                    threadId = ""  // Repository will create thread ID
+                    threadId = ""
                 )
-
                 messagesRepository.sendMessage(message).collect { result ->
                     when (result) {
                         is Resource.Success -> {
@@ -254,9 +252,7 @@ class MedicalReportViewModel @Inject constructor(
                                 )
                             }
                         }
-                        is Resource.Loading -> {
-                            // Handle loading if needed
-                        }
+                        is Resource.Loading -> {}
                     }
                 }
             } catch (e: Exception) {
@@ -279,10 +275,8 @@ class MedicalReportViewModel @Inject constructor(
                                 successMessage = "Medical report successfully deleted"
                             )
                         }
-                        // Refresh data
                         delay(500)
                         loadMedicalReports(state.value.currentUserId)
-                        // Auto close success message
                         delay(3000)
                         _state.update { it.copy(successMessage = null) }
                     }

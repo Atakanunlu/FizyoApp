@@ -9,9 +9,9 @@ import com.example.fizyoapp.data.repository.exercisemanagescreen.ExerciseReposit
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepository
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.auth.User
-import com.example.fizyoapp.domain.model.exercise.Exercise
-import com.example.fizyoapp.domain.model.exercise.ExerciseDifficulty
-import com.example.fizyoapp.domain.model.exercise.ExercisePlan
+import com.example.fizyoapp.domain.model.exercisemanagescreen.Exercise
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseDifficulty
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel

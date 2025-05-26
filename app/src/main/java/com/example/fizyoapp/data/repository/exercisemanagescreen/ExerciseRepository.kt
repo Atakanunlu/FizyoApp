@@ -2,8 +2,8 @@ package com.example.fizyoapp.data.repository.exercisemanagescreen
 
 import android.net.Uri
 import com.example.fizyoapp.data.util.Resource
-import com.example.fizyoapp.domain.model.exercise.Exercise
-import com.example.fizyoapp.domain.model.exercise.ExercisePlan
+import com.example.fizyoapp.domain.model.exercisemanagescreen.Exercise
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
 import kotlinx.coroutines.flow.Flow
 
 interface ExerciseRepository {

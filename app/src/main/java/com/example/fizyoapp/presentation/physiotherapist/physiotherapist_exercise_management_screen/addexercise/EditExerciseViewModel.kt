@@ -1,13 +1,12 @@
 package com.example.fizyoapp.presentation.physiotherapist.exercise
-import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fizyoapp.data.repository.exercisemanagescreen.ExerciseRepository
 import com.example.fizyoapp.data.util.Resource
-import com.example.fizyoapp.domain.model.exercise.Exercise
-import com.example.fizyoapp.domain.model.exercise.ExerciseDifficulty
-import com.example.fizyoapp.domain.model.exercise.ExerciseType
+import com.example.fizyoapp.domain.model.exercisemanagescreen.Exercise
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseDifficulty
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

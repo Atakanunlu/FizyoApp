@@ -1,5 +1,4 @@
 package com.example.fizyoapp.data.repository.mainscreen
-import com.example.fizyoapp.data.repository.mainscreen.painrecord.PainTrackingRepository
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.usermainscreen.PainRecord
 import com.google.firebase.firestore.FirebaseFirestore

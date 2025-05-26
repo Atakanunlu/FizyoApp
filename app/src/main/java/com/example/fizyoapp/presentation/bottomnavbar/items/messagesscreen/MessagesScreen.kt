@@ -1,6 +1,7 @@
 package com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.ErrorOutline
@@ -85,6 +87,15 @@ fun MessagesScreen(
                             "Mesajlar",
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
+                        )
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Geri",
+                            tint = Color.White
                         )
                     }
                 },
@@ -243,15 +254,31 @@ fun ModernChatThreadItem(
     chatThread: ChatThread,
     onClick: () -> Unit
 ) {
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
     val accentColor = Color(0xFF6D72C3)
+
+    val iLastSentMessage = chatThread.lastMessageSenderId == currentUserId
+
+
+    val hasUnreadMessages = chatThread.unreadCount > 0 && !iLastSentMessage
+
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+
+            .then(if (hasUnreadMessages) Modifier.border(
+                width = 2.dp,
+                color = accentColor,
+                shape = RoundedCornerShape(16.dp)
+            ) else Modifier),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+
+            containerColor = if (hasUnreadMessages) Color(0xFFF0F2FF) else Color.White
         )
     ) {
         Row(
@@ -290,8 +317,30 @@ fun ModernChatThreadItem(
                         modifier = Modifier.size(32.dp)
                     )
                 }
+
+
+                if (hasUnreadMessages) {
+                    Box(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .align(Alignment.TopEnd)
+                            .offset(x = 6.dp, y = (-6).dp)
+                            .clip(CircleShape)
+                            .background(Color.Red),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (chatThread.unreadCount > 9) "9+" else chatThread.unreadCount.toString(),
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
+
             Spacer(modifier = Modifier.width(16.dp))
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -303,12 +352,14 @@ fun ModernChatThreadItem(
                     Text(
                         text = chatThread.otherParticipantName,
                         fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
+
+                        fontWeight = if (hasUnreadMessages) FontWeight.Bold else FontWeight.SemiBold,
                         color = Color(0xFF3B3E68),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
+
                     Box(
                         modifier = Modifier
                             .background(
@@ -320,11 +371,15 @@ fun ModernChatThreadItem(
                         Text(
                             text = DateFormatter.formatDate(chatThread.lastMessageTimestamp),
                             fontSize = 12.sp,
-                            color = Color.Gray
+
+                            color = if (hasUnreadMessages) Color.DarkGray else Color.Gray,
+                            fontWeight = if (hasUnreadMessages) FontWeight.Medium else FontWeight.Normal
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(6.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -332,12 +387,15 @@ fun ModernChatThreadItem(
                     Text(
                         text = chatThread.lastMessage,
                         fontSize = 14.sp,
-                        color = Color.DarkGray,
+
+                        color = if (hasUnreadMessages) Color.Black else Color.DarkGray,
+                        fontWeight = if (hasUnreadMessages) FontWeight.Medium else FontWeight.Normal,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
-                    if (chatThread.unreadCount > 0) {
+
+                    if (hasUnreadMessages) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Box(
                             modifier = Modifier
@@ -359,27 +417,76 @@ fun ModernChatThreadItem(
         }
     }
 }
-
 object DateFormatter {
-    fun formatDate(date: Date): String {
-        val now = Calendar.getInstance()
-        val messageTime = Calendar.getInstance().apply { time = date }
-        return when {
-            now.get(Calendar.YEAR) == messageTime.get(Calendar.YEAR) &&
-                    now.get(Calendar.DAY_OF_YEAR) == messageTime.get(Calendar.DAY_OF_YEAR) -> {
-                SimpleDateFormat("HH:mm", Locale.getDefault()).format(date)
-            }
-            now.get(Calendar.YEAR) == messageTime.get(Calendar.YEAR) &&
-                    now.get(Calendar.DAY_OF_YEAR) == messageTime.get(Calendar.DAY_OF_YEAR) + 1 -> {
-                "Dün"
-            }
-            else -> {
-                SimpleDateFormat("dd MMM", Locale.getDefault()).format(date)
-            }
-        }
-    }
+    private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    private val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale("tr"))
+    private val shortDateFormat = SimpleDateFormat("dd MMM", Locale("tr"))
 
     fun formatMessageTime(date: Date): String {
-        return SimpleDateFormat("HH:mm", Locale.getDefault()).format(date)
+        return timeFormat.format(date)
+    }
+
+    fun formatDate(date: Date): String {
+        val calendar = Calendar.getInstance()
+        val today = Calendar.getInstance()
+        calendar.time = date
+
+
+        if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+            calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
+            return timeFormat.format(date)
+        }
+
+
+        val yesterday = Calendar.getInstance()
+        yesterday.add(Calendar.DAY_OF_YEAR, -1)
+        if (calendar.get(Calendar.YEAR) == yesterday.get(Calendar.YEAR) &&
+            calendar.get(Calendar.DAY_OF_YEAR) == yesterday.get(Calendar.DAY_OF_YEAR)) {
+            return "Dün"
+        }
+
+
+        if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR)) {
+            return shortDateFormat.format(date)
+        }
+
+
+        return dateFormat.format(date)
+    }
+
+    fun formatMessageDate(date: Date): String {
+        val calendar = Calendar.getInstance()
+        val today = Calendar.getInstance()
+        calendar.time = date
+
+
+        if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+            calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
+            return "Bugün"
+        }
+
+
+        val yesterday = Calendar.getInstance()
+        yesterday.add(Calendar.DAY_OF_YEAR, -1)
+        if (calendar.get(Calendar.YEAR) == yesterday.get(Calendar.YEAR) &&
+            calendar.get(Calendar.DAY_OF_YEAR) == yesterday.get(Calendar.DAY_OF_YEAR)) {
+            return "Dün"
+        }
+
+
+        val currentWeek = Calendar.getInstance()
+        currentWeek.add(Calendar.DAY_OF_YEAR, -7)
+        if (date.after(currentWeek.time)) {
+            val dayFormat = SimpleDateFormat("EEEE", Locale("tr"))
+            return dayFormat.format(date).capitalize(Locale("tr"))
+        }
+
+
+        return dateFormat.format(date)
+    }
+
+
+    fun getMessageDay(date: Date): String {
+        return formatMessageDate(date)
     }
 }

@@ -32,7 +32,8 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
     private val _state = MutableStateFlow(RadyolojikGoruntulerState())
     val state: StateFlow<RadyolojikGoruntulerState> = _state.asStateFlow()
 
-    private var selectedImageUri: Uri? = null
+    private var selectedFileUri: Uri? = null
+    private var selectedFileType: String = "image"
 
     init {
         loadData()
@@ -46,17 +47,25 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
             is RadyolojikGoruntulerEvent.DismissError -> {
                 _state.update { it.copy(actionError = null) }
             }
-            is RadyolojikGoruntulerEvent.ImageSelected -> {
-                selectedImageUri = event.uri
+            is RadyolojikGoruntulerEvent.FileSelected -> {
+                selectedFileUri = event.uri
+                val mimeType = event.uri.path?.let {
+                    if (it.endsWith(".pdf", ignoreCase = true)) "application/pdf" else "image/*"
+                } ?: "image/*"
+
+                selectedFileType = if (mimeType.contains("pdf")) "pdf" else "image"
             }
             is RadyolojikGoruntulerEvent.AddImage -> {
-                addImage(event.title, event.description)
+                addFile(event.title, event.description, "image")
+            }
+            is RadyolojikGoruntulerEvent.AddPdf -> {
+                addFile(event.title, event.description, "pdf")
             }
             is RadyolojikGoruntulerEvent.ShareImage -> {
                 shareImage(event.imageId, event.userId)
             }
             is RadyolojikGoruntulerEvent.DeleteImage -> {
-                deleteImage(event.imageUrl)
+                deleteImage(event.fileUrl)
             }
         }
     }
@@ -64,7 +73,6 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
-
             val currentUser = FirebaseAuth.getInstance().currentUser
             if (currentUser == null) {
                 _state.update {
@@ -75,13 +83,9 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
                 }
                 return@launch
             }
-
             val userId = currentUser.uid
             _state.update { it.copy(currentUserId = userId) }
-
-
             loadRadyolojikGoruntuler(userId)
-
             loadRecentThreads(userId)
         }
     }
@@ -122,20 +126,17 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
                     }
                 }
                 is Resource.Error -> {
-
                 }
                 is Resource.Loading -> {
-
                 }
             }
         }
     }
 
-    private fun addImage(title: String, description: String) {
-
-        if (selectedImageUri == null) {
+    private fun addFile(title: String, description: String, fileType: String) {
+        if (selectedFileUri == null) {
             _state.update {
-                it.copy(actionError = "Geçerli bir görüntü seçilmedi")
+                it.copy(actionError = "Geçerli bir dosya seçilmedi")
             }
             return
         }
@@ -150,26 +151,28 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
+
             radyolojikGoruntuRepository.uploadRadyolojikGoruntu(
-                imageUri = selectedImageUri!!,
+                fileUri = selectedFileUri!!,
                 title = title,
                 description = description,
-                userId = userId
+                userId = userId,
+                fileType = fileType
             ).collect { result ->
                 when (result) {
                     is Resource.Success -> {
                         _state.update {
                             it.copy(
                                 isLoading = false,
-                                successMessage = "Radyolojik görüntü başarıyla kaydedildi"
+                                successMessage = if (fileType == "pdf")
+                                    "Radyolojik PDF başarıyla kaydedildi"
+                                else
+                                    "Radyolojik görüntü başarıyla kaydedildi"
                             )
                         }
-
-                        selectedImageUri = null
-
+                        selectedFileUri = null
                         delay(500)
                         loadRadyolojikGoruntuler(userId)
-
                         delay(3000)
                         _state.update { it.copy(successMessage = null) }
                     }
@@ -177,7 +180,7 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
                         _state.update {
                             it.copy(
                                 isLoading = false,
-                                actionError = result.message ?: "Görüntü yüklenirken bir hata oluştu"
+                                actionError = result.message ?: "Dosya yüklenirken bir hata oluştu"
                             )
                         }
                     }
@@ -198,7 +201,6 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
             return
         }
 
-
         val imageToShare = state.value.goruntular.find { it.id == imageId }
         if (imageToShare == null) {
             _state.update {
@@ -209,18 +211,14 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-
                 val imageData = JSONObject().apply {
                     put("title", imageToShare.title)
                     put("description", imageToShare.description)
-                    put("url", imageToShare.imageUrl)
+                    put("url", imageToShare.fileUrl)
                     put("timestamp", imageToShare.timestamp.time.toString())
+                    put("fileType", imageToShare.fileType) // Dosya tipini ekliyoruz
                 }
-
-
                 val messageContent = "[RADIOLOGICAL_IMAGE]\n${imageData}"
-
-
                 val message = Message(
                     id = "",
                     senderId = userId,
@@ -228,9 +226,8 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
                     content = messageContent,
                     timestamp = Date(),
                     isRead = false,
-                    threadId = ""  // Repository thread ID oluşturacak
+                    threadId = ""
                 )
-
                 messagesRepository.sendMessage(message).collect { result ->
                     when (result) {
                         is Resource.Success -> {
@@ -239,7 +236,6 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
                                     successMessage = "Radyolojik görüntü başarıyla paylaşıldı"
                                 )
                             }
-
                             delay(3000)
                             _state.update { it.copy(successMessage = null) }
                         }
@@ -251,7 +247,6 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
                             }
                         }
                         is Resource.Loading -> {
-
                         }
                     }
                 }
@@ -275,10 +270,8 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
                                 successMessage = "Radyolojik görüntü başarıyla silindi"
                             )
                         }
-                        // Verileri yenile
                         delay(500)
                         loadRadyolojikGoruntuler(state.value.currentUserId)
-                        // Başarı mesajını otomatik kapat
                         delay(3000)
                         _state.update { it.copy(successMessage = null) }
                     }
@@ -298,4 +291,3 @@ class RadyolojikGoruntulerViewModel @Inject constructor(
         }
     }
 }
-

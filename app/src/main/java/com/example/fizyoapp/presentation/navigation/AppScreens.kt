@@ -4,6 +4,8 @@ sealed class AppScreens(val route: String) {
     object SplashScreen: AppScreens("splash_screen")
     object LoginScreen: AppScreens("login_screen")
     object RegisterScreen: AppScreens("register_screen")
+    object MediaViewerScreen :AppScreens("mediaviewer_screen")
+
     object PhysiotherapistMainScreen: AppScreens("physiotherapist_main_screen")
     object UserMainScreen: AppScreens("user_main_screen")
     object UserProfileSetupScreen: AppScreens("user_profile_setup")
@@ -99,6 +101,7 @@ sealed class AppScreens(val route: String) {
     }
     object PhysiotherapistCalendarScreen: AppScreens("physiotherapist_calendar_screen")
     object ForgotPasswordScreen: AppScreens("forgot_password_screen")
+
     object CreateAdvertisementScreen: AppScreens("create_advertisement_screen")
     object AdvertisementPaymentScreen: AppScreens("advertisement_payment_screen")
     object AdvertisementSuccessScreen: AppScreens("advertisement_success_screen")

@@ -9,9 +9,9 @@ import com.example.fizyoapp.data.repository.auth.AuthRepository
 import com.example.fizyoapp.data.repository.exercisemanagescreen.ExerciseRepository
 import com.example.fizyoapp.data.repository.user_profile.UserProfileRepository
 import com.example.fizyoapp.data.util.Resource
-import com.example.fizyoapp.domain.model.exercise.ExercisePlan
-import com.example.fizyoapp.domain.model.exercise.ExercisePlanItem
-import com.example.fizyoapp.domain.model.exercise.ExercisePlanStatus
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanItem
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

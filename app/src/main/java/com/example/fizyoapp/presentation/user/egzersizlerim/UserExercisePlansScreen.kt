@@ -27,8 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.fizyoapp.domain.model.exercise.ExercisePlan
-import com.example.fizyoapp.domain.model.exercise.ExercisePlanStatus
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanStatus
 import java.text.SimpleDateFormat
 import java.util.*
 
