@@ -1,7 +1,5 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexerciseplan
 
-
-
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +10,7 @@ import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanItem
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanStatus
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,38 +29,64 @@ class EditExercisePlanViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(EditExercisePlanState())
     val state: StateFlow<EditExercisePlanState> = _state.asStateFlow()
 
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
-    // planId parametresini navArgs'dan al
+
     private val planId: String = savedStateHandle.get<String>("planId") ?: ""
 
     fun loadExercisePlan(planId: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-
             exerciseRepository.getExercisePlanById(planId).collect { result ->
                 when (result) {
                     is Resource.Success -> {
                         val plan = result.data
                         if (plan != null) {
-                            // Hasta adını getir
+
                             loadPatientName(plan.patientId)
+
+
+                            val updatedExercises = plan.exercises.map { exerciseItem ->
+
+                                val mediaTypes = if (exerciseItem.mediaTypes.isEmpty() && exerciseItem.mediaUrls.isNotEmpty()) {
+                                    exerciseItem.mediaUrls.associateWith { url ->
+                                        if (url.contains("video") || url.contains(".mp4") ||
+                                            url.contains(".mov") || url.contains(".avi") ||
+                                            url.contains(".webm")) {
+                                            ExerciseType.VIDEO
+                                        } else {
+                                            ExerciseType.IMAGE
+                                        }
+                                    }
+                                } else {
+                                    exerciseItem.mediaTypes
+                                }
+
+
+                                exerciseItem.copy(mediaTypes = mediaTypes)
+                            }
+
+                            println("Loaded plan with ${updatedExercises.size} exercises")
+                            updatedExercises.forEach { exercise ->
+                                println("Exercise: ${exercise.exerciseTitle}")
+                                println("Media URLs: ${exercise.mediaUrls}")
+                                println("Media Types: ${exercise.mediaTypes}")
+                            }
 
                             _state.update {
                                 it.copy(
-                                    plan = plan,
+                                    plan = plan.copy(exercises = updatedExercises),
                                     title = plan.title,
                                     description = plan.description,
                                     startDate = plan.startDate,
                                     endDate = plan.endDate,
                                     frequency = plan.frequency,
                                     notes = plan.notes ?: "",
-                                    exercises = plan.exercises,
+                                    exercises = updatedExercises,
                                     selectedStatus = plan.status,
                                     isLoading = false
                                 )
@@ -102,12 +127,12 @@ class EditExercisePlanViewModel @Inject constructor(
                                 it.copy(patientName = "${profile.firstName} ${profile.lastName}")
                             }
                         } else {
-                            // Profil yoksa e-posta adresini göster
+
                             fallbackToEmailName(patientId)
                         }
                     }
                     else -> {
-                        // Hata durumunda e-posta adresini göster
+
                         fallbackToEmailName(patientId)
                     }
                 }
@@ -117,7 +142,7 @@ class EditExercisePlanViewModel @Inject constructor(
 
     private suspend fun fallbackToEmailName(patientId: String) {
         try {
-            // User koleksiyonundan e-posta adresini al
+
             com.google.firebase.firestore.FirebaseFirestore.getInstance()
                 .collection("user")
                 .document(patientId)
@@ -170,13 +195,12 @@ class EditExercisePlanViewModel @Inject constructor(
                     repetitions = reps.toIntOrNull() ?: 0,
                     duration = duration.toIntOrNull() ?: 0,
                     notes = notes
-                    // mediaUrls korunuyor, copy kullandığımız için değiştirilmeyen özellikler aynı kalır
+
                 )
             } else {
                 item
             }
         }
-
         _state.update { it.copy(exercises = updatedExercises) }
     }
 
@@ -191,10 +215,8 @@ class EditExercisePlanViewModel @Inject constructor(
     fun updatePlanStatus() {
         val plan = _state.value.plan ?: return
         val updatedPlan = plan.copy(status = _state.value.selectedStatus)
-
         viewModelScope.launch {
             _state.update { it.copy(isSaving = true) }
-
             exerciseRepository.updateExercisePlan(updatedPlan).collect { result ->
                 when (result) {
                     is Resource.Success -> {
@@ -225,10 +247,29 @@ class EditExercisePlanViewModel @Inject constructor(
     fun saveExercisePlan() {
         val currentPlan = _state.value.plan ?: return
 
-        // Tüm alanları kontrol et
         if (_state.value.title.isBlank()) {
             sendUiEvent(UiEvent.ShowError("Plan başlığı boş olamaz"))
             return
+        }
+
+
+        val updatedExercises = _state.value.exercises.map { item ->
+
+            val mediaTypes = if (item.mediaTypes.isEmpty() && item.mediaUrls.isNotEmpty()) {
+                item.mediaUrls.associateWith { url ->
+                    if (url.contains("video") || url.contains(".mp4") ||
+                        url.contains(".mov") || url.contains(".avi") ||
+                        url.contains(".webm")) {
+                        ExerciseType.VIDEO
+                    } else {
+                        ExerciseType.IMAGE
+                    }
+                }
+            } else {
+                item.mediaTypes
+            }
+
+            item.copy(mediaTypes = mediaTypes)
         }
 
         val updatedPlan = currentPlan.copy(
@@ -238,14 +279,13 @@ class EditExercisePlanViewModel @Inject constructor(
             endDate = _state.value.endDate,
             frequency = _state.value.frequency,
             notes = _state.value.notes,
-            exercises = _state.value.exercises,
+            exercises = updatedExercises,
             status = _state.value.selectedStatus,
             updatedAt = Date()
         )
 
         viewModelScope.launch {
             _state.update { it.copy(isSaving = true) }
-
             exerciseRepository.updateExercisePlan(updatedPlan).collect { result ->
                 when (result) {
                     is Resource.Success -> {

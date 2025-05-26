@@ -6,7 +6,7 @@ import com.example.fizyoapp.data.local.dao.exerciseexamplesscreen.OrnekEgzersizl
 import com.example.fizyoapp.data.local.dao.exercisevideos.VideoDao
 import com.example.fizyoapp.data.local.database.exerciseexamplesscreen.ExercisesDatabase
 import com.example.fizyoapp.data.local.database.exercisevideos.VideoDatabase
-import com.example.fizyoapp.data.repository.ExercisesExamplesRepositoryImpl
+import com.example.fizyoapp.data.repository.exercisesexamplesscreen.ExercisesExamplesRepositoryImpl
 import com.example.fizyoapp.data.repository.advertisement.AdvertisementDataRepository
 import com.example.fizyoapp.data.repository.advertisement.AdvertisementRepository
 import com.example.fizyoapp.data.repository.advertisement.AdvertisementRepositoryImpl

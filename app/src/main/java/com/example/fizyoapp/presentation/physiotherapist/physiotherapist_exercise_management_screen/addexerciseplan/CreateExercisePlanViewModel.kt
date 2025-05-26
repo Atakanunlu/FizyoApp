@@ -40,7 +40,7 @@ class CreateExercisePlanViewModel @Inject constructor(
     }
     private fun getCurrentUser() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = false) } // Start with loading explicitly set to false
+            _state.update { it.copy(isLoading = false) }
 
             try {
                 authRepository.getCurrentUser().collect { result ->
@@ -50,12 +50,12 @@ class CreateExercisePlanViewModel @Inject constructor(
                                 currentUserId = user.id
                                 loadExercises(user.id)
                                 loadPatientsFromMessages(user.id)
-                                // Explicitly set isLoading to false after success
+
                                 _state.update { it.copy(isLoading = false) }
                             }
                         }
                         is Resource.Error -> {
-                            // Explicitly set isLoading to false after error
+
                             _state.update { it.copy(isLoading = false) }
                             sendUiEvent(
                                 UiEvent.ShowError(
@@ -64,8 +64,7 @@ class CreateExercisePlanViewModel @Inject constructor(
                             )
                         }
                         is Resource.Loading -> {
-                            // We want to track only specific loading operations, not the general isLoading
-                            // Don't update isLoading here
+
                         }
                     }
                 }
@@ -106,33 +105,34 @@ class CreateExercisePlanViewModel @Inject constructor(
         }
     }
 
-    // Mesaj konuşmalarından hastaları çek - MedicalReportScreen'deki gibi
+
+
     private fun loadPatientsFromMessages(physiotherapistId: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoadingPatients = true) }
 
             try {
-                // Fizyoterapistin tüm mesaj konuşmalarını getir
+
                 messagesRepository.getChatTreadsForUser(physiotherapistId).collect { result ->
                     when (result) {
                         is Resource.Success -> {
                             val threads = result.data
                             Log.d("CreateExercisePlanVM", "Konuşma sayısı: ${threads.size}")
 
-                            // Hasta listesini oluştur
+
                             val patients = mutableListOf<PatientListItem>()
 
                             for (thread in threads) {
-                                // Karşı taraf ID'sini bul (fizyoterapist olmayan)
+
                                 val otherUserId = thread.participantIds.firstOrNull {
                                     it != physiotherapistId
                                 } ?: continue
 
-                                // Hasta adını ve profil fotoğrafını al
+
                                 val patientName = thread.otherParticipantName
                                 val patientPhoto = thread.otherParticipantPhotoUrl
 
-                                // Hasta listesine ekle (daha önce eklenmemişse)
+
                                 if (!patients.any { it.userId == otherUserId }) {
                                     patients.add(PatientListItem(
                                         userId = otherUserId,
@@ -209,11 +209,12 @@ class CreateExercisePlanViewModel @Inject constructor(
                 val exerciseItem = ExercisePlanItem(
                     exerciseId = event.exercise.id,
                     exerciseTitle = event.exercise.title,
-                    sets = 3, // Varsayılan değerler
+                    sets = 3,
                     repetitions = 10,
                     duration = 30,
                     notes = "",
-                    mediaUrls = event.exercise.mediaUrls
+                    mediaUrls = event.exercise.mediaUrls,
+                    mediaTypes = event.exercise.mediaType
                 )
                 _state.update {
                     it.copy(exercises = it.exercises + exerciseItem)
@@ -230,7 +231,7 @@ class CreateExercisePlanViewModel @Inject constructor(
                     val item = updatedExercises[event.index]
                     updatedExercises[event.index] = item.copy(
                         sets = event.sets.toIntOrNull() ?: 0,
-                        repetitions = event.repetitions.toIntOrNull() ?: 0, // 'reps' yerine 'repetitions' olmalı
+                        repetitions = event.repetitions.toIntOrNull() ?: 0,
                         duration = event.duration.toIntOrNull() ?: 0,
                         notes = event.notes
                     )
@@ -286,7 +287,7 @@ class CreateExercisePlanViewModel @Inject constructor(
                     updatedAt = Date()
                 )
 
-                // Save the plan
+
                 exerciseRepository.createExercisePlan(plan).collect { result ->
                     when (result) {
                         is Resource.Success -> {
@@ -300,7 +301,7 @@ class CreateExercisePlanViewModel @Inject constructor(
                             sendUiEvent(UiEvent.ShowError(result.message ?: "Plan kaydedilemedi"))
                         }
                         is Resource.Loading -> {
-                            // Loading state already set at the beginning, don't need to update here
+
                             Log.d("CreateExercisePlanVM", "Save in progress, isLoading already true")
                         }
                     }
@@ -340,7 +341,7 @@ data class CreateExercisePlanState(
     val isLoading: Boolean = false,
     val isLoadingPatients: Boolean = false,
     val isLoadingExercises: Boolean = false,
-    val error: String? = null  // Bu satırı ekleyelim
+    val error: String? = null
 
 )
 

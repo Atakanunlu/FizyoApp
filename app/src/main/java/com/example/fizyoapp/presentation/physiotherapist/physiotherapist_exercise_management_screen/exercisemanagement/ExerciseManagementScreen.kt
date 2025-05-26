@@ -44,6 +44,7 @@ import com.example.fizyoapp.domain.model.exercisemanagescreen.Exercise
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseDifficulty
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanStatus
+import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -590,6 +591,13 @@ fun ExerciseCard(
                     )
             ) {
                 if (exercise.mediaUrls.isNotEmpty()) {
+                    val firstMediaUrl = exercise.mediaUrls.first()
+                    val isVideo = exercise.mediaType[firstMediaUrl] == ExerciseType.VIDEO ||
+                            firstMediaUrl.contains("video") ||
+                            firstMediaUrl.contains(".mp4") ||
+                            firstMediaUrl.contains(".mov") ||
+                            firstMediaUrl.contains(".avi") ||
+                            firstMediaUrl.contains(".webm")
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(exercise.mediaUrls.first())
@@ -612,6 +620,41 @@ fun ExerciseCard(
                                 )
                             )
                     )
+                    if (isVideo) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = "Video",
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .background(
+                                        color = Color.Black.copy(alpha = 0.5f),
+                                        shape = CircleShape
+                                    )
+                                    .padding(4.dp)
+                            )
+                        }
+                        Box (
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .padding(4.dp)
+                                    .background(
+                                        color = Color.Black.copy(alpha = 0.6f),
+                                        shape = RoundedCornerShape(4.dp)
+                                    )
+                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                                ) {
+                            Text(
+                                text = "Video",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White
+                            )
+                        }
+                    }
                 } else {
                     Box(
                         modifier = Modifier.fillMaxSize(),
