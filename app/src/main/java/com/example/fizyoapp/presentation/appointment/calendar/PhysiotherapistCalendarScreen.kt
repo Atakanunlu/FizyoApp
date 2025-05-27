@@ -28,7 +28,6 @@ import com.example.fizyoapp.domain.model.appointment.Appointment
 import com.example.fizyoapp.domain.model.appointment.AppointmentStatus
 import com.example.fizyoapp.presentation.appointment.booking.CalendarView
 import com.example.fizyoapp.presentation.appointment.booking.TimeSlotGrid
-import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.*
 
