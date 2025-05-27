@@ -33,8 +33,10 @@ class AppointmentBookingViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = MutableStateFlow(AppointmentBookingState())
     val state: StateFlow<AppointmentBookingState> = _state.asStateFlow()
+
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+
     private var currentUserId: String? = null
     private var userName: String = ""
     private var userPhotoUrl: String = ""
@@ -81,6 +83,7 @@ class AppointmentBookingViewModel @Inject constructor(
                             }
                         }
                     }
+
                 getCurrentUserUseCase()
                     .catch { e ->
                         _state.value = _state.value.copy(
@@ -154,6 +157,7 @@ class AppointmentBookingViewModel @Inject constructor(
                     )
                     return@launch
                 }
+
                 getAvailableTimeSlotsUseCase(physiotherapistId, date)
                     .catch { e ->
                         _state.value = _state.value.copy(
@@ -217,19 +221,24 @@ class AppointmentBookingViewModel @Inject constructor(
             val selectedTimeSlot = currentState.selectedTimeSlot
             val physiotherapistId = currentState.physiotherapistId
             val appointmentType = currentState.selectedAppointmentType
+
             if (currentUserId == null) {
                 _state.value = _state.value.copy(error = "Kullanıcı bilgileri bulunamadı")
                 return@launch
             }
+
             if (selectedDate == null) {
                 _state.value = _state.value.copy(error = "Lütfen bir tarih seçin")
                 return@launch
             }
+
             if (selectedTimeSlot == null) {
                 _state.value = _state.value.copy(error = "Lütfen bir saat seçin")
                 return@launch
             }
+
             _state.value = _state.value.copy(isLoading = true)
+
             val appointment = Appointment(
                 userId = currentUserId!!,
                 physiotherapistId = physiotherapistId,
@@ -241,6 +250,7 @@ class AppointmentBookingViewModel @Inject constructor(
                 appointmentType = appointmentType,
                 rehabilitationNotes = ""
             )
+
             try {
                 createAppointmentUseCase(appointment)
                     .catch { e ->
@@ -257,7 +267,7 @@ class AppointmentBookingViewModel @Inject constructor(
                                     isSuccess = true,
                                     error = null
                                 )
-                                _uiEvent.send(UiEvent.AppointmentBooked)
+                                _uiEvent.send(UiEvent.AppointmentBookedWithId(result.data.id))
                             }
                             is Resource.Error -> {
                                 _state.value = _state.value.copy(
@@ -281,5 +291,6 @@ class AppointmentBookingViewModel @Inject constructor(
 
     sealed class UiEvent {
         data object AppointmentBooked : UiEvent()
+        data class AppointmentBookedWithId(val appointmentId: String) : UiEvent()
     }
 }

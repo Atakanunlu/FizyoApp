@@ -3,7 +3,18 @@ package com.example.fizyoapp.presentation.user.usermainscreen
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,9 +22,38 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AccessibilityNew
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Healing
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,7 +81,8 @@ import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 private val primaryColor = Color(59, 62, 104)
 private val backgroundColor = Color(245, 245, 250)
@@ -66,7 +107,6 @@ fun UserMainScreen(
 
     LaunchedEffect(key1 = Unit) {
         advertisementBannerViewModel.loadActiveAdvertisements()
-
         if (state.userProfile == null && !state.isLoading) {
             viewModel.onEvent(UserEvent.LoadUserProfile)
         }
@@ -254,13 +294,11 @@ fun UserMainScreen(
                             style = MaterialTheme.typography.bodyLarge,
                             color = primaryColor
                         )
-
                         var showEmergencyButton by remember { mutableStateOf(false) }
                         LaunchedEffect(key1 = true) {
                             delay(3000)
                             showEmergencyButton = true
                         }
-
                         if (showEmergencyButton) {
                             Spacer(modifier = Modifier.height(24.dp))
                             Button(
@@ -273,7 +311,6 @@ fun UserMainScreen(
                             ) {
                                 Text("Yeniden Dene")
                             }
-
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(
                                 onClick = {
@@ -607,6 +644,7 @@ fun MainNavigationButtonsRedesigned(navController: NavController, painRecord: Pa
         fontWeight = FontWeight.Bold,
         color = primaryColor
     )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -662,7 +700,9 @@ fun MainNavigationButtonsRedesigned(navController: NavController, painRecord: Pa
             )
         }
     }
+
     Spacer(modifier = Modifier.height(12.dp))
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -680,14 +720,24 @@ fun MainNavigationButtonsRedesigned(navController: NavController, painRecord: Pa
             modifier = Modifier.weight(1f)
         )
     }
+
     Spacer(modifier = Modifier.height(12.dp))
+
     ServiceCard(
         title = "Rehabilitasyon Geçmişim",
         icon = Icons.Default.History,
         description = "Geçmiş tedavi ve rehabilitasyon süreçlerinizi görüntüleyin",
-        onClick = { navController.navigate(AppScreens.RehabilitationHistoryScreen.route) }
+        onClick = {
+            navController.navigate(AppScreens.RehabilitationHistoryScreen.route) {
+                popUpTo(AppScreens.RehabilitationHistoryScreen.route) {
+                    inclusive = true
+                }
+            }
+        }
     )
+
     Spacer(modifier = Modifier.height(12.dp))
+
     ServiceCard(
         title = "Sosyal Medya",
         icon = Icons.Default.Share,
@@ -695,7 +745,9 @@ fun MainNavigationButtonsRedesigned(navController: NavController, painRecord: Pa
         onClick = { navController.navigate(AppScreens.SocialMediaScreen.route) },
         accentColor = socialMediaColor
     )
+
     Spacer(modifier = Modifier.height(12.dp))
+
     PainTrackingCard(painRecord, navController)
 }
 
@@ -764,6 +816,7 @@ fun ServiceCard(
 fun PainTrackingCard(painRecord: PainRecord?, navController: NavController) {
     val intensity = painRecord?.intensity ?: 0
     val location = painRecord?.location ?: "Veri yok"
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -820,7 +873,9 @@ fun PainTrackingCard(painRecord: PainRecord?, navController: NavController) {
                     color = textColor.copy(alpha = 0.7f)
                 )
             }
+
             Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -862,7 +917,9 @@ fun PainTrackingCard(painRecord: PainRecord?, navController: NavController) {
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
+
             Spacer(modifier = Modifier.height(12.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -881,7 +938,9 @@ fun PainTrackingCard(painRecord: PainRecord?, navController: NavController) {
                     fontWeight = FontWeight.SemiBold
                 )
             }
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Button(
                 onClick = { navController.navigate("pain_tracking") },
                 colors = ButtonDefaults.buttonColors(

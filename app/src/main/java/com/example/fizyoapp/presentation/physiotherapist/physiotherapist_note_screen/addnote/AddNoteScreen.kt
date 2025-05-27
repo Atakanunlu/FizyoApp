@@ -54,6 +54,7 @@ fun AddNoteScreen(
     val currentDate = remember { Date() }
     val context = LocalContext.current
 
+    // Dosya seçicileri tanımla
     val imageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -67,18 +68,6 @@ fun AddNoteScreen(
     ) { uri ->
         uri?.let {
             viewModel.onEvent(AddNoteEvent.AddDocument(it))
-        }
-    }
-
-    LaunchedEffect(state.showImagePicker) {
-        if (state.showImagePicker) {
-            imageLauncher.launch("image/*")
-        }
-    }
-
-    LaunchedEffect(state.showDocumentPicker) {
-        if (state.showDocumentPicker) {
-            documentLauncher.launch("application/pdf")
         }
     }
 
@@ -190,7 +179,6 @@ fun AddNoteScreen(
                             )
                         }
                     }
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -252,7 +240,6 @@ fun AddNoteScreen(
                             )
                         }
                     }
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -287,7 +274,6 @@ fun AddNoteScreen(
                                 color = textColor
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-
                             Text(
                                 text = "Görseller",
                                 fontWeight = FontWeight.Medium,
@@ -348,7 +334,7 @@ fun AddNoteScreen(
                                                     RoundedCornerShape(12.dp)
                                                 )
                                                 .background(primaryColor.copy(alpha = 0.1f))
-                                                .clickable { viewModel.onEvent(AddNoteEvent.ShowImagePicker) },
+                                                .clickable { imageLauncher.launch("image/*") },
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Column(
@@ -372,7 +358,7 @@ fun AddNoteScreen(
                                 }
                             } else {
                                 Button(
-                                    onClick = { viewModel.onEvent(AddNoteEvent.ShowImagePicker) },
+                                    onClick = { imageLauncher.launch("image/*") },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(48.dp),
@@ -389,9 +375,7 @@ fun AddNoteScreen(
                                     Text("Görsel Ekle")
                                 }
                             }
-
                             Spacer(modifier = Modifier.height(24.dp))
-
                             Text(
                                 text = "Belgeler",
                                 fontWeight = FontWeight.Medium,
@@ -412,7 +396,7 @@ fun AddNoteScreen(
                                         )
                                     }
                                     Button(
-                                        onClick = { viewModel.onEvent(AddNoteEvent.ShowDocumentPicker) },
+                                        onClick = { documentLauncher.launch("application/pdf") },
                                         modifier = Modifier.fillMaxWidth(),
                                         shape = RoundedCornerShape(12.dp),
                                         colors = ButtonDefaults.buttonColors(
@@ -429,7 +413,7 @@ fun AddNoteScreen(
                                 }
                             } else {
                                 Button(
-                                    onClick = { viewModel.onEvent(AddNoteEvent.ShowDocumentPicker) },
+                                    onClick = { documentLauncher.launch("application/pdf") },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(48.dp),
@@ -448,7 +432,6 @@ fun AddNoteScreen(
                             }
                         }
                     }
-
                     Button(
                         onClick = { viewModel.onEvent(AddNoteEvent.SaveNote) },
                         modifier = Modifier
@@ -476,9 +459,7 @@ fun AddNoteScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     if (state.error != null) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -572,7 +553,6 @@ fun DocumentItem(uri: Uri, onRemove: () -> Unit) {
             cursor.getString(nameIndex)
         } ?: "Belge"
     }
-
     Surface(
         modifier = Modifier
             .fillMaxWidth()

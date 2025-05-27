@@ -5,8 +5,11 @@ import com.example.fizyoapp.domain.model.appointment.Appointment
 import com.example.fizyoapp.domain.model.appointment.AppointmentStatus
 import com.example.fizyoapp.domain.model.appointment.BlockedTimeSlot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
@@ -17,6 +20,7 @@ import java.util.UUID
 import javax.inject.Inject
 
 class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
+
     private val firestore = FirebaseFirestore.getInstance()
     private val appointmentsCollection = firestore.collection("appointments")
     private val blockedTimeSlotsCollection = firestore.collection("blocked_time_slots")
@@ -38,10 +42,46 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
             val appointments = querySnapshot.documents.mapNotNull { doc ->
                 doc.toObject(Appointment::class.java)?.copy(id = doc.id)
             }
-
             emit(Resource.Success(appointments))
         } catch (e: Exception) {
             emit(Resource.Error("Randevularınız alınamadı: ${e.message}"))
+        }
+    }
+
+    override fun observeAppointmentsForUser(userId: String): Flow<Resource<List<Appointment>>> = callbackFlow {
+        var listenerRegistration: ListenerRegistration? = null
+
+        try {
+            trySend(Resource.Loading())
+
+            listenerRegistration = appointmentsCollection
+                .whereEqualTo("userId", userId)
+                .orderBy("date", Query.Direction.ASCENDING)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        trySend(Resource.Error("Randevular alınamadı: ${error.message}"))
+                        return@addSnapshotListener
+                    }
+
+                    if (snapshot != null) {
+                        val appointments = snapshot.documents.mapNotNull { doc ->
+                            try {
+                                doc.toObject(Appointment::class.java)?.copy(id = doc.id)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        trySend(Resource.Success(appointments))
+                    } else {
+                        trySend(Resource.Success(emptyList()))
+                    }
+                }
+        } catch (e: Exception) {
+            trySend(Resource.Error("Randevular dinlenemedi: ${e.message}"))
+        }
+
+        awaitClose {
+            listenerRegistration?.remove()
         }
     }
 
@@ -57,10 +97,46 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
             val appointments = querySnapshot.documents.mapNotNull { doc ->
                 doc.toObject(Appointment::class.java)?.copy(id = doc.id)
             }
-
             emit(Resource.Success(appointments))
         } catch (e: Exception) {
             emit(Resource.Error("Randevular alınamadı: ${e.message}"))
+        }
+    }
+
+    override fun observeAppointmentsForPhysiotherapist(physiotherapistId: String): Flow<Resource<List<Appointment>>> = callbackFlow {
+        var listenerRegistration: ListenerRegistration? = null
+
+        try {
+            trySend(Resource.Loading())
+
+            listenerRegistration = appointmentsCollection
+                .whereEqualTo("physiotherapistId", physiotherapistId)
+                .orderBy("date", Query.Direction.ASCENDING)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        trySend(Resource.Error("Randevular alınamadı: ${error.message}"))
+                        return@addSnapshotListener
+                    }
+
+                    if (snapshot != null) {
+                        val appointments = snapshot.documents.mapNotNull { doc ->
+                            try {
+                                doc.toObject(Appointment::class.java)?.copy(id = doc.id)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        trySend(Resource.Success(appointments))
+                    } else {
+                        trySend(Resource.Success(emptyList()))
+                    }
+                }
+        } catch (e: Exception) {
+            trySend(Resource.Error("Randevular dinlenemedi: ${e.message}"))
+        }
+
+        awaitClose {
+            listenerRegistration?.remove()
         }
     }
 
@@ -201,7 +277,45 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
 
             val appointment = appointmentDoc.toObject(Appointment::class.java)?.copy(id = appointmentId)
             if (appointment != null) {
-                val updatedAppointment = appointment.copy(status = AppointmentStatus.CANCELLED)
+                val updatedAppointment = appointment.copy(
+                    status = AppointmentStatus.CANCELLED,
+                    cancelledAt = Date()
+                )
+
+                val dateStr = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(appointment.date)
+                val slotId = "${appointment.physiotherapistId}_${dateStr}_${appointment.timeSlot.replace(":", "")}"
+
+                firestore.runBatch { batch ->
+                    batch.set(appointmentsCollection.document(appointmentId), updatedAppointment)
+                    batch.delete(appointmentSlotsCollection.document(slotId))
+                }.await()
+
+                emit(Resource.Success(true))
+            } else {
+                emit(Resource.Error("Randevu bilgileri alınamadı"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error("Randevu iptal edilemedi: ${e.message}"))
+        }
+    }
+
+    override fun cancelAppointmentWithRole(appointmentId: String, cancelledBy: String): Flow<Resource<Boolean>> = flow {
+        try {
+            emit(Resource.Loading())
+
+            val appointmentDoc = appointmentsCollection.document(appointmentId).get().await()
+            if (!appointmentDoc.exists()) {
+                emit(Resource.Error("Randevu bulunamadı"))
+                return@flow
+            }
+
+            val appointment = appointmentDoc.toObject(Appointment::class.java)?.copy(id = appointmentId)
+            if (appointment != null) {
+                val updatedAppointment = appointment.copy(
+                    status = AppointmentStatus.CANCELLED,
+                    cancelledBy = cancelledBy,
+                    cancelledAt = Date()
+                )
 
                 val dateStr = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(appointment.date)
                 val slotId = "${appointment.physiotherapistId}_${dateStr}_${appointment.timeSlot.replace(":", "")}"
@@ -326,7 +440,6 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
             val blockedSlots = querySnapshot.documents.mapNotNull { doc ->
                 doc.toObject(BlockedTimeSlot::class.java)?.copy(id = doc.id)
             }
-
             emit(Resource.Success(blockedSlots))
         } catch (e: Exception) {
             emit(Resource.Error("Bloke edilen saatler alınamadı: ${e.message}"))
@@ -361,7 +474,6 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
             val blockedSlots = querySnapshot.documents.mapNotNull { doc ->
                 doc.toObject(BlockedTimeSlot::class.java)?.copy(id = doc.id)
             }
-
             emit(Resource.Success(blockedSlots))
         } catch (e: Exception) {
             emit(Resource.Error("Bloke edilen saatler alınamadı: ${e.message}"))
@@ -387,7 +499,6 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
             val endOfDay = calendar.time
 
             val dateStr = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(date)
-
             val unavailableSlots = mutableSetOf<String>()
 
             val reservedSlotsQuery = appointmentSlotsCollection
@@ -407,7 +518,6 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
             }
 
             val availableSlots = availableTimeSlots.filter { it !in unavailableSlots }
-
             emit(Resource.Success(availableSlots))
         } catch (e: Exception) {
             emit(Resource.Error("Müsait saatler alınamadı: ${e.message}"))

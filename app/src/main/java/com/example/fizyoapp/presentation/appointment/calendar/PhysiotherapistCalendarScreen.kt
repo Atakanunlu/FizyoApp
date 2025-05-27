@@ -1,5 +1,5 @@
 package com.example.fizyoapp.presentation.appointment.calendar
-import android.annotation.SuppressLint
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -25,11 +25,13 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.data.util.capitalize
 import com.example.fizyoapp.domain.model.appointment.Appointment
+import com.example.fizyoapp.domain.model.appointment.AppointmentStatus
 import com.example.fizyoapp.presentation.appointment.booking.CalendarView
 import com.example.fizyoapp.presentation.appointment.booking.TimeSlotGrid
+import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.*
-@SuppressLint("UnusedMaterial3ScaffoldPaddingValues")
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PhysiotherapistCalendarScreen(
@@ -46,6 +48,51 @@ fun PhysiotherapistCalendarScreen(
     var showBlockConfirmationDialog by remember { mutableStateOf(false) }
     var timeSlotToBlock by remember { mutableStateOf<String?>(null) }
     var selectedMonth by remember { mutableStateOf(0) }
+    var showCancelDialog by remember { mutableStateOf(false) }
+    var appointmentToCancel by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(state.success) {
+        if (state.success != null) {
+            kotlinx.coroutines.delay(3000)
+            viewModel.clearSuccessMessage()
+        }
+    }
+
+    if (showCancelDialog && appointmentToCancel != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showCancelDialog = false
+                appointmentToCancel = null
+            },
+            title = { Text("Randevu İptali") },
+            text = { Text("Bu randevuyu iptal etmek istediğinizden emin misiniz?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        appointmentToCancel?.let { appointmentId ->
+                            viewModel.onEvent(PhysiotherapistCalendarEvent.CancelAppointment(appointmentId))
+                        }
+                        showCancelDialog = false
+                        appointmentToCancel = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Evet, İptal Et", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showCancelDialog = false
+                        appointmentToCancel = null
+                    }
+                ) {
+                    Text("Hayır", color = primaryColor)
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -108,10 +155,9 @@ fun PhysiotherapistCalendarScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = state.error!!,
-                                style = LocalTextStyle.current.copy(
-                                    textAlign = TextAlign.Center,
-                                    color = Color(0xFFB71C1C)
-                                )
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color(0xFFB71C1C),
+                                textAlign = TextAlign.Center
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(
@@ -132,8 +178,9 @@ fun PhysiotherapistCalendarScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
                         modifier = Modifier
@@ -144,11 +191,9 @@ fun PhysiotherapistCalendarScreen(
                     ) {
                         Text(
                             text = "Tarih Seçin",
-                            style = LocalTextStyle.current.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
-                                color = primaryColor
-                            )
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = primaryColor
                         )
                         Row(
                             verticalAlignment = Alignment.CenterVertically
@@ -169,15 +214,13 @@ fun PhysiotherapistCalendarScreen(
                             val monthYearFormat = SimpleDateFormat("MMMM yyyy", Locale("tr"))
                             Text(
                                 text = monthYearFormat.format(currentCalendar.time).capitalize(),
-                                style = LocalTextStyle.current.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                    color = primaryColor
-                                )
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = primaryColor
                             )
                             IconButton(
                                 onClick = {
-                                    if (selectedMonth < 12) selectedMonth++ // Maksimum 12 ay ileri
+                                    if (selectedMonth < 12) selectedMonth++
                                 }
                             ) {
                                 Icon(
@@ -188,6 +231,7 @@ fun PhysiotherapistCalendarScreen(
                             }
                         }
                     }
+
                     CalendarView(
                         currentMonth = selectedMonth,
                         onDateSelected = { date ->
@@ -195,25 +239,26 @@ fun PhysiotherapistCalendarScreen(
                         },
                         selectedDate = state.selectedDate
                     )
+
                     Spacer(modifier = Modifier.height(16.dp))
+
                     Text(
-                        text = "Bugünkü Randevular",
-                        style = LocalTextStyle.current.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = primaryColor
-                        ),
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        text = "Bugünkü Randevularım",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
                     )
+
                     val selectedDate = state.selectedDate
                     val todayAppointments = if (selectedDate != null) {
-                        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                        state.appointments.filter {
-                            dateFormat.format(it.date) == dateFormat.format(selectedDate)
-                        }
+                        viewModel.getFilteredAppointmentsForDate(selectedDate)
                     } else {
                         emptyList()
                     }
+
                     if (todayAppointments.isEmpty()) {
                         Card(
                             modifier = Modifier
@@ -235,10 +280,9 @@ fun PhysiotherapistCalendarScreen(
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "Bugün için randevu bulunmamaktadır.",
-                                    style = LocalTextStyle.current.copy(
-                                        color = Color.Gray,
-                                        textAlign = TextAlign.Center
-                                    )
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = Color.Gray,
+                                    textAlign = TextAlign.Center
                                 )
                             }
                         }
@@ -253,20 +297,27 @@ fun PhysiotherapistCalendarScreen(
                                 onUserDetailsClick = { userId ->
                                     selectedUserId = userId
                                     showUserDetailsDialog = true
+                                },
+                                onCancelClick = { appointmentId ->
+                                    appointmentToCancel = appointmentId
+                                    showCancelDialog = true
                                 }
                             )
                         }
                     }
+
                     Spacer(modifier = Modifier.height(16.dp))
+
                     Text(
                         text = "Müsait Saatler",
-                        style = LocalTextStyle.current.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = primaryColor
-                        ),
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
                     )
+
                     if (state.availableTimeSlots.isEmpty()) {
                         Card(
                             modifier = Modifier
@@ -288,21 +339,20 @@ fun PhysiotherapistCalendarScreen(
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "Tüm saatler dolu veya bloke edilmiş.",
-                                    style = LocalTextStyle.current.copy(
-                                        color = Color.Gray,
-                                        textAlign = TextAlign.Center
-                                    )
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = Color.Gray,
+                                    textAlign = TextAlign.Center
                                 )
                             }
                         }
                     } else {
                         Text(
                             text = "Tıklayarak saatleri bloke edebilirsiniz:",
-                            style = LocalTextStyle.current.copy(
-                                fontSize = 14.sp,
-                                color = Color.Gray
-                            ),
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp)
                         )
                         TimeSlotGrid(
                             timeSlots = state.availableTimeSlots,
@@ -313,144 +363,27 @@ fun PhysiotherapistCalendarScreen(
                             }
                         )
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // Bilgilendirici Notlar Bölümü
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Info,
-                                    contentDescription = null,
-                                    tint = Color(0xFF1976D2),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Önemli Bilgiler",
-                                    style = LocalTextStyle.current.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp,
-                                        color = Color(0xFF1976D2)
-                                    )
-                                )
-                            }
-                            // Not 1
-                            Row(
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .background(
-                                            Color(0xFF1976D2),
-                                            CircleShape
-                                        )
-                                        .align(Alignment.Top)
-                                        .padding(top = 8.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = "Randevudan bir gün önce ilgili hasta ile iletişim kurarak randevu tarihini kesinleştirebilirsiniz.",
-                                    style = LocalTextStyle.current.copy(
-                                        fontSize = 14.sp,
-                                        color = Color(0xFF424242),
-                                        lineHeight = 20.sp
-                                    ),
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                            // Not 2
-                            Row(
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .background(
-                                            Color(0xFF1976D2),
-                                            CircleShape
-                                        )
-                                        .align(Alignment.Top)
-                                        .padding(top = 8.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = "Uzaktan telerehabilitasyon gerçekleştireceğiniz hastalarınıza ödeme işlemi için 'Mesajlar' bölümünden detaylı bilgi verebilirsiniz.",
-                                    style = LocalTextStyle.current.copy(
-                                        fontSize = 14.sp,
-                                        color = Color(0xFF424242),
-                                        lineHeight = 20.sp
-                                    ),
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                            // Not 3
-                            Row {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .background(
-                                            Color(0xFF1976D2),
-                                            CircleShape
-                                        )
-                                        .align(Alignment.Top)
-                                        .padding(top = 8.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = "Hastalarınızın rehabilitasyon sürecini takip edebilmek için randevu sonrası mutlaka notlarınızı kaydetmeyi unutmayın.",
-                                    style = LocalTextStyle.current.copy(
-                                        fontSize = 14.sp,
-                                        color = Color(0xFF424242),
-                                        lineHeight = 20.sp
-                                    ),
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(80.dp)) // Bottom padding for scrolling
+
+                    Spacer(modifier = Modifier.height(80.dp))
                 }
             }
+
             if (state.success != null) {
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
-                    action = {
-                        TextButton(onClick = {
-                            viewModel.onEvent(PhysiotherapistCalendarEvent.Refresh)
-                        }) {
-                            Text(
-                                text = "Tamam",
-                                style = LocalTextStyle.current.copy(color = Color.White)
-                            )
-                        }
-                    },
                     containerColor = Color(0xFF43A047)
                 ) {
                     Text(
                         text = state.success!!,
-                        style = LocalTextStyle.current.copy(color = Color.White)
+                        color = Color.White
                     )
                 }
             }
         }
     }
+
     if (showRehabilitationDialog && selectedAppointment != null) {
         RehabilitationNoteDialog(
             appointment = selectedAppointment!!,
@@ -461,12 +394,14 @@ fun PhysiotherapistCalendarScreen(
             }
         )
     }
+
     if (showUserDetailsDialog && selectedUserId != null) {
         UserDetailsDialog(
             userId = selectedUserId!!,
             onDismiss = { showUserDetailsDialog = false }
         )
     }
+
     if (showBlockConfirmationDialog && timeSlotToBlock != null) {
         TimeBlockConfirmationDialog(
             timeSlot = timeSlotToBlock!!,
@@ -483,6 +418,179 @@ fun PhysiotherapistCalendarScreen(
         )
     }
 }
+
+@Composable
+fun AppointmentCard(
+    appointment: Appointment,
+    onInfoClick: (Appointment) -> Unit,
+    onUserDetailsClick: (String) -> Unit,
+    onCancelClick: (String) -> Unit
+) {
+    val primaryColor = Color(0xFF3B3E68)
+    val isCancelledByUser = appointment.status == AppointmentStatus.CANCELLED &&
+            appointment.cancelledBy == "user"
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isCancelledByUser) Color(0xFFFFEBEE) else Color.White
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            if (isCancelledByUser) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Cancel,
+                        contentDescription = "İptal",
+                        tint = Color.Red,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Hasta randevusunu iptal etmiştir",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
+                HorizontalDivider(color = Color.Red.copy(alpha = 0.3f))
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (isCancelledByUser)
+                                Color.Red.copy(alpha = 0.1f)
+                            else
+                                primaryColor.copy(alpha = 0.1f)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (appointment.userPhotoUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = appointment.userPhotoUrl,
+                            contentDescription = "Profil fotoğrafı",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Profil",
+                            tint = if (isCancelledByUser) Color.Red else Color.White,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = appointment.userName.ifEmpty { "İsimsiz Hasta" },
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isCancelledByUser) Color.Red else primaryColor
+                    )
+                    Text(
+                        text = "${SimpleDateFormat("dd MMM yyyy", Locale("tr")).format(appointment.date)}, ${appointment.timeSlot}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                    val typeText = when (appointment.appointmentType) {
+                        com.example.fizyoapp.domain.model.appointment.AppointmentType.IN_PERSON -> "Yüz Yüze Randevu"
+                        com.example.fizyoapp.domain.model.appointment.AppointmentType.REMOTE -> "Uzaktan Randevu"
+                    }
+                    Text(
+                        text = typeText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = if (isCancelledByUser) Color.Red else primaryColor
+                    )
+
+                    if (isCancelledByUser && appointment.cancelledAt != null) {
+                        Text(
+                            text = "İptal tarihi: ${SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("tr")).format(appointment.cancelledAt)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Red,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                        )
+                    }
+                }
+
+                if (!isCancelledByUser) {
+                    Row {
+                        IconButton(
+                            onClick = { onInfoClick(appointment) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = "Bilgilendirme",
+                                tint = primaryColor
+                            )
+                        }
+                        IconButton(
+                            onClick = { onUserDetailsClick(appointment.userId) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Kullanıcı Bilgileri",
+                                tint = primaryColor
+                            )
+                        }
+                        IconButton(
+                            onClick = { onCancelClick(appointment.id) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Cancel,
+                                contentDescription = "İptal Et",
+                                tint = Color.Red
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (appointment.rehabilitationNotes.isNotEmpty() && !isCancelledByUser) {
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider()
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Rehabilitasyon Notları:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = appointment.rehabilitationNotes,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun TimeBlockConfirmationDialog(
     timeSlot: String,
@@ -513,127 +621,7 @@ fun TimeBlockConfirmationDialog(
         }
     )
 }
-@Composable
-fun AppointmentCard(
-    appointment: Appointment,
-    onInfoClick: (Appointment) -> Unit,
-    onUserDetailsClick: (String) -> Unit
-) {
-    val primaryColor = Color(0xFF3B3E68)
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(primaryColor),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (appointment.userPhotoUrl.isNotEmpty()) {
-                        AsyncImage(
-                            model = appointment.userPhotoUrl,
-                            contentDescription = "Profil fotoğrafı",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Profil",
-                            tint = Color.White,
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = appointment.userName.ifEmpty { "İsimsiz Hasta" },
-                        style = LocalTextStyle.current.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = primaryColor
-                        )
-                    )
-                    Text(
-                        text = "${SimpleDateFormat("dd MMM yyyy", Locale("tr")).format(appointment.date)}, ${appointment.timeSlot}",
-                        style = LocalTextStyle.current.copy(
-                            fontSize = 14.sp,
-                            color = Color.Gray
-                        )
-                    )
-                    val typeText = when (appointment.appointmentType) {
-                        com.example.fizyoapp.domain.model.appointment.AppointmentType.IN_PERSON -> "Yüz Yüze Randevu"
-                        com.example.fizyoapp.domain.model.appointment.AppointmentType.REMOTE -> "Uzaktan Randevu"
-                    }
-                    Text(
-                        text = typeText,
-                        style = LocalTextStyle.current.copy(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = primaryColor
-                        )
-                    )
-                }
-                Row {
-                    IconButton(
-                        onClick = { onInfoClick(appointment) }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = "Bilgilendirme",
-                            tint = primaryColor
-                        )
-                    }
-                    IconButton(
-                        onClick = { onUserDetailsClick(appointment.userId) }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Kullanıcı Bilgileri",
-                            tint = primaryColor
-                        )
-                    }
-                }
-            }
-            if (appointment.rehabilitationNotes.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider()
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Rehabilitasyon Notları:",
-                    style = LocalTextStyle.current.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
-                )
-                Text(
-                    text = appointment.rehabilitationNotes,
-                    style = LocalTextStyle.current.copy(
-                        fontSize = 14.sp
-                    )
-                )
-            }
-        }
-    }
-}
+
 @Composable
 fun RehabilitationNoteDialog(
     appointment: Appointment,
@@ -641,30 +629,27 @@ fun RehabilitationNoteDialog(
     onSave: (String) -> Unit
 ) {
     var noteText by remember { mutableStateOf(appointment.rehabilitationNotes) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
                 text = "Rehabilitasyon Notu Ekle",
-                style = LocalTextStyle.current.copy(
-                    fontWeight = FontWeight.Bold
-                )
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
         },
         text = {
             Column {
                 Text(
                     text = "Hasta: ${appointment.userName}",
-                    style = LocalTextStyle.current.copy(
-                        fontWeight = FontWeight.Medium
-                    )
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = "Tarih: ${SimpleDateFormat("dd MMM yyyy", Locale("tr")).format(appointment.date)}, ${appointment.timeSlot}",
-                    style = LocalTextStyle.current.copy(
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
@@ -694,6 +679,7 @@ fun RehabilitationNoteDialog(
         }
     )
 }
+
 @Composable
 fun UserDetailsDialog(
     userId: String,
@@ -701,17 +687,18 @@ fun UserDetailsDialog(
     calenderUserDetailsViewModel: CalenderUserDetailsViewModel = hiltViewModel()
 ) {
     val userDetailsState by calenderUserDetailsViewModel.state.collectAsState()
+
     LaunchedEffect(userId) {
         calenderUserDetailsViewModel.getUserProfile(userId)
     }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
                 text = "Kullanıcı Bilgileri",
-                style = LocalTextStyle.current.copy(
-                    fontWeight = FontWeight.Bold
-                )
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
         },
         text = {
@@ -725,9 +712,8 @@ fun UserDetailsDialog(
             } else if (userDetailsState.error != null) {
                 Text(
                     text = "Hata: ${userDetailsState.error}",
-                    style = LocalTextStyle.current.copy(
-                        color = Color.Red
-                    )
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Red
                 )
             } else {
                 val profile = userDetailsState.userProfile
@@ -782,6 +768,7 @@ fun UserDetailsDialog(
         }
     )
 }
+
 @Composable
 fun UserInfoItem(
     label: String,
@@ -794,17 +781,13 @@ fun UserInfoItem(
     ) {
         Text(
             text = label,
-            style = LocalTextStyle.current.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold,
+            color = Color.Gray
         )
         Text(
             text = value,
-            style = LocalTextStyle.current.copy(
-                fontSize = 16.sp
-            )
+            style = MaterialTheme.typography.bodyMedium
         )
     }
     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))

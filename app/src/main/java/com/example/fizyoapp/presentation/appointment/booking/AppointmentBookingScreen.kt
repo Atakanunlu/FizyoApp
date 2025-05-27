@@ -40,11 +40,30 @@ fun AppointmentBookingScreen(
     val state by viewModel.state.collectAsState()
     val primaryColor = Color(0xFF3B3E68)
     val accentColor = Color(0xFF6D72C3)
+    var selectedMonth by remember { mutableStateOf(0) }
+
+    LaunchedEffect(state.selectedDate) {
+        if (state.selectedDate != null) {
+            val calendar = Calendar.getInstance()
+            val currentCalendar = Calendar.getInstance()
+            calendar.time = state.selectedDate!!
+            val yearDiff = calendar.get(Calendar.YEAR) - currentCalendar.get(Calendar.YEAR)
+            val monthDiff = calendar.get(Calendar.MONTH) - currentCalendar.get(Calendar.MONTH)
+            selectedMonth = yearDiff * 12 + monthDiff
+        }
+    }
 
     LaunchedEffect(key1 = viewModel.uiEvent) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is AppointmentBookingViewModel.UiEvent.AppointmentBooked -> {
+                    navController.navigate(AppScreens.UserMainScreen.route) {
+                        popUpTo(AppScreens.PhysiotherapistDetailScreen.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+                is AppointmentBookingViewModel.UiEvent.AppointmentBookedWithId -> {
                     navController.navigate(AppScreens.UserMainScreen.route) {
                         popUpTo(AppScreens.PhysiotherapistDetailScreen.route) {
                             inclusive = true
@@ -140,7 +159,7 @@ fun AppointmentBookingScreen(
                             }
                         }
                     }
-                    var selectedMonth by remember { mutableStateOf(0) }
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -194,6 +213,7 @@ fun AppointmentBookingScreen(
                             }
                         }
                     }
+
                     CalendarView(
                         currentMonth = selectedMonth,
                         onDateSelected = { date ->
@@ -201,7 +221,9 @@ fun AppointmentBookingScreen(
                         },
                         selectedDate = state.selectedDate
                     )
+
                     Spacer(modifier = Modifier.height(16.dp))
+
                     Text(
                         text = "Randevu Tipi",
                         style = LocalTextStyle.current.copy(
@@ -211,6 +233,7 @@ fun AppointmentBookingScreen(
                         ),
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -236,7 +259,9 @@ fun AppointmentBookingScreen(
                             modifier = Modifier.weight(1f)
                         )
                     }
+
                     Spacer(modifier = Modifier.height(16.dp))
+
                     if (state.selectedDate != null) {
                         Text(
                             text = "Saat Seçin",
@@ -247,6 +272,7 @@ fun AppointmentBookingScreen(
                             ),
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
+
                         if (state.availableTimeSlots.isEmpty()) {
                             Card(
                                 modifier = Modifier
@@ -312,7 +338,9 @@ fun AppointmentBookingScreen(
                             }
                         }
                     }
+
                     Spacer(modifier = Modifier.height(24.dp))
+
                     Button(
                         onClick = { viewModel.onEvent(AppointmentBookingEvent.BookAppointment) },
                         modifier = Modifier
@@ -338,9 +366,11 @@ fun AppointmentBookingScreen(
                             )
                         )
                     }
+
                     Spacer(modifier = Modifier.height(60.dp))
                 }
             }
+
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
@@ -372,7 +402,6 @@ fun CalendarView(
     onDateSelected: (Date) -> Unit,
     selectedDate: Date?
 ) {
-
     val accentColor = Color(0xFF6D72C3)
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.MONTH, currentMonth)
@@ -380,6 +409,7 @@ fun CalendarView(
     val firstDayOfMonth = calendar.get(Calendar.DAY_OF_WEEK) - 1
     val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
     val weekDays = listOf("P", "P", "S", "Ç", "P", "C", "C")
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -397,9 +427,12 @@ fun CalendarView(
                 )
             }
         }
+
         Spacer(modifier = Modifier.height(8.dp))
+
         val totalDays = firstDayOfMonth + daysInMonth
         val totalWeeks = (totalDays + 6) / 7
+
         for (week in 0 until totalWeeks) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -411,6 +444,7 @@ fun CalendarView(
                         val dateCalendar = Calendar.getInstance()
                         dateCalendar.add(Calendar.MONTH, currentMonth)
                         dateCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+
                         val isSelected = selectedDate?.let {
                             val selectedCal = Calendar.getInstance()
                             selectedCal.time = it
@@ -418,11 +452,14 @@ fun CalendarView(
                                     selectedCal.get(Calendar.MONTH) == dateCalendar.get(Calendar.MONTH) &&
                                     selectedCal.get(Calendar.DAY_OF_MONTH) == dateCalendar.get(Calendar.DAY_OF_MONTH)
                         } ?: false
+
                         val todayCal = Calendar.getInstance()
                         val isToday = todayCal.get(Calendar.YEAR) == dateCalendar.get(Calendar.YEAR) &&
                                 todayCal.get(Calendar.MONTH) == dateCalendar.get(Calendar.MONTH) &&
                                 todayCal.get(Calendar.DAY_OF_MONTH) == dateCalendar.get(Calendar.DAY_OF_MONTH)
+
                         val isPastDay = dateCalendar.before(todayCal) && !isToday
+
                         Box(
                             modifier = Modifier
                                 .weight(1f)

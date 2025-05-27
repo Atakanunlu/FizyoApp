@@ -50,6 +50,8 @@ import com.example.fizyoapp.domain.usecase.advertisement.CreateAdvertisementUseC
 import com.example.fizyoapp.domain.usecase.advertisement.GetActiveAdvertisementsUseCase
 import com.example.fizyoapp.domain.usecase.advertisement.GetAdvertisementByIdUseCase
 import com.example.fizyoapp.domain.usecase.appointment.BlockTimeSlotUseCase
+import com.example.fizyoapp.domain.usecase.appointment.CancelAppointmentUseCase
+import com.example.fizyoapp.domain.usecase.appointment.CancelAppointmentWithRoleUseCase
 import com.example.fizyoapp.domain.usecase.appointment.CreateAppointmentUseCase
 import com.example.fizyoapp.domain.usecase.appointment.GetAvailableTimeSlotsUseCase
 import com.example.fizyoapp.domain.usecase.appointment.GetPhysiotherapistAppointmentsUseCase
@@ -148,17 +150,18 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-
     @Provides
     @Singleton
     fun provideFirebaseFirestore(): FirebaseFirestore {
         return FirebaseFirestore.getInstance()
     }
+
     @Provides
     @Singleton
     fun provideAuthRepository(): AuthRepository {
         return AuthRepositoryImpl()
     }
+
     @Provides
     @Singleton
     fun provideMessagesRepository(   userProfileRepository: UserProfileRepository,
@@ -185,7 +188,6 @@ object AppModule {
         return PainTrackingRepositoryImpl(firestore)
     }
 
-
     @Provides
     @Singleton
     fun provideGetLatestPainRecordUseCase(painRepository: PainTrackingRepository): GetLatestPainRecordUseCase {
@@ -203,6 +205,7 @@ object AppModule {
     fun provideGetPainRecordsForUserUseCase(painRepository: PainTrackingRepository): GetPainRecordsUseCase {
         return GetPainRecordsUseCase (painRepository)
     }
+
     @Provides
     @Singleton
     fun provideGetChatThreadsUseCase(messagesRepository: MessagesRepository,authRepository: AuthRepository): GetChatThreadsUseCase {
@@ -227,8 +230,6 @@ object AppModule {
         return MarkMessagesAsReadUseCase(messagesRepository,authRepository)
     }
 
-
-
     // Main Screen ViewModels
     @Provides
     @Singleton
@@ -244,9 +245,6 @@ object AppModule {
             getUserProfileUseCase,
             getLatestPainRecordUseCase)
     }
-
-
-
 
     @Provides
     @Singleton
@@ -502,7 +500,6 @@ object AppModule {
         return UpdateNoteUpdateUseCase(repository)
     }
 
-
     @Provides
     fun provideUpdatePainRecordUseCase(repository: PainTrackingRepository): UpdatePainRecordUseCase {
         return UpdatePainRecordUseCase(repository)
@@ -512,14 +509,15 @@ object AppModule {
     fun provideDeletePainRecordUseCase(repository: PainTrackingRepository): DeletePainRecordUseCase {
         return DeletePainRecordUseCase(repository)
     }
+
     @Provides
     @Singleton
     fun provideRadyolojikGoruntuRepository(
-
         storage: FirebaseStorage,
     ): RadyolojikGoruntuRepository {
         return RadyolojikGoruntuRepositoryImpl(storage)
     }
+
     @Provides
     @Singleton
     fun provideFirebaseStorage(): FirebaseStorage {
@@ -528,6 +526,7 @@ object AppModule {
         // İsteğe bağlı diğer yapılandırmalar
         return storage
     }
+
     @Provides
     @Singleton
     fun provideMedicalReportRepository(
@@ -543,7 +542,6 @@ object AppModule {
     ): EvaluationFormRepository {
         return EvaluationFormRepositoryImpl(firestore)
     }
-
 
     @Provides
     @Singleton
@@ -706,6 +704,7 @@ object AppModule {
     fun provideDeleteNotificationUseCase(repository: NotificationRepository): DeleteNotificationUseCase {
         return DeleteNotificationUseCase(repository)
     }
+
     @Provides
     @Singleton
     fun provideExerciseRepository(
@@ -713,6 +712,7 @@ object AppModule {
     ): ExerciseRepository {
         return exerciseRepositoryImpl
     }
+
     @Provides
     @Singleton
     fun provideAppointmentRepository(): AppointmentRepository {
@@ -757,6 +757,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideCancelAppointmentUseCase(repository: AppointmentRepository): CancelAppointmentUseCase {
+        return CancelAppointmentUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
     fun provideGetCurrentPhysiotherapistUseCase(authRepository: AuthRepository): GetCurrentPhysiotherapistUseCase {
         return GetCurrentPhysiotherapistUseCase(authRepository)
     }
@@ -771,21 +777,6 @@ object AppModule {
     @Singleton
     fun provideUpdateAppointmentNotesUseCase(repository: AppointmentRepository): UpdateAppointmentNotesUseCase {
         return UpdateAppointmentNotesUseCase(repository)
-    }
-
-
-    @Provides
-    @Singleton
-    fun provideRehabilitationHistoryViewModel(
-        getUserAppointmentsUseCase: GetUserAppointmentsUseCase,
-        getPhysiotherapistByIdUseCase: GetPhysiotherapistByIdUseCase,
-        getCurrentUserUseCase: GetCurrentUseCase
-    ): RehabilitationHistoryViewModel {
-        return RehabilitationHistoryViewModel(
-            getUserAppointmentsUseCase,
-            getPhysiotherapistByIdUseCase,
-            getCurrentUserUseCase
-        )
     }
 
     @Provides
@@ -915,6 +906,29 @@ object AppModule {
     @Singleton
     fun provideAdvertisementDataRepository(): AdvertisementDataRepository {
         return AdvertisementDataRepository()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCancelAppointmentWithRoleUseCase(repository: AppointmentRepository): CancelAppointmentWithRoleUseCase {
+        return CancelAppointmentWithRoleUseCase(repository)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideRehabilitationHistoryViewModel(
+        getUserAppointmentsUseCase: GetUserAppointmentsUseCase,
+        getPhysiotherapistByIdUseCase: GetPhysiotherapistByIdUseCase,
+        getCurrentUserUseCase: GetCurrentUseCase,
+        cancelAppointmentWithRoleUseCase: CancelAppointmentWithRoleUseCase
+    ): RehabilitationHistoryViewModel {
+        return RehabilitationHistoryViewModel(
+            getUserAppointmentsUseCase,
+            getPhysiotherapistByIdUseCase,
+            getCurrentUserUseCase,
+            cancelAppointmentWithRoleUseCase
+        )
     }
 
 }
