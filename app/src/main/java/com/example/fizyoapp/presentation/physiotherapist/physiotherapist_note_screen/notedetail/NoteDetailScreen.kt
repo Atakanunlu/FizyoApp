@@ -86,6 +86,7 @@ fun NoteDetailScreen(
         }
     }
 
+    // Dosya seçicileri burada tanımla
     val imageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -115,30 +116,6 @@ fun NoteDetailScreen(
     ) { uri ->
         uri?.let {
             viewModel.onEvent(NoteDetailEvent.AddDocumentToUpdate(it))
-        }
-    }
-
-    LaunchedEffect(state.showImagePicker) {
-        if (state.showImagePicker) {
-            imageLauncher.launch("image/*")
-        }
-    }
-
-    LaunchedEffect(state.showDocumentPicker) {
-        if (state.showDocumentPicker) {
-            documentLauncher.launch("application/pdf")
-        }
-    }
-
-    LaunchedEffect(state.showUpdateImagePicker) {
-        if (state.showUpdateImagePicker) {
-            updateImageLauncher.launch("image/*")
-        }
-    }
-
-    LaunchedEffect(state.showUpdateDocumentPicker) {
-        if (state.showUpdateDocumentPicker) {
-            updateDocumentLauncher.launch("application/pdf")
         }
     }
 
@@ -373,7 +350,7 @@ fun NoteDetailScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Button(
-                                    onClick = { viewModel.onEvent(NoteDetailEvent.ShowUpdateImagePicker) },
+                                    onClick = { updateImageLauncher.launch("image/*") },
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(8.dp),
                                     colors = ButtonDefaults.buttonColors(
@@ -388,7 +365,7 @@ fun NoteDetailScreen(
                                     Text("Görsel Ekle")
                                 }
                                 Button(
-                                    onClick = { viewModel.onEvent(NoteDetailEvent.ShowUpdateDocumentPicker) },
+                                    onClick = { updateDocumentLauncher.launch("application/pdf") },
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(8.dp),
                                     colors = ButtonDefaults.buttonColors(
@@ -576,8 +553,8 @@ fun NoteDetailScreen(
                         AttachmentsCard(
                             images = note.images,
                             documents = note.documents,
-                            onAddImage = { viewModel.onEvent(NoteDetailEvent.ShowImagePicker) },
-                            onAddDocument = { viewModel.onEvent(NoteDetailEvent.ShowDocumentPicker) },
+                            onAddImage = { imageLauncher.launch("image/*") },
+                            onAddDocument = { documentLauncher.launch("application/pdf") },
                             onImageClick = { url ->
                                 selectedImageUrl = url
                                 showFullScreenImage = true
@@ -610,8 +587,8 @@ fun NoteDetailScreen(
                                 dateFormatter = dateFormatter,
                                 onEdit = { viewModel.onEvent(NoteDetailEvent.EditUpdate(it)) },
                                 onDelete = { showDeleteUpdateDialog = it },
-                                onAddImage = { viewModel.onEvent(NoteDetailEvent.ShowUpdateImagePicker) },
-                                onAddDocument = { viewModel.onEvent(NoteDetailEvent.ShowUpdateDocumentPicker) },
+                                onAddImage = { updateImageLauncher.launch("image/*") },
+                                onAddDocument = { updateDocumentLauncher.launch("application/pdf") },
                                 onImageClick = { url ->
                                     selectedImageUrl = url
                                     showFullScreenImage = true
@@ -625,7 +602,6 @@ fun NoteDetailScreen(
                     }
                 }
             }
-
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
@@ -1175,12 +1151,10 @@ fun NoteUpdateCard(
                     .padding(vertical = 4.dp),
                 color = textColor
             )
-
             if (update.images.isNotEmpty() || update.documents.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
                 HorizontalDivider(color = primaryColor.copy(alpha = 0.1f))
                 Spacer(modifier = Modifier.height(12.dp))
-
                 if (update.images.isNotEmpty()) {
                     Text(
                         "Görseller",
@@ -1217,7 +1191,6 @@ fun NoteUpdateCard(
                         }
                     }
                 }
-
                 if (update.documents.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
@@ -1272,7 +1245,6 @@ fun NoteUpdateCard(
                     }
                 }
             }
-
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1323,7 +1295,6 @@ fun NoteFullScreenImageViewer(
     var scale by remember { mutableFloatStateOf(1f) }
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
-
     Surface(
         modifier = Modifier
             .fillMaxSize()

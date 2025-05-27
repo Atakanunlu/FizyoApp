@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Note
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -395,9 +396,9 @@ fun EditExercisePlanScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 val statusColor = when(state.selectedStatus) {
-                                    ExercisePlanStatus.ACTIVE -> Color(0, 150, 136) // Teal
-                                    ExercisePlanStatus.COMPLETED -> Color(76, 175, 80) // Green
-                                    ExercisePlanStatus.CANCELLED -> Color(244, 67, 54) // Red
+                                    ExercisePlanStatus.ACTIVE -> Color(0, 150, 136)
+                                    ExercisePlanStatus.COMPLETED -> Color(76, 175, 80)
+                                    ExercisePlanStatus.CANCELLED -> Color(244, 67, 54)
                                 }
                                 Surface(
                                     color = statusColor.copy(alpha = 0.1f),
@@ -434,7 +435,7 @@ fun EditExercisePlanScreen(
                                 maxLines = 5,
                                 leadingIcon = {
                                     Icon(
-                                        imageVector = Icons.Default.Note,
+                                        imageVector = Icons.AutoMirrored.Filled.Note,
                                         contentDescription = null,
                                         tint = primaryColor
                                     )
@@ -655,7 +656,6 @@ fun ExerciseItemCard(
             ) {
                 if (exerciseItem.mediaUrls.isNotEmpty()) {
                     val firstMediaUrl = exerciseItem.mediaUrls.first()
-                    // Her zaman MediaPreviewItem kullan
                     EditScreenMediaPreviewItem(
                         uri = firstMediaUrl,
                         mediaTypes = exerciseItem.mediaTypes,
@@ -713,7 +713,6 @@ fun ExerciseItemCard(
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier.fillMaxSize()
                                 )
-
 
                                 val isVideo = exerciseItem.mediaTypes[firstMediaUrl] == ExerciseType.VIDEO ||
                                         firstMediaUrl.contains("video") ||
@@ -846,11 +845,9 @@ fun ExerciseItemCard(
             }
 
             if (showMediaViewer && selectedMediaUrl.isNotEmpty()) {
-
                 val mediaType = if (exerciseItem.mediaTypes.containsKey(selectedMediaUrl)) {
                     if (exerciseItem.mediaTypes[selectedMediaUrl] == ExerciseType.VIDEO) "video" else "image"
                 } else {
-
                     if (selectedMediaUrl.contains("video") ||
                         selectedMediaUrl.contains(".mp4") ||
                         selectedMediaUrl.contains(".mov") ||
@@ -868,7 +865,6 @@ fun ExerciseItemCard(
     }
 }
 
-
 @Composable
 fun EditScreenMediaPreviewItem(
     uri: String,
@@ -877,7 +873,6 @@ fun EditScreenMediaPreviewItem(
     size: Dp = 110.dp,
     onRemove: (() -> Unit)? = null
 ) {
-
     val isVideo = mediaTypes[uri] == ExerciseType.VIDEO ||
             uri.contains("video") || uri.contains(".mp4") ||
             uri.contains(".mov") || uri.contains(".avi") ||
@@ -897,7 +892,6 @@ fun EditScreenMediaPreviewItem(
             )
             .clickable(onClick = onClick)
     ) {
-
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(uri)
@@ -963,7 +957,6 @@ fun EditScreenMediaPreviewItem(
                 )
             }
             if (size >= 80.dp) {
-
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
@@ -984,4 +977,3 @@ fun EditScreenMediaPreviewItem(
         }
     }
 }
-

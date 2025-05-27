@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
 
@@ -29,12 +30,12 @@ class EditExercisePlanViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
     private val _state = MutableStateFlow(EditExercisePlanState())
     val state: StateFlow<EditExercisePlanState> = _state.asStateFlow()
 
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
-
 
     private val planId: String = savedStateHandle.get<String>("planId") ?: ""
 
@@ -46,12 +47,8 @@ class EditExercisePlanViewModel @Inject constructor(
                     is Resource.Success -> {
                         val plan = result.data
                         if (plan != null) {
-
                             loadPatientName(plan.patientId)
-
-
                             val updatedExercises = plan.exercises.map { exerciseItem ->
-
                                 val mediaTypes = if (exerciseItem.mediaTypes.isEmpty() && exerciseItem.mediaUrls.isNotEmpty()) {
                                     exerciseItem.mediaUrls.associateWith { url ->
                                         if (url.contains("video") || url.contains(".mp4") ||
@@ -65,16 +62,7 @@ class EditExercisePlanViewModel @Inject constructor(
                                 } else {
                                     exerciseItem.mediaTypes
                                 }
-
-
                                 exerciseItem.copy(mediaTypes = mediaTypes)
-                            }
-
-                            println("Loaded plan with ${updatedExercises.size} exercises")
-                            updatedExercises.forEach { exercise ->
-                                println("Exercise: ${exercise.exerciseTitle}")
-                                println("Media URLs: ${exercise.mediaUrls}")
-                                println("Media Types: ${exercise.mediaTypes}")
                             }
 
                             _state.update {
@@ -127,12 +115,10 @@ class EditExercisePlanViewModel @Inject constructor(
                                 it.copy(patientName = "${profile.firstName} ${profile.lastName}")
                             }
                         } else {
-
                             fallbackToEmailName(patientId)
                         }
                     }
                     else -> {
-
                         fallbackToEmailName(patientId)
                     }
                 }
@@ -142,7 +128,6 @@ class EditExercisePlanViewModel @Inject constructor(
 
     private suspend fun fallbackToEmailName(patientId: String) {
         try {
-
             com.google.firebase.firestore.FirebaseFirestore.getInstance()
                 .collection("user")
                 .document(patientId)
@@ -195,7 +180,6 @@ class EditExercisePlanViewModel @Inject constructor(
                     repetitions = reps.toIntOrNull() ?: 0,
                     duration = duration.toIntOrNull() ?: 0,
                     notes = notes
-
                 )
             } else {
                 item
@@ -246,15 +230,12 @@ class EditExercisePlanViewModel @Inject constructor(
 
     fun saveExercisePlan() {
         val currentPlan = _state.value.plan ?: return
-
         if (_state.value.title.isBlank()) {
             sendUiEvent(UiEvent.ShowError("Plan başlığı boş olamaz"))
             return
         }
 
-
         val updatedExercises = _state.value.exercises.map { item ->
-
             val mediaTypes = if (item.mediaTypes.isEmpty() && item.mediaUrls.isNotEmpty()) {
                 item.mediaUrls.associateWith { url ->
                     if (url.contains("video") || url.contains(".mp4") ||
@@ -268,7 +249,6 @@ class EditExercisePlanViewModel @Inject constructor(
             } else {
                 item.mediaTypes
             }
-
             item.copy(mediaTypes = mediaTypes)
         }
 

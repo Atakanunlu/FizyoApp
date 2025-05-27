@@ -13,7 +13,9 @@ data class Appointment(
     val userPhotoUrl: String = "",
     val appointmentType: AppointmentType = AppointmentType.IN_PERSON,
     val rehabilitationNotes: String = "",
-    val createdAt: Date = Date()
+    val createdAt: Date = Date(),
+    val cancelledBy: String = "",
+    val cancelledAt: Date? = null
 )
 
 enum class AppointmentStatus {

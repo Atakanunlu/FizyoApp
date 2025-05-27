@@ -15,6 +15,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Note
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -43,8 +45,6 @@ import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercis
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
 
 private val primaryColor = Color(59, 62, 104)
 private val backgroundColor = Color(245, 245, 250)
@@ -62,7 +62,6 @@ fun CreateExercisePlanScreen(
     var showPatientDialog by remember { mutableStateOf(false) }
     var showExercisesDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
-    val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(key1 = true) {
@@ -310,7 +309,7 @@ fun CreateExercisePlanScreen(
                             maxLines = 5,
                             leadingIcon = {
                                 Icon(
-                                    imageVector = Icons.Default.Note,
+                                    imageVector = Icons.AutoMirrored.Filled.Note,
                                     contentDescription = null,
                                     tint = primaryColor
                                 )
@@ -386,7 +385,7 @@ fun CreateExercisePlanScreen(
                                         }
                                     )
                                     if (index < state.exercises.size - 1) {
-                                        Divider(
+                                        HorizontalDivider(
                                             modifier = Modifier.padding(vertical = 8.dp),
                                             color = textColor.copy(alpha = 0.1f)
                                         )
@@ -448,6 +447,7 @@ fun CreateExercisePlanScreen(
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }
+
             if (showPatientDialog) {
                 AlertDialog(
                     onDismissRequest = { showPatientDialog = false },
@@ -482,7 +482,7 @@ fun CreateExercisePlanScreen(
                                         verticalArrangement = Arrangement.Center
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.Chat,
+                                            imageVector = Icons.AutoMirrored.Filled.Chat,
                                             contentDescription = null,
                                             modifier = Modifier.size(48.dp),
                                             tint = primaryColor.copy(alpha = 0.5f)
@@ -534,6 +534,7 @@ fun CreateExercisePlanScreen(
                     containerColor = surfaceColor
                 )
             }
+
             if (showExercisesDialog) {
                 AlertDialog(
                     onDismissRequest = { showExercisesDialog = false },
@@ -728,7 +729,6 @@ fun ExerciseSelectionItem(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.width(16.dp))
             Column(
                 modifier = Modifier.weight(1f)
@@ -798,7 +798,6 @@ fun ExerciseListItem(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
             }
-
             Text(
                 text = exercise.exerciseTitle,
                 style = MaterialTheme.typography.bodyLarge,
@@ -821,7 +820,6 @@ fun ExerciseListItem(
                 )
             }
         }
-
         AnimatedVisibility(visible = expanded) {
             Column(
                 modifier = Modifier
@@ -851,15 +849,12 @@ fun ExerciseListItem(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
                             )
-
-                            // Video ise oynat simgesi göster
                             if (exercise.mediaTypes[firstMediaUrl] == ExerciseType.VIDEO ||
                                 firstMediaUrl.contains("video") ||
                                 firstMediaUrl.contains(".mp4") ||
                                 firstMediaUrl.contains(".mov") ||
                                 firstMediaUrl.contains(".avi") ||
                                 firstMediaUrl.contains(".webm")) {
-
                                 Box(
                                     modifier = Modifier.fillMaxSize(),
                                     contentAlignment = Alignment.Center
@@ -874,7 +869,6 @@ fun ExerciseListItem(
                                             .padding(8.dp)
                                     )
                                 }
-
                                 Box(
                                     modifier = Modifier
                                         .align(Alignment.BottomStart)
@@ -896,7 +890,6 @@ fun ExerciseListItem(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -959,9 +952,7 @@ fun ExerciseListItem(
                         )
                     )
                 }
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 OutlinedTextField(
                     value = notes,
                     onValueChange = {
@@ -981,20 +972,16 @@ fun ExerciseListItem(
                 )
             }
         }
-
         if (showMediaViewer && selectedMediaUrl.isNotEmpty()) {
-
             val mediaType = if (exercise.mediaTypes.containsKey(selectedMediaUrl)) {
                 if (exercise.mediaTypes[selectedMediaUrl] == ExerciseType.VIDEO) "video" else "image"
             } else {
-
                 if (selectedMediaUrl.contains("video") ||
                     selectedMediaUrl.contains(".mp4") ||
                     selectedMediaUrl.contains(".mov") ||
                     selectedMediaUrl.contains(".avi") ||
                     selectedMediaUrl.contains(".webm")) "video" else "image"
             }
-
             MediaViewer(
                 mediaUrl = selectedMediaUrl,
                 mediaType = mediaType,
@@ -1012,12 +999,10 @@ fun MediaPreviewItem(
     size: androidx.compose.ui.unit.Dp = 110.dp,
     onRemove: (() -> Unit)? = null
 ) {
-
     val isVideo = mediaTypes[uri] == ExerciseType.VIDEO ||
             uri.contains("video") || uri.contains(".mp4") ||
             uri.contains(".mov") || uri.contains(".avi") ||
             uri.contains(".webm")
-
     Box(
         modifier = Modifier
             .size(size)
@@ -1033,7 +1018,6 @@ fun MediaPreviewItem(
             )
             .clickable(onClick = onClick)
     ) {
-
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(uri)
@@ -1043,8 +1027,6 @@ fun MediaPreviewItem(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
-
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -1059,8 +1041,6 @@ fun MediaPreviewItem(
                     )
                 )
         )
-
-
         onRemove?.let {
             IconButton(
                 onClick = it,
@@ -1081,8 +1061,6 @@ fun MediaPreviewItem(
                 )
             }
         }
-
-
         if (isVideo) {
             Box(
                 modifier = Modifier
@@ -1101,9 +1079,7 @@ fun MediaPreviewItem(
                     modifier = Modifier.size(size / 5)
                 )
             }
-
             if (size >= 80.dp) {
-
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomStart)

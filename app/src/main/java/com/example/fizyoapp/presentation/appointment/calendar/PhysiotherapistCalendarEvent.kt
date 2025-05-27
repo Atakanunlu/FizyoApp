@@ -6,5 +6,6 @@ sealed class PhysiotherapistCalendarEvent {
     data class DateSelected(val date: Date) : PhysiotherapistCalendarEvent()
     data class BlockTimeSlot(val timeSlot: String, val reason: String) : PhysiotherapistCalendarEvent()
     data class UnblockTimeSlot(val blockedTimeSlotId: String) : PhysiotherapistCalendarEvent()
+    data class CancelAppointment(val appointmentId: String) : PhysiotherapistCalendarEvent()
     data object Refresh : PhysiotherapistCalendarEvent()
 }

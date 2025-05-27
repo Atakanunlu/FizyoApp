@@ -110,7 +110,6 @@ class NoteDetailViewModel @Inject constructor(
                     _uiEvent.send(UiEvent.NavigateBack(needsRefresh = false))
                 }
             }
-
             is NoteDetailEvent.ShowImagePicker -> {
                 _state.value = _state.value.copy(showImagePicker = true)
             }
@@ -125,7 +124,6 @@ class NoteDetailViewModel @Inject constructor(
                 _state.value = _state.value.copy(showDocumentPicker = false)
                 uploadAndAddDocumentToNote(event.uri)
             }
-
             is NoteDetailEvent.ShowUpdateImagePicker -> {
                 _state.value = _state.value.copy(showUpdateImagePicker = true)
             }
@@ -159,10 +157,8 @@ class NoteDetailViewModel @Inject constructor(
 
     private fun uploadAndAddImageToNote(uri: Uri) {
         val currentNote = _state.value.note ?: return
-
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
-
             try {
                 uploadNoteImageUseCase(uri, "notes/${currentNote.physiotherapistId}/images").collect { result ->
                     when (result) {
@@ -172,34 +168,36 @@ class NoteDetailViewModel @Inject constructor(
                                     is Resource.Success -> {
                                         _state.value = _state.value.copy(
                                             note = noteResult.data,
-                                            isLoading = false
+                                            isLoading = false,
+                                            showImagePicker = false
                                         )
                                     }
                                     is Resource.Error -> {
                                         _state.value = _state.value.copy(
                                             error = "Görsel eklenirken hata oluştu",
-                                            isLoading = false
+                                            isLoading = false,
+                                            showImagePicker = false
                                         )
                                     }
-                                    is Resource.Loading -> {
-                                    }
+                                    is Resource.Loading -> {}
                                 }
                             }
                         }
                         is Resource.Error -> {
                             _state.value = _state.value.copy(
                                 error = "Görsel yüklenirken hata oluştu",
-                                isLoading = false
+                                isLoading = false,
+                                showImagePicker = false
                             )
                         }
-                        is Resource.Loading -> {
-                        }
+                        is Resource.Loading -> {}
                     }
                 }
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     error = "Görsel yüklenirken hata oluştu: ${e.message}",
-                    isLoading = false
+                    isLoading = false,
+                    showImagePicker = false
                 )
             }
         }
@@ -207,10 +205,8 @@ class NoteDetailViewModel @Inject constructor(
 
     private fun uploadAndAddDocumentToNote(uri: Uri) {
         val currentNote = _state.value.note ?: return
-
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
-
             try {
                 uploadNoteDocumentUseCase(uri, "notes/${currentNote.physiotherapistId}/documents").collect { result ->
                     when (result) {
@@ -220,34 +216,36 @@ class NoteDetailViewModel @Inject constructor(
                                     is Resource.Success -> {
                                         _state.value = _state.value.copy(
                                             note = noteResult.data,
-                                            isLoading = false
+                                            isLoading = false,
+                                            showDocumentPicker = false
                                         )
                                     }
                                     is Resource.Error -> {
                                         _state.value = _state.value.copy(
                                             error = "Belge eklenirken hata oluştu",
-                                            isLoading = false
+                                            isLoading = false,
+                                            showDocumentPicker = false
                                         )
                                     }
-                                    is Resource.Loading -> {
-                                    }
+                                    is Resource.Loading -> {}
                                 }
                             }
                         }
                         is Resource.Error -> {
                             _state.value = _state.value.copy(
                                 error = "Belge yüklenirken hata oluştu",
-                                isLoading = false
+                                isLoading = false,
+                                showDocumentPicker = false
                             )
                         }
-                        is Resource.Loading -> {
-                        }
+                        is Resource.Loading -> {}
                     }
                 }
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     error = "Belge yüklenirken hata oluştu: ${e.message}",
-                    isLoading = false
+                    isLoading = false,
+                    showDocumentPicker = false
                 )
             }
         }
@@ -259,10 +257,8 @@ class NoteDetailViewModel @Inject constructor(
             _state.value = _state.value.copy(error = "Not metni boş olamaz")
             return
         }
-
         val currentNote = currentState.note ?: return
         _state.value = _state.value.copy(isLoading = true)
-
         viewModelScope.launch {
             try {
                 val imageUrls = mutableListOf<String>()
@@ -275,16 +271,15 @@ class NoteDetailViewModel @Inject constructor(
                             is Resource.Error -> {
                                 _state.value = _state.value.copy(
                                     error = "Görsel yüklenirken hata oluştu: ${result.message}",
-                                    isLoading = false
+                                    isLoading = false,
+                                    showUpdateImagePicker = false
                                 )
                                 return@collect
                             }
-                            is Resource.Loading -> {
-                            }
+                            is Resource.Loading -> {}
                         }
                     }
                 }
-
                 val documentUrls = mutableListOf<String>()
                 for (documentUri in currentState.tempDocumentUris) {
                     uploadNoteDocumentUseCase(documentUri, "notes/${currentNote.physiotherapistId}/updates/documents").collect { result ->
@@ -295,23 +290,21 @@ class NoteDetailViewModel @Inject constructor(
                             is Resource.Error -> {
                                 _state.value = _state.value.copy(
                                     error = "Belge yüklenirken hata oluştu: ${result.message}",
-                                    isLoading = false
+                                    isLoading = false,
+                                    showUpdateDocumentPicker = false
                                 )
                                 return@collect
                             }
-                            is Resource.Loading -> {
-                            }
+                            is Resource.Loading -> {}
                         }
                     }
                 }
-
                 val update = NoteUpdate(
                     updateText = currentState.updateText,
                     updateDate = Date(),
                     images = imageUrls,
                     documents = documentUrls
                 )
-
                 addUpdateToNoteUseCase(noteId, update).collect { result ->
                     _state.value = when (result) {
                         is Resource.Success -> _state.value.copy(
@@ -319,11 +312,15 @@ class NoteDetailViewModel @Inject constructor(
                             updateText = "",
                             isLoading = false,
                             tempImageUris = emptyList(),
-                            tempDocumentUris = emptyList()
+                            tempDocumentUris = emptyList(),
+                            showUpdateImagePicker = false,
+                            showUpdateDocumentPicker = false
                         )
                         is Resource.Error -> _state.value.copy(
                             error = "Not güncellenirken bir hata oluştu",
-                            isLoading = false
+                            isLoading = false,
+                            showUpdateImagePicker = false,
+                            showUpdateDocumentPicker = false
                         )
                         is Resource.Loading -> _state.value.copy(isLoading = true)
                     }
@@ -331,7 +328,9 @@ class NoteDetailViewModel @Inject constructor(
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     error = "Not güncellenirken bir hata oluştu: ${e.message}",
-                    isLoading = false
+                    isLoading = false,
+                    showUpdateImagePicker = false,
+                    showUpdateDocumentPicker = false
                 )
             }
         }
