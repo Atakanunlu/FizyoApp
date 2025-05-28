@@ -24,10 +24,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.fizyoapp.data.util.AppEvent
+import com.example.fizyoapp.data.util.EventBus
 import com.example.fizyoapp.data.util.capitalize
 import com.example.fizyoapp.domain.model.appointment.AppointmentType
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.user.rehabilitation.RehabilitationHistoryViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -35,12 +40,14 @@ import java.util.*
 @Composable
 fun AppointmentBookingScreen(
     navController: NavController,
-    viewModel: AppointmentBookingViewModel = hiltViewModel()
+    viewModel: AppointmentBookingViewModel = hiltViewModel(),
+    rehabilitationViewModel: RehabilitationHistoryViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val primaryColor = Color(0xFF3B3E68)
     val accentColor = Color(0xFF6D72C3)
     var selectedMonth by remember { mutableStateOf(0) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(state.selectedDate) {
         if (state.selectedDate != null) {
@@ -56,14 +63,44 @@ fun AppointmentBookingScreen(
     LaunchedEffect(key1 = viewModel.uiEvent) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
-                is AppointmentBookingViewModel.UiEvent.AppointmentBooked -> {
-                    navController.navigate(AppScreens.UserMainScreen.route) {
+                is AppointmentBookingViewModel.UiEvent.NavigateToRehabilitation -> {
+                    // EventBus ile yenileme talebi gönderelim
+                    EventBus.tryEmitEvent(AppEvent.ForceRefreshAppointments("navigation_to_rehab"))
+                    // Direkt rehabilitasyon view model'ini de yenileyelim
+                    rehabilitationViewModel.clearCacheAndRefresh()
+                    // 200ms bekleyelim - Firestore'un güncellemesi için
+                    delay(200)
+                    // Doğrudan rehabilitasyon sayfasına yönlendir
+                    navController.navigate(AppScreens.RehabilitationHistoryScreen.route) {
                         popUpTo(AppScreens.PhysiotherapistDetailScreen.route) {
                             inclusive = true
                         }
                     }
                 }
                 is AppointmentBookingViewModel.UiEvent.AppointmentBookedWithId -> {
+                    // EventBus ile yenileme talebi gönderelim
+                    scope.launch {
+                        EventBus.emitEvent(AppEvent.RefreshAppointments)
+                    }
+                    // Direkt rehabilitasyon view model'ini de yenileyelim
+                    rehabilitationViewModel.forceRefreshAppointments()
+                    // Kısa bir bekleme ekleyelim ki Firestore güncellensin
+                    delay(500)
+                    navController.navigate(AppScreens.UserMainScreen.route) {
+                        popUpTo(AppScreens.PhysiotherapistDetailScreen.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+                is AppointmentBookingViewModel.UiEvent.AppointmentBooked -> {
+                    // EventBus ile yenileme talebi gönderelim
+                    scope.launch {
+                        EventBus.emitEvent(AppEvent.RefreshAppointments)
+                    }
+                    // Direkt rehabilitasyon view model'ini de yenileyelim
+                    rehabilitationViewModel.forceRefreshAppointments()
+                    // Kısa bir bekleme ekleyelim ki Firestore güncellensin
+                    delay(500)
                     navController.navigate(AppScreens.UserMainScreen.route) {
                         popUpTo(AppScreens.PhysiotherapistDetailScreen.route) {
                             inclusive = true
@@ -73,7 +110,6 @@ fun AppointmentBookingScreen(
             }
         }
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -159,7 +195,6 @@ fun AppointmentBookingScreen(
                             }
                         }
                     }
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -213,7 +248,6 @@ fun AppointmentBookingScreen(
                             }
                         }
                     }
-
                     CalendarView(
                         currentMonth = selectedMonth,
                         onDateSelected = { date ->
@@ -221,9 +255,7 @@ fun AppointmentBookingScreen(
                         },
                         selectedDate = state.selectedDate
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Text(
                         text = "Randevu Tipi",
                         style = LocalTextStyle.current.copy(
@@ -233,7 +265,6 @@ fun AppointmentBookingScreen(
                         ),
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -259,9 +290,7 @@ fun AppointmentBookingScreen(
                             modifier = Modifier.weight(1f)
                         )
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     if (state.selectedDate != null) {
                         Text(
                             text = "Saat Seçin",
@@ -272,7 +301,6 @@ fun AppointmentBookingScreen(
                             ),
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
-
                         if (state.availableTimeSlots.isEmpty()) {
                             Card(
                                 modifier = Modifier
@@ -338,9 +366,7 @@ fun AppointmentBookingScreen(
                             }
                         }
                     }
-
                     Spacer(modifier = Modifier.height(24.dp))
-
                     Button(
                         onClick = { viewModel.onEvent(AppointmentBookingEvent.BookAppointment) },
                         modifier = Modifier
@@ -366,11 +392,9 @@ fun AppointmentBookingScreen(
                             )
                         )
                     }
-
                     Spacer(modifier = Modifier.height(60.dp))
                 }
             }
-
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
@@ -409,7 +433,6 @@ fun CalendarView(
     val firstDayOfMonth = calendar.get(Calendar.DAY_OF_WEEK) - 1
     val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
     val weekDays = listOf("P", "P", "S", "Ç", "P", "C", "C")
-
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -427,12 +450,9 @@ fun CalendarView(
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(8.dp))
-
         val totalDays = firstDayOfMonth + daysInMonth
         val totalWeeks = (totalDays + 6) / 7
-
         for (week in 0 until totalWeeks) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -444,7 +464,6 @@ fun CalendarView(
                         val dateCalendar = Calendar.getInstance()
                         dateCalendar.add(Calendar.MONTH, currentMonth)
                         dateCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-
                         val isSelected = selectedDate?.let {
                             val selectedCal = Calendar.getInstance()
                             selectedCal.time = it
@@ -452,14 +471,11 @@ fun CalendarView(
                                     selectedCal.get(Calendar.MONTH) == dateCalendar.get(Calendar.MONTH) &&
                                     selectedCal.get(Calendar.DAY_OF_MONTH) == dateCalendar.get(Calendar.DAY_OF_MONTH)
                         } ?: false
-
                         val todayCal = Calendar.getInstance()
                         val isToday = todayCal.get(Calendar.YEAR) == dateCalendar.get(Calendar.YEAR) &&
                                 todayCal.get(Calendar.MONTH) == dateCalendar.get(Calendar.MONTH) &&
                                 todayCal.get(Calendar.DAY_OF_MONTH) == dateCalendar.get(Calendar.DAY_OF_MONTH)
-
                         val isPastDay = dateCalendar.before(todayCal) && !isToday
-
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -513,7 +529,6 @@ fun TimeSlotGrid(
 ) {
     val accentColor = Color(0xFF6D72C3)
     val rows = timeSlots.chunked(4)
-
     Column(modifier = Modifier.fillMaxWidth()) {
         rows.forEach { rowSlots ->
             Row(
@@ -524,7 +539,6 @@ fun TimeSlotGrid(
             ) {
                 rowSlots.forEach { timeSlot ->
                     val isSelected = timeSlot == selectedTimeSlot
-
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -550,7 +564,6 @@ fun TimeSlotGrid(
                         )
                     }
                 }
-
                 repeat(4 - rowSlots.size) {
                     Spacer(modifier = Modifier.weight(1f))
                 }
@@ -568,7 +581,6 @@ fun AppointmentTypeButton(
     modifier: Modifier = Modifier
 ) {
     val accentColor = Color(0xFF6D72C3)
-
     OutlinedCard(
         modifier = modifier
             .height(100.dp)
@@ -594,9 +606,7 @@ fun AppointmentTypeButton(
                 tint = if (isSelected) accentColor else Color.Gray,
                 modifier = Modifier.size(32.dp)
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Text(
                 text = text,
                 style = LocalTextStyle.current.copy(

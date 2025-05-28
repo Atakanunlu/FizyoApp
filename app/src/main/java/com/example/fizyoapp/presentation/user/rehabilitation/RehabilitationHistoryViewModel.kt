@@ -2,6 +2,8 @@ package com.example.fizyoapp.presentation.user.rehabilitation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fizyoapp.data.util.AppEvent
+import com.example.fizyoapp.data.util.EventBus
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.appointment.Appointment
 import com.example.fizyoapp.domain.model.appointment.AppointmentStatus
@@ -11,6 +13,8 @@ import com.example.fizyoapp.domain.usecase.appointment.GetUserAppointmentsUseCas
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistByIdUseCase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.Source
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -56,18 +60,39 @@ class RehabilitationHistoryViewModel @Inject constructor(
     private var appointmentsObservationJob: Job? = null
     private var periodicRefreshJob: Job? = null
     private val firestore = FirebaseFirestore.getInstance()
-
     private val physiotherapistCache = mutableMapOf<String, PhysiotherapistProfile?>()
 
     init {
         loadCurrentUserAndStartObservingAppointments()
         startPeriodicRefresh()
+        listenToEventBus()
+    }
+
+    private fun listenToEventBus() {
+        viewModelScope.launch {
+            EventBus.events.collect { event ->
+                when (event) {
+                    is AppEvent.AppointmentCreated -> {
+                        // Yeni randevu oluşturulduğunda hemen verileri yenile
+                        forceRefreshAppointments()
+                    }
+                    is AppEvent.RefreshAppointments -> {
+                        // Genel yenileme talebi geldiğinde verileri yenile
+                        forceRefreshAppointments()
+                    }
+                    is AppEvent.ForceRefreshAppointments -> {
+                        // Önbelleği temizleyip tamamen yenile
+                        clearCacheAndRefresh()
+                    }
+                }
+            }
+        }
     }
 
     private fun startPeriodicRefresh() {
         periodicRefreshJob = viewModelScope.launch {
             while (true) {
-                delay(30000)
+                delay(30000) // 30 saniyede bir
                 currentUserId?.let { userId ->
                     try {
                         getUserAppointmentsUseCase(userId).collect { result ->
@@ -76,6 +101,7 @@ class RehabilitationHistoryViewModel @Inject constructor(
                             }
                         }
                     } catch (e: Exception) {
+                        // Hata durumunda sessizce devam et
                     }
                 }
             }
@@ -94,6 +120,72 @@ class RehabilitationHistoryViewModel @Inject constructor(
         }
     }
 
+    // Doğrudan Firestore'dan veri alma (önbellekleme olmadan)
+    fun forceDirectFirestoreRefresh() {
+        viewModelScope.launch {
+            currentUserId?.let { userId ->
+                _state.value = _state.value.copy(isLoading = true)
+
+                try {
+                    // Firestore client'ı yeniden oluşturalım
+                    val freshFirestore = FirebaseFirestore.getInstance()
+
+                    // Önbelleklemeyi devre dışı bırakalım
+                    freshFirestore.firestoreSettings = FirebaseFirestoreSettings.Builder()
+                        .setPersistenceEnabled(false)  // Önbelleklemeyi kapatır
+                        .build()
+
+                    // Doğrudan Firestore'dan güncel verileri çekelim
+                    val querySnapshot = freshFirestore.collection("appointments")
+                        .whereEqualTo("userId", userId)
+                        .get(Source.SERVER) // Sadece sunucudan veri al
+                        .await()
+
+                    val appointments = querySnapshot.documents.mapNotNull { doc ->
+                        try {
+                            doc.toObject(Appointment::class.java)?.copy(id = doc.id)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+
+                    // Verileri işleyelim
+                    processAppointments(appointments)
+
+                } catch (e: Exception) {
+                    // Hata durumunda normal akışı deneyelim
+                    loadAppointmentsDirectly(userId)
+                } finally {
+                    // İşlem tamamlandıktan sonra loading durumunu kapatıyoruz
+                    _state.value = _state.value.copy(isLoading = false)
+                }
+            }
+        }
+    }
+
+    // Bu metodu public yapın
+    fun clearCacheAndRefresh() {
+        viewModelScope.launch {
+            // Firestore önbelleğini temizleyelim
+            try {
+                FirebaseFirestore.getInstance().clearPersistence().await()
+            } catch (e: Exception) {
+                // Önbellek temizleme hatası, görmezden gelebiliriz
+            }
+
+            // Fizyoterapist önbelleğini temizle
+            physiotherapistCache.clear()
+
+            // Zorla yenileme yap
+            forceDirectFirestoreRefresh()
+
+            // Normal yenileme de yapalım
+            currentUserId?.let { userId ->
+                loadAppointmentsDirectly(userId)
+            }
+        }
+    }
+
     private fun cancelAppointment(appointmentId: String) {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
@@ -106,6 +198,8 @@ class RehabilitationHistoryViewModel @Inject constructor(
                                 successMessage = "Randevu başarıyla iptal edildi"
                             )
                             currentUserId?.let { loadAppointmentsDirectly(it) }
+                            // İptal olayını duyur
+                            EventBus.emitEvent(AppEvent.RefreshAppointments)
                         }
                         is Resource.Error -> {
                             _state.value = _state.value.copy(
@@ -127,7 +221,58 @@ class RehabilitationHistoryViewModel @Inject constructor(
         }
     }
 
-    private fun loadCurrentUserAndStartObservingAppointments() {
+    // Randevuları zorlayarak ve beklemeden yenileyen bir fonksiyon
+    fun forceRefreshAppointments() {
+        viewModelScope.launch {
+            currentUserId?.let { userId ->
+                // İşlem devam ediyorsa ve isLoading = true ise, önceki isteği iptal etmeden devam et
+                // Kullanıcı ID'si varsa doğrudan Firestore'dan verileri alalım
+                _state.value = _state.value.copy(isLoading = true)
+
+                try {
+                    // Doğrudan Firestore'dan en güncel verileri çekelim
+                    val firestore = FirebaseFirestore.getInstance()
+                    val querySnapshot = firestore.collection("appointments")
+                        .whereEqualTo("userId", userId)
+                        .get()
+                        .await()
+
+                    val appointments = querySnapshot.documents.mapNotNull { doc ->
+                        try {
+                            doc.toObject(Appointment::class.java)?.copy(id = doc.id)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+
+                    // Verileri işleyelim
+                    processAppointments(appointments)
+
+                    // Ayrıca normal akıştan da verileri almaya devam edelim
+                    loadAppointmentsDirectly(userId)
+                } catch (e: Exception) {
+                    // Hata durumunda normal akışı deneyelim
+                    loadAppointmentsDirectly(userId)
+                }
+            } ?: run {
+                loadCurrentUserAndStartObservingAppointments()
+            }
+        }
+    }
+
+    // Public metod: AppointmentBookingScreen tarafından çağrılabilir
+    fun refreshAppointments() {
+        viewModelScope.launch {
+            currentUserId?.let { userId ->
+                _state.value = _state.value.copy(isLoading = true)
+                loadAppointmentsDirectly(userId)
+            } ?: run {
+                loadCurrentUserAndStartObservingAppointments()
+            }
+        }
+    }
+
+    fun loadCurrentUserAndStartObservingAppointments() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
             try {
@@ -171,7 +316,33 @@ class RehabilitationHistoryViewModel @Inject constructor(
         appointmentsObservationJob?.cancel()
         appointmentsObservationJob = viewModelScope.launch {
             try {
+                // Önce direkt yükleme yaparak hızlı sonuç alalım
                 loadAppointmentsDirectly(userId)
+
+                // Sonra gerçek zamanlı dinlemeye başlayalım
+                firestore.collection("appointments")
+                    .whereEqualTo("userId", userId)
+                    .addSnapshotListener { snapshot, error ->
+                        if (error != null) {
+                            _state.value = _state.value.copy(
+                                error = "Randevular dinlenemedi: ${error.message}"
+                            )
+                            return@addSnapshotListener
+                        }
+
+                        if (snapshot != null) {
+                            viewModelScope.launch {
+                                val appointments = snapshot.documents.mapNotNull { doc ->
+                                    try {
+                                        doc.toObject(Appointment::class.java)?.copy(id = doc.id)
+                                    } catch (e: Exception) {
+                                        null
+                                    }
+                                }
+                                processAppointments(appointments)
+                            }
+                        }
+                    }
             } catch (e: Exception) {
                 loadAppointmentsDirectly(userId)
             }
@@ -221,11 +392,9 @@ class RehabilitationHistoryViewModel @Inject constructor(
 
     private suspend fun processAppointments(appointments: List<Appointment>) {
         val currentDate = Date()
-
         val pastAppointments = appointments.filter { appointment ->
             appointment.date.before(currentDate)
         }
-
         val upcomingAppointments = appointments.filter { appointment ->
             val isFutureOrToday = appointment.date.after(currentDate) ||
                     (appointment.date.time >= currentDate.time - 24 * 60 * 60 * 1000)
@@ -262,7 +431,6 @@ class RehabilitationHistoryViewModel @Inject constructor(
     private suspend fun processAppointment(appointment: Appointment): AppointmentWithPhysiotherapist {
         return try {
             var physiotherapist = physiotherapistCache[appointment.physiotherapistId]
-
             if (physiotherapist == null) {
                 try {
                     val physiotherapistResult = getPhysiotherapistByIdUseCase(appointment.physiotherapistId).first()
@@ -276,7 +444,6 @@ class RehabilitationHistoryViewModel @Inject constructor(
                     }
                 } catch (e: Exception) {
                 }
-
                 if (physiotherapist == null) {
                     try {
                         val profileDoc = firestore.collection("physiotherapist_profiles")
@@ -291,7 +458,6 @@ class RehabilitationHistoryViewModel @Inject constructor(
                     }
                 }
             }
-
             AppointmentWithPhysiotherapist(
                 appointment = appointment,
                 physiotherapistName = if (physiotherapist != null &&

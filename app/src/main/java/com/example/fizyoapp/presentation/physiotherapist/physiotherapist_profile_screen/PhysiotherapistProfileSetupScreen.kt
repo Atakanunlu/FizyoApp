@@ -3,6 +3,7 @@ package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_profil
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -99,15 +100,28 @@ fun PhysiotherapistProfileSetupScreen(
     ) { uri: Uri? ->
         uri?.let {
             try {
-                val cacheFile = File(context.cacheDir, "temp_profile_${System.currentTimeMillis()}.jpg")
-                context.contentResolver.openInputStream(it)?.use { input ->
+                // ContentResolver kullanarak dosyayı kopyalayalım
+                val contentResolver = context.contentResolver
+                val mimeType = contentResolver.getType(it) ?: "image/jpeg"
+                val inputStream = contentResolver.openInputStream(it)
+
+                val fileName = "temp_profile_${System.currentTimeMillis()}.${mimeType.substringAfter('/')}"
+                val cacheFile = File(context.cacheDir, fileName)
+
+                inputStream?.use { input ->
                     cacheFile.outputStream().use { output ->
                         input.copyTo(output)
                     }
                 }
+
+                // Dosya yolunu loglayalım
+                Log.d("ProfileSetup", "Dosya kopyalandı: ${cacheFile.absolutePath}")
+                Log.d("ProfileSetup", "Dosya mevcut: ${cacheFile.exists()}, Boyut: ${cacheFile.length()}")
+
                 selectedImageUri = Uri.fromFile(cacheFile)
                 viewModel.onEvent(PhysiotherapistProfileEvent.PhotoChanged(cacheFile.absolutePath))
             } catch (e: Exception) {
+                Log.e("ProfileSetup", "Fotoğraf işleme hatası", e)
                 Toast.makeText(context, "Fotoğraf işlenemedi: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }

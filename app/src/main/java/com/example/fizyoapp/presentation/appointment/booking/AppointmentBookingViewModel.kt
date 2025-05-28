@@ -3,6 +3,8 @@ package com.example.fizyoapp.presentation.appointment.booking
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fizyoapp.data.util.AppEvent
+import com.example.fizyoapp.data.util.EventBus
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.appointment.Appointment
 import com.example.fizyoapp.domain.model.appointment.AppointmentStatus
@@ -11,8 +13,12 @@ import com.example.fizyoapp.domain.usecase.appointment.GetAvailableTimeSlotsUseC
 import com.example.fizyoapp.domain.usecase.auth.GetCurrentUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiotherapistByIdUseCase
 import com.example.fizyoapp.domain.usecase.user_profile.GetUserProfileUseCase
+
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,6 +60,27 @@ class AppointmentBookingViewModel @Inject constructor(
         }
     }
 
+    fun onEvent(event: AppointmentBookingEvent) {
+        when (event) {
+            is AppointmentBookingEvent.DateSelected -> {
+                _state.value = _state.value.copy(
+                    selectedDate = event.date,
+                    selectedTimeSlot = null
+                )
+                loadAvailableTimeSlots(event.date)
+            }
+            is AppointmentBookingEvent.TimeSlotSelected -> {
+                _state.value = _state.value.copy(selectedTimeSlot = event.timeSlot)
+            }
+            is AppointmentBookingEvent.AppointmentTypeSelected -> {
+                _state.value = _state.value.copy(selectedAppointmentType = event.type)
+            }
+            is AppointmentBookingEvent.BookAppointment -> {
+                bookAppointment()
+            }
+        }
+    }
+
     private fun loadInitialData(physiotherapistId: String) {
         viewModelScope.launch {
             try {
@@ -83,7 +110,6 @@ class AppointmentBookingViewModel @Inject constructor(
                             }
                         }
                     }
-
                 getCurrentUserUseCase()
                     .catch { e ->
                         _state.value = _state.value.copy(
@@ -157,7 +183,6 @@ class AppointmentBookingViewModel @Inject constructor(
                     )
                     return@launch
                 }
-
                 getAvailableTimeSlotsUseCase(physiotherapistId, date)
                     .catch { e ->
                         _state.value = _state.value.copy(
@@ -193,27 +218,6 @@ class AppointmentBookingViewModel @Inject constructor(
         }
     }
 
-    fun onEvent(event: AppointmentBookingEvent) {
-        when (event) {
-            is AppointmentBookingEvent.DateSelected -> {
-                _state.value = _state.value.copy(
-                    selectedDate = event.date,
-                    selectedTimeSlot = null
-                )
-                loadAvailableTimeSlots(event.date)
-            }
-            is AppointmentBookingEvent.TimeSlotSelected -> {
-                _state.value = _state.value.copy(selectedTimeSlot = event.timeSlot)
-            }
-            is AppointmentBookingEvent.AppointmentTypeSelected -> {
-                _state.value = _state.value.copy(selectedAppointmentType = event.type)
-            }
-            is AppointmentBookingEvent.BookAppointment -> {
-                bookAppointment()
-            }
-        }
-    }
-
     private fun bookAppointment() {
         viewModelScope.launch {
             val currentState = _state.value
@@ -226,19 +230,16 @@ class AppointmentBookingViewModel @Inject constructor(
                 _state.value = _state.value.copy(error = "Kullanıcı bilgileri bulunamadı")
                 return@launch
             }
-
             if (selectedDate == null) {
                 _state.value = _state.value.copy(error = "Lütfen bir tarih seçin")
                 return@launch
             }
-
             if (selectedTimeSlot == null) {
                 _state.value = _state.value.copy(error = "Lütfen bir saat seçin")
                 return@launch
             }
 
             _state.value = _state.value.copy(isLoading = true)
-
             val appointment = Appointment(
                 userId = currentUserId!!,
                 physiotherapistId = physiotherapistId,
@@ -267,7 +268,36 @@ class AppointmentBookingViewModel @Inject constructor(
                                     isSuccess = true,
                                     error = null
                                 )
-                                _uiEvent.send(UiEvent.AppointmentBookedWithId(result.data.id))
+
+                                // Randevu başarıyla oluşturuldu, hemen event yayınlayalım
+                                EventBus.tryEmitEvent(AppEvent.AppointmentCreated(result.data.id))
+
+                                // Ayrıca direkt yenileme eventi de gönderelim
+                                EventBus.tryEmitEvent(AppEvent.ForceRefreshAppointments("appointment_created"))
+
+                                // Firestore'dan direkt okuma yaparak verinin ulaşılabilir olmasını sağlayalım
+                                try {
+                                    FirebaseFirestore.getInstance().collection("appointments")
+                                        .document(result.data.id)
+                                        .get(Source.SERVER)
+                                        .addOnSuccessListener {
+                                            // Veri alındı, global event gönderelim
+                                            EventBus.tryEmitEvent(AppEvent.ForceRefreshAppointments("document_fetched"))
+                                        }
+                                        .addOnFailureListener {
+                                            // Hata durumunda yine de genel bir yenileme yapalım
+                                            EventBus.tryEmitEvent(AppEvent.RefreshAppointments)
+                                        }
+                                } catch (e: Exception) {
+                                    // Hata durumunda sessizce devam et ve genel yenileme gönder
+                                    EventBus.tryEmitEvent(AppEvent.RefreshAppointments)
+                                }
+
+                                // Biraz bekleyelim ve UI event'i gönderelim
+                                delay(300)
+
+                                // Direkt RehabilitationHistoryScreen'e yönlendirelim
+                                _uiEvent.send(UiEvent.NavigateToRehabilitation(result.data.id))
                             }
                             is Resource.Error -> {
                                 _state.value = _state.value.copy(
@@ -292,5 +322,6 @@ class AppointmentBookingViewModel @Inject constructor(
     sealed class UiEvent {
         data object AppointmentBooked : UiEvent()
         data class AppointmentBookedWithId(val appointmentId: String) : UiEvent()
+        data class NavigateToRehabilitation(val appointmentId: String) : UiEvent()
     }
 }

@@ -1,5 +1,7 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_profile_screen
 
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,10 +13,14 @@ import com.example.fizyoapp.domain.usecase.physiotherapist_profile.GetPhysiother
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.UpdatePhysiotherapistProfileUseCase
 import com.example.fizyoapp.domain.usecase.physiotherapist_profile.UploadPhysiotherapistProfilePhotoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -209,7 +215,6 @@ class PhysiotherapistProfileViewModel @Inject constructor(
 
     private fun saveProfile() {
         val currentState = _state.value
-
         val firstNameError = currentState.firstName.isBlank()
         val lastNameError = currentState.lastName.isBlank()
         val birthDateError = currentState.birthDate == null
@@ -243,35 +248,47 @@ class PhysiotherapistProfileViewModel @Inject constructor(
                     errorMessage = null
                 )
 
+                val currentState = _state.value
                 val finalPriceInfo = currentState.priceInfo.ifBlank { "Görüşme sonunda bilgilendirilecektir" }
-
-
                 var finalPhotoUrl = currentState.profilePhotoUrl
 
-
-                if (currentState.tempPhotoUri.isNotEmpty()) {
+                if (currentState.tempPhotoUri.isNotEmpty() &&
+                    !currentState.tempPhotoUri.startsWith("http") &&
+                    !currentState.tempPhotoUri.startsWith("https")) {
                     try {
-                        // Fotoğrafı yükle
-                        uploadPhysiotherapistProfilePhotoUseCase(
-                            currentState.tempPhotoUri,
-                            currentState.userId
-                        ).collect { uploadResult ->
-                            when (uploadResult) {
-                                is Resource.Success -> {
-                                    finalPhotoUrl = uploadResult.data
-                                }
+                        Log.d("ProfileViewModel", "Fotoğraf yükleme başlatılıyor: ${currentState.tempPhotoUri}")
 
-                                is Resource.Error -> {
-                                    throw Exception("Fotoğraf yüklenirken hata oluştu")
-                                }
+                        val photoFile = File(currentState.tempPhotoUri)
+                        if (!photoFile.exists()) {
+                            Log.e("ProfileViewModel", "Fotoğraf dosyası bulunamadı: ${currentState.tempPhotoUri}")
+                            throw IOException("Fotoğraf dosyası bulunamadı: ${currentState.tempPhotoUri}")
+                        }
 
-                                else -> {}
+                        var uploadResult: Resource<String> = Resource.Loading()
+
+                        withContext(Dispatchers.IO) {
+                            val fileUri = Uri.fromFile(photoFile)
+                            uploadPhysiotherapistProfilePhotoUseCase(fileUri.toString(), currentState.userId).collect {
+                                uploadResult = it
                             }
                         }
+
+                        when (uploadResult) {
+                            is Resource.Success -> {
+                                finalPhotoUrl = (uploadResult as Resource.Success<String>).data ?: ""
+                                Log.d("ProfileViewModel", "Fotoğraf başarıyla yüklendi: $finalPhotoUrl")
+                            }
+                            is Resource.Error -> {
+                                Log.e("ProfileViewModel", "Fotoğraf yükleme hatası: ${(uploadResult as Resource.Error<String>).message}")
+                                throw Exception("Fotoğraf yükleme hatası: ${(uploadResult as Resource.Error<String>).message}")
+                            }
+                            else -> {}
+                        }
                     } catch (e: Exception) {
+                        Log.e("ProfileViewModel", "Fotoğraf yükleme exception: ${e.message}")
                         _state.value = _state.value.copy(
                             isLoading = false,
-                            errorMessage = "Fotoğraf yükleme işleminde hata oluştu"
+                            errorMessage = "Fotoğraf yükleme işleminde hata: ${e.message}"
                         )
                         return@launch
                     }
@@ -304,21 +321,20 @@ class PhysiotherapistProfileViewModel @Inject constructor(
                                 priceInfo = finalPriceInfo
                             )
                         }
-
                         is Resource.Error -> {
                             _state.value = _state.value.copy(
                                 isLoading = false,
-                                errorMessage = "Profil güncellenirken bir hata oluştu"
+                                errorMessage = "Profil güncellenirken bir hata oluştu: ${result.message}"
                             )
                         }
-
                         else -> {}
                     }
                 }
             } catch (e: Exception) {
+                Log.e("ProfileViewModel", "Profil kaydetme hatası: ${e.message}")
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    errorMessage = "İşlem sırasında bir hata oluştu"
+                    errorMessage = "İşlem sırasında bir hata oluştu: ${e.message}"
                 )
             }
         }
