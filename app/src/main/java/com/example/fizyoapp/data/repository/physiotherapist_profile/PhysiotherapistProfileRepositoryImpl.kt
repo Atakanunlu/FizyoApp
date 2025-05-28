@@ -18,7 +18,6 @@ import javax.inject.Inject
 
 class PhysiotherapistProfileRepositoryImpl @Inject constructor() :
     PhysiotherapistProfileRepository {
-
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val storage: FirebaseStorage = FirebaseStorage.getInstance()
     private val physiotherapistProfilesCollection = firestore.collection("physiotherapist_profiles")
@@ -46,12 +45,9 @@ class PhysiotherapistProfileRepositoryImpl @Inject constructor() :
         flow {
             try {
                 emit(Resource.Loading())
-
                 physiotherapistProfilesCollection.document(profile.userId).set(profile).await()
-
                 physiotherapistCollection.document(profile.userId)
                     .update("profileCompleted", profile.isProfileCompleted).await()
-
                 emit(Resource.Success(profile))
             } catch (e: Exception) {
                 Log.e("PhysiotherapistProfileRepo", "Profil güncelleme hatası", e)
@@ -68,7 +64,6 @@ class PhysiotherapistProfileRepositoryImpl @Inject constructor() :
                 emit(Resource.Success(isCompleted))
                 return@flow
             }
-
             emit(Resource.Success(false))
         } catch (e: Exception) {
             Log.e("PhysiotherapistProfileRepo", "Profil kontrolü hatası", e)
@@ -82,7 +77,6 @@ class PhysiotherapistProfileRepositoryImpl @Inject constructor() :
     ): Flow<Resource<String>> = flow {
         try {
             emit(Resource.Loading())
-
             Log.d("PhysiotherapistProfileRepo", "Fotoğraf yükleme başlıyor: $photoUriString")
 
             val photoUri = Uri.parse(photoUriString)
@@ -91,6 +85,7 @@ class PhysiotherapistProfileRepositoryImpl @Inject constructor() :
                 storage.reference.child("physiotherapist_photos/$userId/profile_image_${UUID.randomUUID()}.jpg")
 
             try {
+
                 fileRef.putFile(photoUri).await()
 
                 val metadata = StorageMetadata.Builder()
@@ -103,18 +98,43 @@ class PhysiotherapistProfileRepositoryImpl @Inject constructor() :
                 fileRef.updateMetadata(metadata).await()
 
                 val downloadUrl = fileRef.downloadUrl.await().toString()
-                val fileData = mapOf(
-                    "fileName" to fileRef.name,
-                    "storagePath" to fileRef.path,
-                    "downloadUrl" to downloadUrl,
-                    "uploadTime" to FieldValue.serverTimestamp(),
-                    "userId" to userId,
-                    "fileType" to "profile_photo"
-                )
 
-                physiotherapistProfilesCollection.document(userId)
-                    .update("profilePhotoData", fileData)
-                    .await()
+                val docRef = physiotherapistProfilesCollection.document(userId)
+                val docSnapshot = docRef.get().await()
+
+                if (!docSnapshot.exists()) {
+
+                    val initialProfile = PhysiotherapistProfile(
+                        userId = userId,
+                        profilePhotoUrl = downloadUrl,
+                        profilePhotoData = mapOf(
+                            "fileName" to fileRef.name,
+                            "storagePath" to fileRef.path,
+                            "downloadUrl" to downloadUrl,
+                            "uploadTime" to FieldValue.serverTimestamp(),
+                            "userId" to userId,
+                            "fileType" to "profile_photo"
+                        )
+                    )
+                    docRef.set(initialProfile).await()
+                } else {
+                    // Doküman varsa güncelle
+                    val fileData = mapOf(
+                        "fileName" to fileRef.name,
+                        "storagePath" to fileRef.path,
+                        "downloadUrl" to downloadUrl,
+                        "uploadTime" to FieldValue.serverTimestamp(),
+                        "userId" to userId,
+                        "fileType" to "profile_photo"
+                    )
+
+                    docRef.update(
+                        mapOf(
+                            "profilePhotoUrl" to downloadUrl,
+                            "profilePhotoData" to fileData
+                        )
+                    ).await()
+                }
 
                 Log.d("PhysiotherapistProfileRepo", "Upload successful, URL: $downloadUrl")
                 emit(Resource.Success(downloadUrl))
@@ -127,7 +147,6 @@ class PhysiotherapistProfileRepositoryImpl @Inject constructor() :
             emit(Resource.Error(e.message ?: "Profil fotoğrafı yüklenemedi", e))
         }
     }
-
     override fun getAllPhysiotherapists(): Flow<Resource<List<PhysiotherapistProfile>>> = flow {
         try {
             emit(Resource.Loading())
@@ -145,7 +164,6 @@ class PhysiotherapistProfileRepositoryImpl @Inject constructor() :
                     val simpleProfiles = physiotherapistDocs.documents.mapNotNull { doc ->
                         try {
                             val userId = doc.id
-
                             PhysiotherapistProfile(
                                 userId = userId,
                                 firstName = "Fizyoterapist",
@@ -173,7 +191,9 @@ class PhysiotherapistProfileRepositoryImpl @Inject constructor() :
     }
 
     private fun String.capitalize(): String {
-        return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+        return this.replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+        }
     }
 
     override fun getPhysiotherapistById(physiotherapistId: String): Flow<Resource<PhysiotherapistProfile>> =

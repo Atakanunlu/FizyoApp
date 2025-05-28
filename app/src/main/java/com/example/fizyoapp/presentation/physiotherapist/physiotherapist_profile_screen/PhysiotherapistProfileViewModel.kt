@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,7 +32,6 @@ class PhysiotherapistProfileViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = MutableStateFlow(PhysiotherapistProfileState())
     val state: StateFlow<PhysiotherapistProfileState> = _state.asStateFlow()
-
 
     private val _currentUser = MutableStateFlow<User?>(null)
 
@@ -52,7 +50,6 @@ class PhysiotherapistProfileViewModel @Inject constructor(
                     is Resource.Loading -> {
                         _state.value = _state.value.copy(isLoading = true)
                     }
-
                     is Resource.Success -> {
                         val user = result.data
                         if (user != null) {
@@ -65,7 +62,6 @@ class PhysiotherapistProfileViewModel @Inject constructor(
                             )
                         }
                     }
-
                     is Resource.Error -> {
                         _state.value = _state.value.copy(
                             isLoading = false,
@@ -84,7 +80,6 @@ class PhysiotherapistProfileViewModel @Inject constructor(
                     is Resource.Loading -> {
                         _state.value = _state.value.copy(isLoading = true)
                     }
-
                     is Resource.Success -> {
                         val profile = result.data
                         _state.value = _state.value.copy(
@@ -102,9 +97,7 @@ class PhysiotherapistProfileViewModel @Inject constructor(
                             priceInfo = profile.priceInfo,
                             profilePhotoUrl = profile.profilePhotoUrl
                         )
-
                     }
-
                     is Resource.Error -> {
                         _state.value = _state.value.copy(
                             isLoading = false,
@@ -124,95 +117,79 @@ class PhysiotherapistProfileViewModel @Inject constructor(
                     firstNameError = event.firstName.isBlank()
                 )
             }
-
             is PhysiotherapistProfileEvent.LastNameChanged -> {
                 _state.value = _state.value.copy(
                     lastName = event.lastName,
                     lastNameError = event.lastName.isBlank()
                 )
             }
-
             is PhysiotherapistProfileEvent.BirthDateChanged -> {
                 _state.value = _state.value.copy(
                     birthDate = event.birthDate,
                     birthDateError = false
                 )
             }
-
             is PhysiotherapistProfileEvent.GenderChanged -> {
                 _state.value = _state.value.copy(
                     gender = event.gender,
                     genderError = false
                 )
             }
-
             is PhysiotherapistProfileEvent.CityChanged -> {
                 _state.value = _state.value.copy(
                     city = event.city,
                     cityError = event.city.isBlank()
                 )
             }
-
             is PhysiotherapistProfileEvent.DistrictChanged -> {
                 _state.value = _state.value.copy(
                     district = event.district,
                     districtError = event.district.isBlank()
                 )
             }
-
             is PhysiotherapistProfileEvent.FullAddressChanged -> {
                 _state.value = _state.value.copy(
                     fullAddress = event.fullAddress,
                     fullAddressError = event.fullAddress.isBlank()
                 )
             }
-
             is PhysiotherapistProfileEvent.PhoneNumberChanged -> {
                 _state.value = _state.value.copy(
                     phoneNumber = event.phoneNumber,
                     phoneNumberError = event.phoneNumber.isBlank()
                 )
             }
-
             is PhysiotherapistProfileEvent.CertificatesChanged -> {
                 _state.value = _state.value.copy(
                     certificates = event.certificates
                 )
             }
-
             is PhysiotherapistProfileEvent.PriceInfoChanged -> {
                 _state.value = _state.value.copy(
                     priceInfo = event.priceInfo,
                     priceInfoError = false
                 )
             }
-
             is PhysiotherapistProfileEvent.PhotoChanged -> {
                 _state.value = _state.value.copy(
                     tempPhotoUri = event.photoUri
                 )
-
+                Log.d("PhysiotherapistProfileViewModel", "Photo URI set: ${event.photoUri}")
             }
-
             is PhysiotherapistProfileEvent.PhotoRemoved -> {
                 _state.value = _state.value.copy(
                     tempPhotoUri = "",
                     profilePhotoUrl = ""
                 )
-
             }
-
             is PhysiotherapistProfileEvent.SaveProfile -> {
                 saveProfile()
             }
-
             is PhysiotherapistProfileEvent.ResetState -> {
                 _state.value = PhysiotherapistProfileState(userId = _state.value.userId)
             }
-
         }
     }
-
     private fun saveProfile() {
         val currentState = _state.value
         val firstNameError = currentState.firstName.isBlank()
@@ -250,47 +227,49 @@ class PhysiotherapistProfileViewModel @Inject constructor(
 
                 val currentState = _state.value
                 val finalPriceInfo = currentState.priceInfo.ifBlank { "Görüşme sonunda bilgilendirilecektir" }
-                var finalPhotoUrl = currentState.profilePhotoUrl
 
+                // Önce boş bir profil oluşturalım, böylece doküman var olacak
+                val initialProfile = PhysiotherapistProfile(
+                    userId = currentState.userId,
+                    firstName = currentState.firstName,
+                    lastName = currentState.lastName,
+                    birthDate = currentState.birthDate,
+                    gender = currentState.gender,
+                    city = currentState.city,
+                    district = currentState.district,
+                    fullAddress = currentState.fullAddress,
+                    phoneNumber = currentState.phoneNumber,
+                    certificates = currentState.certificates,
+                    priceInfo = finalPriceInfo,
+                    isProfileCompleted = false
+                )
+
+                updatePhysiotherapistProfileUseCase(initialProfile).collect { result ->
+                    if (result is Resource.Error) {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            errorMessage = "Profil oluşturulurken bir hata oluştu: ${result.message}"
+                        )
+                        return@collect
+                    }
+                }
+
+                var finalPhotoUrl = currentState.profilePhotoUrl
                 if (currentState.tempPhotoUri.isNotEmpty() &&
                     !currentState.tempPhotoUri.startsWith("http") &&
                     !currentState.tempPhotoUri.startsWith("https")) {
-                    try {
-                        Log.d("ProfileViewModel", "Fotoğraf yükleme başlatılıyor: ${currentState.tempPhotoUri}")
 
-                        val photoFile = File(currentState.tempPhotoUri)
-                        if (!photoFile.exists()) {
-                            Log.e("ProfileViewModel", "Fotoğraf dosyası bulunamadı: ${currentState.tempPhotoUri}")
-                            throw IOException("Fotoğraf dosyası bulunamadı: ${currentState.tempPhotoUri}")
+                    val result = uploadPhoto(currentState.tempPhotoUri, currentState.userId)
+                    finalPhotoUrl = when (result) {
+                        is Resource.Success -> result.data ?: ""
+                        is Resource.Error -> {
+                            _state.value = _state.value.copy(
+                                isLoading = false,
+                                errorMessage = "Fotoğraf yükleme işleminde hata: ${result.message}"
+                            )
+                            return@launch
                         }
-
-                        var uploadResult: Resource<String> = Resource.Loading()
-
-                        withContext(Dispatchers.IO) {
-                            val fileUri = Uri.fromFile(photoFile)
-                            uploadPhysiotherapistProfilePhotoUseCase(fileUri.toString(), currentState.userId).collect {
-                                uploadResult = it
-                            }
-                        }
-
-                        when (uploadResult) {
-                            is Resource.Success -> {
-                                finalPhotoUrl = (uploadResult as Resource.Success<String>).data ?: ""
-                                Log.d("ProfileViewModel", "Fotoğraf başarıyla yüklendi: $finalPhotoUrl")
-                            }
-                            is Resource.Error -> {
-                                Log.e("ProfileViewModel", "Fotoğraf yükleme hatası: ${(uploadResult as Resource.Error<String>).message}")
-                                throw Exception("Fotoğraf yükleme hatası: ${(uploadResult as Resource.Error<String>).message}")
-                            }
-                            else -> {}
-                        }
-                    } catch (e: Exception) {
-                        Log.e("ProfileViewModel", "Fotoğraf yükleme exception: ${e.message}")
-                        _state.value = _state.value.copy(
-                            isLoading = false,
-                            errorMessage = "Fotoğraf yükleme işleminde hata: ${e.message}"
-                        )
-                        return@launch
+                        is Resource.Loading -> ""
                     }
                 }
 
@@ -337,6 +316,33 @@ class PhysiotherapistProfileViewModel @Inject constructor(
                     errorMessage = "İşlem sırasında bir hata oluştu: ${e.message}"
                 )
             }
+        }
+    }
+
+    private suspend fun uploadPhoto(photoPath: String, userId: String): Resource<String> {
+        return try {
+            if (photoPath.isEmpty()) {
+                return Resource.Success("")
+            }
+
+            val photoFile = File(photoPath)
+            if (!photoFile.exists()) {
+                Log.e("PhysiotherapistProfileViewModel", "Fotoğraf dosyası bulunamadı: $photoPath")
+                return Resource.Error("Fotoğraf dosyası bulunamadı: $photoPath")
+            }
+
+            var uploadResult: Resource<String> = Resource.Loading()
+            withContext(Dispatchers.IO) {
+                val fileUri = Uri.fromFile(photoFile)
+                uploadPhysiotherapistProfilePhotoUseCase(fileUri.toString(), userId).collect {
+                    uploadResult = it
+                }
+            }
+
+            uploadResult
+        } catch (e: Exception) {
+            Log.e("PhysiotherapistProfileViewModel", "Fotoğraf yükleme hatası", e)
+            Resource.Error("Fotoğraf yükleme hatası: ${e.localizedMessage}", e)
         }
     }
 }

@@ -48,7 +48,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -61,25 +60,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.fizyoapp.data.util.AppEvent
-import com.example.fizyoapp.data.util.EventBus
 import com.example.fizyoapp.domain.model.appointment.AppointmentStatus
 import com.example.fizyoapp.domain.model.appointment.AppointmentType
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -93,105 +84,20 @@ fun RehabilitationHistoryScreen(
     val scope = rememberCoroutineScope()
     var showCancelDialog by remember { mutableStateOf(false) }
     var appointmentToCancel by remember { mutableStateOf<String?>(null) }
-    val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Her ekran yüklendiğinde verileri yenileyelim
     LaunchedEffect(Unit) {
-        // Başlangıçta verileri yükle
-        viewModel.forceRefreshAppointments()
-
-        // Kısa bir gecikme sonra tekrar yenile (Firestore güncellemelerini yakalamak için)
-        delay(500)
-        viewModel.forceRefreshAppointments()
+        viewModel.onEvent(RehabilitationHistoryEvent.Refresh)
     }
 
-    // Ekran her açıldığında ve resume olduğunda verileri yenileyelim
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                // Ekran resume olduğunda verileri yenile
-                scope.launch {
-                    viewModel.forceRefreshAppointments()
-
-                    // Kısa bir gecikme sonra tekrar yenile
-                    delay(500)
-                    viewModel.forceRefreshAppointments()
-
-                    // EventBus ile yenileme talebi gönder
-                    EventBus.emitEvent(AppEvent.RefreshAppointments)
-                }
+    LaunchedEffect(Unit) {
+        val navBackStackEntry = navController.currentBackStackEntry
+        navBackStackEntry?.lifecycle?.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
+            override fun onResume(owner: androidx.lifecycle.LifecycleOwner) {
+                viewModel.onEvent(RehabilitationHistoryEvent.Refresh)
             }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
+        })
     }
 
-    // EventBus olaylarını dinle
-    LaunchedEffect(Unit) {
-        EventBus.events.collect { event ->
-            when (event) {
-                is AppEvent.AppointmentCreated -> {
-                    // Yeni randevu oluşturulduğunda verileri yenile
-                    viewModel.forceRefreshAppointments()
-
-                    // 500ms sonra tekrar yenile
-                    delay(500)
-                    viewModel.forceRefreshAppointments()
-                }
-                is AppEvent.RefreshAppointments -> {
-                    // Genel yenileme talebi geldiğinde verileri yenile
-                    viewModel.forceRefreshAppointments()
-                }
-                is AppEvent.ForceRefreshAppointments -> {
-                    // Önbelleği temizleyip tamamen yenile
-                    viewModel.clearCacheAndRefresh()
-                }
-            }
-        }
-    }
-
-    // Firestore değişikliklerini dinleyen özel bir LaunchedEffect
-    LaunchedEffect(Unit) {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
-            // Doğrudan Firestore snapshot listener kullan - bunu ayrı bir değişkene atma
-            FirebaseFirestore.getInstance()
-                .collection("appointments")
-                .whereEqualTo("userId", currentUser.uid)
-                .addSnapshotListener { snapshot, error ->
-                    if (error == null && snapshot != null) {
-                        // Değişiklik olduğunda verileri yenile
-                        scope.launch {
-                            viewModel.forceRefreshAppointments()
-                        }
-                    }
-                }
-        }
-    }
-
-    // Periyodik otomatik yenileme
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(10000) // 10 saniyede bir yenile
-            viewModel.forceRefreshAppointments()
-        }
-    }
-
-    // Randevuların boş olduğu durumlarda özel yenileme
-    LaunchedEffect(state.upcomingAppointments.isEmpty() && state.pastAppointments.isEmpty()) {
-        if (state.upcomingAppointments.isEmpty() && state.pastAppointments.isEmpty() && !state.isLoading) {
-            viewModel.forceRefreshAppointments()
-
-            // 500ms sonra tekrar dene
-            delay(500)
-            viewModel.forceRefreshAppointments()
-        }
-    }
-
-    // Başarı mesajını otomatik olarak temizleyelim
     LaunchedEffect(state.successMessage) {
         if (state.successMessage != null) {
             delay(3000)
@@ -246,17 +152,7 @@ fun RehabilitationHistoryScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        scope.launch {
-                            // Manuel yenileme butonu için hem lokal hem global yenileme
-                            EventBus.emitEvent(AppEvent.ForceRefreshAppointments("manual_refresh"))
-                            viewModel.forceRefreshAppointments()
-
-                            // Verilerin yüklenmesi için bir miktar bekle
-                            delay(300)
-
-                            // Tekrar yenile (daha güncel verileri almak için)
-                            viewModel.forceRefreshAppointments()
-                        }
+                        viewModel.onEvent(RehabilitationHistoryEvent.Refresh)
                     }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
@@ -311,12 +207,7 @@ fun RehabilitationHistoryScreen(
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
-                        onClick = {
-                            scope.launch {
-                                EventBus.emitEvent(AppEvent.ForceRefreshAppointments("error_retry"))
-                                viewModel.forceRefreshAppointments()
-                            }
-                        },
+                        onClick = { viewModel.onEvent(RehabilitationHistoryEvent.Refresh) },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B3E68))
                     ) {
                         Icon(
@@ -355,31 +246,6 @@ fun RehabilitationHistoryScreen(
                         textAlign = TextAlign.Center,
                         color = Color.Gray
                     )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                EventBus.emitEvent(AppEvent.ForceRefreshAppointments("empty_retry"))
-                                viewModel.forceRefreshAppointments()
-
-                                // Önceki veri isteğinin tamamlanması için biraz bekle
-                                delay(500)
-
-                                // Sonra tekrar dene
-                                viewModel.forceRefreshAppointments()
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B3E68))
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = null
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Randevuları Yenile")
-                    }
                 }
             } else {
                 LazyColumn(
@@ -390,6 +256,7 @@ fun RehabilitationHistoryScreen(
                     item {
                         Spacer(modifier = Modifier.height(16.dp))
                     }
+
                     if (state.upcomingAppointments.isNotEmpty()) {
                         item {
                             Text(
@@ -400,6 +267,7 @@ fun RehabilitationHistoryScreen(
                                 modifier = Modifier.padding(vertical = 8.dp)
                             )
                         }
+
                         items(state.upcomingAppointments) { appointmentWithPhysiotherapist ->
                             AppointmentCard(
                                 appointmentWithPhysiotherapist = appointmentWithPhysiotherapist,
@@ -411,6 +279,7 @@ fun RehabilitationHistoryScreen(
                             )
                         }
                     }
+
                     if (state.pastAppointments.isNotEmpty()) {
                         item {
                             Text(
@@ -422,6 +291,7 @@ fun RehabilitationHistoryScreen(
                                     .padding(top = 24.dp)
                             )
                         }
+
                         items(state.pastAppointments) { appointmentWithPhysiotherapist ->
                             AppointmentCard(
                                 appointmentWithPhysiotherapist = appointmentWithPhysiotherapist,
@@ -430,11 +300,13 @@ fun RehabilitationHistoryScreen(
                             )
                         }
                     }
+
                     item {
                         Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
             }
+
             AnimatedVisibility(
                 visible = state.successMessage != null,
                 enter = fadeIn(),
@@ -467,6 +339,7 @@ fun RehabilitationHistoryScreen(
                     }
                 }
             }
+
             AnimatedVisibility(
                 visible = state.error != null,
                 enter = fadeIn(),
@@ -611,7 +484,6 @@ fun AppointmentCard(
                         fontWeight = FontWeight.Bold,
                         color = if (isCancelled) Color.Gray else Color(0xFF3B3E68)
                     )
-
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Row(
@@ -630,7 +502,6 @@ fun AppointmentCard(
                             color = Color.Gray
                         )
                     }
-
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Row(
@@ -649,7 +520,6 @@ fun AppointmentCard(
                             color = Color.Gray
                         )
                     }
-
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Row(
