@@ -2,6 +2,7 @@ package com.example.fizyoapp.data.repository.socialmedia
 
 import android.content.ContentResolver
 import android.net.Uri
+import android.util.Log
 import android.webkit.MimeTypeMap
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.notification.NotificationType
@@ -12,6 +13,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -250,38 +252,93 @@ class SocialMediaRepositoryImpl @Inject constructor(
         try {
             val postDoc = postsCollection.document(postId).get().await()
             val post = postDoc.toObject(Post::class.java)
-
             if (post != null) {
+                Log.d("DeletePost", "Deleting post with ID: $postId")
+                Log.d("DeletePost", "Media URLs to delete: ${post.mediaUrls}")
+
                 for (mediaUrl in post.mediaUrls) {
                     try {
-                        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(mediaUrl)
-                        storageRef.delete().await()
+                        Log.d("DeletePost", "Attempting to delete media: $mediaUrl")
+
+                        val storageRef = getStorageRefFromUrl(mediaUrl)
+                        if (storageRef != null) {
+                            try {
+                                storageRef.delete().await()
+                                Log.d("DeletePost", "Successfully deleted media: $mediaUrl")
+                            } catch (e: Exception) {
+                                Log.e("DeletePost", "Error deleting media: ${e.message}", e)
+                            }
+                        } else {
+                            Log.w("DeletePost", "Could not get storage reference for: $mediaUrl")
+                        }
                     } catch (e: Exception) {
+                        Log.e("DeletePost", "Error processing media URL: ${e.message}", e)
                     }
                 }
 
-                val notificationsQuery = notificationsCollection.whereEqualTo("contentId", postId).get().await()
-                val commentsQuery = commentsCollection.whereEqualTo("postId", postId).get().await()
+                Log.d("DeletePost", "Fetching related notifications and comments")
+                val notificationsQuery = notificationsCollection
+                    .whereEqualTo("contentId", postId)
+                    .get()
+                    .await()
+
+                val commentsQuery = commentsCollection
+                    .whereEqualTo("postId", postId)
+                    .get()
+                    .await()
 
                 val batch = firestore.batch()
 
                 for (notifDoc in notificationsQuery.documents) {
+                    Log.d("DeletePost", "Adding notification to batch delete: ${notifDoc.id}")
                     batch.delete(notifDoc.reference)
                 }
 
                 for (commentDoc in commentsQuery.documents) {
+                    Log.d("DeletePost", "Adding comment to batch delete: ${commentDoc.id}")
                     batch.delete(commentDoc.reference)
                 }
 
+                Log.d("DeletePost", "Adding post to batch delete: $postId")
                 batch.delete(postsCollection.document(postId))
+
+                Log.d("DeletePost", "Committing batch operation")
                 batch.commit().await()
+                Log.d("DeletePost", "Batch operation completed successfully")
 
                 emit(Resource.Success(Unit))
             } else {
                 throw Exception("Gönderi bulunamadı")
             }
         } catch (e: Exception) {
+            Log.e("DeletePost", "Error in deletePost: ${e.message}", e)
             emit(Resource.Error(e.message ?: "Gönderi silinemedi", e))
+        }
+    }
+
+    private fun getStorageRefFromUrl(url: String): StorageReference? {
+        return try {
+            if (url.contains("firebasestorage.googleapis.com")) {
+                val storage = FirebaseStorage.getInstance()
+
+                val startIndex = url.indexOf("/o/") + 3
+                val endIndex = url.indexOf("?", startIndex)
+
+                if (startIndex >= 3 && endIndex > startIndex) {
+                    val pathPart = url.substring(startIndex, endIndex)
+                    val decodedPath = java.net.URLDecoder.decode(pathPart, "UTF-8")
+                    Log.d("StorageRef", "Extracted path: $decodedPath")
+                    storage.reference.child(decodedPath)
+                } else {
+                    // Normal yöntemi dene
+                    FirebaseStorage.getInstance().getReferenceFromUrl(url)
+                }
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("StorageRef", "Error getting storage reference: ${e.message}", e)
+            null
         }
     }
 

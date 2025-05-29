@@ -77,7 +77,7 @@ class AdvertisementBannerViewModel @Inject constructor(
         refreshJob = viewModelScope.launch {
             while (true) {
                 // 30 saniyede bir reklamları kontrol edelim (süre dolmuş olabilir)
-                delay(30 * 1000L)
+                delay(180 * 1000L)
                 loadActiveAdvertisements()
             }
         }

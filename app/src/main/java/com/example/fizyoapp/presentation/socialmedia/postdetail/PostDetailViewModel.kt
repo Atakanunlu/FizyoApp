@@ -1,5 +1,6 @@
 package com.example.fizyoapp.presentation.socialmedia.postdetail
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -271,20 +272,24 @@ class PostDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
-
             try {
+                Log.d("PostDetailVM", "Starting delete operation for post: ${post.id}")
+                Log.d("PostDetailVM", "Post media URLs: ${post.mediaUrls}")
+
                 deletePostUseCase(post.id).collect { result ->
                     when (result) {
                         is Resource.Success -> {
+                            Log.d("PostDetailVM", "Post deleted successfully")
                             _state.value = _state.value.copy(
                                 isLoading = false,
                                 postDeleted = true
                             )
                         }
                         is Resource.Error -> {
+                            Log.e("PostDetailVM", "Error deleting post: ${result.message}")
                             _state.value = _state.value.copy(
                                 isLoading = false,
-                                error = result.message ?: "Gönderi silinemedi"
+                                error = "Gönderi silinemedi: ${result.message}"
                             )
                         }
                         is Resource.Loading -> {
@@ -293,9 +298,10 @@ class PostDetailViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                Log.e("PostDetailVM", "Exception deleting post", e)
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    error = "Gönderi silinirken bir hata oluştu: ${e.message}"
+                    error = "Gönderi silinirken beklenmeyen bir hata oluştu: ${e.message}"
                 )
             }
         }
