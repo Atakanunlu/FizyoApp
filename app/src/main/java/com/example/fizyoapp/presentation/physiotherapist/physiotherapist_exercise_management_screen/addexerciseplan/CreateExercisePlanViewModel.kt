@@ -23,7 +23,7 @@ import javax.inject.Inject
 class CreateExercisePlanViewModel @Inject constructor(
     private val exerciseRepository: ExerciseRepository,
     private val authRepository: AuthRepository,
-    private val messagesRepository: MessagesRepository // Mesaj thread'lerini almak için ekledik
+    private val messagesRepository: MessagesRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CreateExercisePlanState())
@@ -69,7 +69,7 @@ class CreateExercisePlanViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                // Set isLoading to false in case of exception
+
                 _state.update { it.copy(isLoading = false) }
                 sendUiEvent(UiEvent.ShowError("Bir hata oluştu: ${e.message}"))
             }
@@ -251,7 +251,6 @@ class CreateExercisePlanViewModel @Inject constructor(
         viewModelScope.launch {
             val currentState = _state.value
 
-            // Basic validation
             if (currentState.title.isBlank()) {
                 _state.update { it.copy(titleError = "Başlık boş olamaz") }
                 return@launch
@@ -267,7 +266,7 @@ class CreateExercisePlanViewModel @Inject constructor(
                 return@launch
             }
 
-            // Explicitly set loading state to true
+
             _state.update { it.copy(isLoading = true) }
             Log.d("CreateExercisePlanVM", "Starting save operation, setting isLoading = true")
 
