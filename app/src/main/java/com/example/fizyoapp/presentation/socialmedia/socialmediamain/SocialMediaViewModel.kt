@@ -22,6 +22,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import android.util.Log
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
@@ -57,8 +59,8 @@ class SocialMediaViewModel @Inject constructor(
     val followLoadingMap: StateFlow<Map<String, Boolean>> = _followLoadingMap.asStateFlow()
 
     private val mutex = Mutex()
-
     private var hasInitializedData = false
+    private var followCheckJobs = mutableMapOf<String, Job>()
 
     init {
         getCurrentUser()
@@ -66,12 +68,6 @@ class SocialMediaViewModel @Inject constructor(
 
     fun initializeScreen() {
         viewModelScope.launch {
-            if (hasInitializedData && _state.value.posts.isNotEmpty()) {
-                Log.d("SocialMediaVM", "Data already loaded, just refreshing follow states")
-                checkAllFollowStates()
-                return@launch
-            }
-
             _state.value = _state.value.copy(isLoading = true)
 
             mutex.withLock {
@@ -82,7 +78,20 @@ class SocialMediaViewModel @Inject constructor(
             getCurrentUser()
             loadPosts()
 
+            startPeriodicFollowChecks()
+
             hasInitializedData = true
+        }
+    }
+
+    private fun startPeriodicFollowChecks() {
+        viewModelScope.launch {
+            while (true) {
+                delay(30000) // 30 saniyede bir kontrol et
+                if (_state.value.posts.isNotEmpty() && _currentUser.value != null) {
+                    checkAllFollowStates()
+                }
+            }
         }
     }
 
@@ -147,10 +156,14 @@ class SocialMediaViewModel @Inject constructor(
         val currentUserId = _currentUser.value?.id ?: return
 
         viewModelScope.launch {
+
+            followCheckJobs.forEach { (_, job) ->
+                if (job.isActive) job.cancel()
+            }
+            followCheckJobs.clear()
+
             mutex.withLock {
-
                 followLoadingMapInternal.clear()
-
                 val physiotherapistIds = posts
                     .filter { it.userRole == "PHYSIOTHERAPIST" && it.userId != currentUserId }
                     .map { it.userId }
@@ -171,39 +184,42 @@ class SocialMediaViewModel @Inject constructor(
             Log.d("SocialMediaVM", "Checking follow states for ${physiotherapistIds.size} physiotherapists")
 
             physiotherapistIds.forEach { physiotherapistId ->
-                try {
-                    isFollowingUseCase(currentUserId, physiotherapistId).collect { result ->
-                        when (result) {
-                            is Resource.Success -> {
-                                mutex.withLock {
-                                    followStateMapInternal[physiotherapistId] = result.data
-                                    followLoadingMapInternal[physiotherapistId] = false
+                val job = viewModelScope.launch {
+                    try {
+                        isFollowingUseCase(currentUserId, physiotherapistId).collect { result ->
+                            when (result) {
+                                is Resource.Success -> {
+                                    mutex.withLock {
+                                        followStateMapInternal[physiotherapistId] = result.data
+                                        followLoadingMapInternal[physiotherapistId] = false
+                                        _followStateMap.value = HashMap(followStateMapInternal)
+                                        _followLoadingMap.value = HashMap(followLoadingMapInternal)
 
-                                    _followStateMap.value = HashMap(followStateMapInternal)
-                                    _followLoadingMap.value = HashMap(followLoadingMapInternal)
-
-                                    Log.d("SocialMediaVM", "Follow state for $physiotherapistId: ${result.data}")
+                                        Log.d("SocialMediaVM", "Follow state for $physiotherapistId: ${result.data}")
+                                    }
                                 }
-                            }
-                            is Resource.Error -> {
-                                mutex.withLock {
-                                    followLoadingMapInternal[physiotherapistId] = false
-                                    _followLoadingMap.value = HashMap(followLoadingMapInternal)
+                                is Resource.Error -> {
+                                    mutex.withLock {
+                                        followLoadingMapInternal[physiotherapistId] = false
+                                        _followLoadingMap.value = HashMap(followLoadingMapInternal)
+                                    }
+                                    Log.e("SocialMediaVM", "Error checking follow state: ${result.message}")
                                 }
-                                Log.e("SocialMediaVM", "Error checking follow state: ${result.message}")
-                            }
-                            is Resource.Loading -> {
-
+                                is Resource.Loading -> {
+                                    // Loading durumunda işlem yok
+                                }
                             }
                         }
+                    } catch (e: Exception) {
+                        mutex.withLock {
+                            followLoadingMapInternal[physiotherapistId] = false
+                            _followLoadingMap.value = HashMap(followLoadingMapInternal)
+                        }
+                        Log.e("SocialMediaVM", "Exception checking follow state: ${e.message}", e)
                     }
-                } catch (e: Exception) {
-                    mutex.withLock {
-                        followLoadingMapInternal[physiotherapistId] = false
-                        _followLoadingMap.value = HashMap(followLoadingMapInternal)
-                    }
-                    Log.e("SocialMediaVM", "Exception checking follow state: ${e.message}")
                 }
+
+                followCheckJobs[physiotherapistId] = job
             }
         }
     }
@@ -214,7 +230,6 @@ class SocialMediaViewModel @Inject constructor(
         viewModelScope.launch {
             mutex.withLock {
                 val isCurrentlyFollowing = followStateMapInternal[physiotherapistId] ?: false
-
                 followLoadingMapInternal[physiotherapistId] = true
                 _followLoadingMap.value = HashMap(followLoadingMapInternal)
             }
@@ -230,10 +245,8 @@ class SocialMediaViewModel @Inject constructor(
                                 mutex.withLock {
                                     followStateMapInternal[physiotherapistId] = false
                                     followLoadingMapInternal[physiotherapistId] = false
-
                                     _followStateMap.value = HashMap(followStateMapInternal)
                                     _followLoadingMap.value = HashMap(followLoadingMapInternal)
-
                                     Log.d("SocialMediaVM", "Successfully unfollowed $physiotherapistId")
                                 }
                             }
@@ -262,10 +275,8 @@ class SocialMediaViewModel @Inject constructor(
                                 mutex.withLock {
                                     followStateMapInternal[physiotherapistId] = true
                                     followLoadingMapInternal[physiotherapistId] = false
-
                                     _followStateMap.value = HashMap(followStateMapInternal)
                                     _followLoadingMap.value = HashMap(followLoadingMapInternal)
-
                                     Log.d("SocialMediaVM", "Successfully followed $physiotherapistId")
                                 }
                             }
@@ -299,6 +310,7 @@ class SocialMediaViewModel @Inject constructor(
     fun loadPosts() {
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
+
             getAllPostsUseCase().collect { result ->
                 when (result) {
                     is Resource.Success -> {
@@ -326,6 +338,7 @@ class SocialMediaViewModel @Inject constructor(
     fun onLikePost(postId: String) {
         val userId = _currentUser.value?.id ?: return
         val post = _state.value.posts.find { it.id == postId } ?: return
+
         viewModelScope.launch {
             if (post.likedBy.contains(userId)) {
                 unlikePostUseCase(postId, userId).collect { result ->
@@ -340,6 +353,13 @@ class SocialMediaViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        followCheckJobs.forEach { (_, job) ->
+            if (job.isActive) job.cancel()
         }
     }
 }
