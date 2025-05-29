@@ -245,7 +245,6 @@ fun PostItem(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // Kullanıcı bilgileri kısmı
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
@@ -255,7 +254,9 @@ fun PostItem(
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(primaryColor.copy(alpha = 0.2f))
-                        .clickable { /* Profil sayfasına git */ }
+                        .clickable {
+                            AppScreens.PhysiotherapistSocialProfile.route
+                        }
                 ) {
                     if (post.userPhotoUrl.isNotEmpty()) {
                         AsyncImage(
@@ -309,7 +310,6 @@ fun PostItem(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Post içeriği
             Text(
                 text = post.content,
                 lineHeight = 24.sp,
@@ -317,7 +317,6 @@ fun PostItem(
                 modifier = Modifier.clickable { onClickDetail() }
             )
 
-            // Medya kısmı
             if (post.mediaUrls.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
                 MultiMediaGallery(
@@ -332,7 +331,6 @@ fun PostItem(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Beğeni ve yorum bilgileri
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -376,7 +374,6 @@ fun PostItem(
         }
     }
 
-    // Tam ekran medya diyaloğu
     if (showFullMediaDialog && post.mediaUrls.isNotEmpty()) {
         FullScreenMediaDialog(
             mediaUrl = post.mediaUrls[selectedMediaIndex],
@@ -396,7 +393,7 @@ fun MultiMediaGallery(
     onMediaClick: (Int) -> Unit
 ) {
     when {
-        // Tek medya varsa
+
         mediaUrls.size == 1 -> {
             val mediaUrl = mediaUrls.first()
             val isVideo = mediaTypes.firstOrNull() == "video"
@@ -424,7 +421,6 @@ fun MultiMediaGallery(
             }
         }
 
-        // 2-3 medya varsa
         mediaUrls.size in 2..3 -> {
             Row(
                 modifier = Modifier
@@ -432,7 +428,7 @@ fun MultiMediaGallery(
                     .height(200.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // İlk medya daha büyük (sol tarafta)
+
                 Box(
                     modifier = Modifier
                         .weight(1.5f)
@@ -456,7 +452,6 @@ fun MultiMediaGallery(
                     }
                 }
 
-                // Diğer medyalar sağ tarafta üst üste
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -486,7 +481,6 @@ fun MultiMediaGallery(
                                 )
                             }
 
-                            // Daha fazla medya varsa son medya üzerinde göster
                             if (i == 3 && mediaUrls.size > 4) {
                                 Box(
                                     modifier = Modifier
@@ -505,7 +499,6 @@ fun MultiMediaGallery(
                         }
                     }
 
-                    // Eğer sadece 2 medya varsa boş alan eklenir
                     if (mediaUrls.size == 2) {
                         Spacer(modifier = Modifier.weight(1f))
                     }
@@ -513,13 +506,12 @@ fun MultiMediaGallery(
             }
         }
 
-        // 4 veya daha fazla medya varsa
         else -> {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Üst sıra - 2 medya yan yana
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -552,7 +544,6 @@ fun MultiMediaGallery(
                     }
                 }
 
-                // Alt sıra - 3 medya yan yana
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -583,7 +574,6 @@ fun MultiMediaGallery(
                                     )
                                 }
 
-                                // Daha fazla medya varsa 5. medya üzerinde göster
                                 if (i == 4 && mediaUrls.size > 5) {
                                     Box(
                                         modifier = Modifier
@@ -618,7 +608,7 @@ fun VideoThumbnail(
     val context = LocalContext.current
 
     Box(modifier = modifier) {
-        // Video önizleme için geliştirilmiş yaklaşım
+
         var playerPrepared by remember { mutableStateOf(false) }
 
         AndroidView(
@@ -626,7 +616,6 @@ fun VideoThumbnail(
                 PlayerView(ctx).apply {
                     this.useController = false
 
-                    // ExoPlayer oluşturun ve hazırlayın ama oynatmayın
                     val player = ExoPlayer.Builder(ctx).build().apply {
                         setMediaItem(MediaItem.fromUri(videoUrl))
                         prepare()
@@ -635,7 +624,7 @@ fun VideoThumbnail(
                         addListener(object : Player.Listener {
                             override fun onPlaybackStateChanged(state: Int) {
                                 if (state == Player.STATE_READY) {
-                                    // Sadece bir frame göstermek için çok kısa oynat ve durdur
+
                                     play()
                                     pause()
                                     playerPrepared = true
@@ -649,7 +638,6 @@ fun VideoThumbnail(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Play butonu gösterici
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -715,7 +703,7 @@ fun FullScreenMediaDialog(
                 .background(Color.Black),
             contentAlignment = Alignment.Center
         ) {
-            // Medya içeriği
+
             val currentMediaUrl = mediaUrls.getOrNull(currentIndex) ?: mediaUrl
             val currentMediaType = mediaTypes.getOrNull(currentIndex) ?: mediaType
 
@@ -740,7 +728,6 @@ fun FullScreenMediaDialog(
                 )
             }
 
-            // Gezinme Butonları (birden fazla medya varsa)
             if (mediaUrls.size > 1) {
                 Row(
                     modifier = Modifier
@@ -749,7 +736,7 @@ fun FullScreenMediaDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Önceki buton
+
                     if (currentIndex > 0) {
                         IconButton(
                             onClick = {
@@ -770,7 +757,6 @@ fun FullScreenMediaDialog(
                         Spacer(modifier = Modifier.size(48.dp))
                     }
 
-                    // Sonraki buton
                     if (currentIndex < mediaUrls.size - 1) {
                         IconButton(
                             onClick = {
@@ -793,7 +779,6 @@ fun FullScreenMediaDialog(
                 }
             }
 
-            // Sayaç (birden fazla medya varsa)
             if (mediaUrls.size > 1) {
                 Text(
                     text = "${currentIndex + 1}/${mediaUrls.size}",
@@ -811,7 +796,6 @@ fun FullScreenMediaDialog(
                 )
             }
 
-            // Kapatma butonu
             IconButton(
                 onClick = onDismiss,
                 modifier = Modifier

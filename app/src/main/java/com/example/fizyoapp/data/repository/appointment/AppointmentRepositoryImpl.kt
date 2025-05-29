@@ -143,6 +143,7 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
     override fun createAppointment(appointment: Appointment): Flow<Resource<Appointment>> = flow {
         try {
             emit(Resource.Loading())
+
             val calendar = Calendar.getInstance()
             calendar.time = appointment.date
             calendar.set(Calendar.HOUR_OF_DAY, 0)
@@ -150,24 +151,30 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
             calendar.set(Calendar.SECOND, 0)
             calendar.set(Calendar.MILLISECOND, 0)
             val startOfDay = calendar.time
+
             calendar.set(Calendar.HOUR_OF_DAY, 23)
             calendar.set(Calendar.MINUTE, 59)
             calendar.set(Calendar.SECOND, 59)
             calendar.set(Calendar.MILLISECOND, 999)
             val endOfDay = calendar.time
+
             val dateStr = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(appointment.date)
             val slotId = "${appointment.physiotherapistId}_${dateStr}_${appointment.timeSlot.replace(":", "")}"
+
             val timeSlotDocRef = appointmentSlotsCollection.document(slotId)
             val timeSlotDoc = timeSlotDocRef.get().await()
+
             if (timeSlotDoc.exists()) {
                 emit(Resource.Error("Bu saat dilimi dolu. Lütfen başka bir saat seçin."))
                 return@flow
             }
+
             val userSlotsQuery = appointmentSlotsCollection
                 .whereEqualTo("userId", appointment.userId)
                 .whereEqualTo("timeSlot", appointment.timeSlot)
                 .get()
                 .await()
+
             val userHasExistingAppointment = userSlotsQuery.documents.any { doc ->
                 val date = doc.getDate("date")
                 date?.let {
@@ -175,15 +182,18 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
                     docDateStr == dateStr
                 } ?: false
             }
+
             if (userHasExistingAppointment) {
                 emit(Resource.Error("Bu tarih ve saatte başka bir randevunuz bulunmaktadır."))
                 return@flow
             }
+
             val blockedSlotQuery = blockedTimeSlotsCollection
                 .whereEqualTo("physiotherapistId", appointment.physiotherapistId)
                 .whereEqualTo("timeSlot", appointment.timeSlot)
                 .get()
                 .await()
+
             val isSlotBlocked = blockedSlotQuery.documents.any { doc ->
                 val date = doc.getDate("date")
                 date?.let {
@@ -191,17 +201,21 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
                     docDateStr == dateStr
                 } ?: false
             }
+
             if (isSlotBlocked) {
                 emit(Resource.Error("Bu saat dilimi müsait değil. Lütfen başka bir saat seçin."))
                 return@flow
             }
+
             val newAppointmentId = UUID.randomUUID().toString()
             val newAppointment = appointment.copy(
                 id = newAppointmentId,
                 createdAt = Date()
             )
+
             firestore.runBatch { batch ->
                 batch.set(appointmentsCollection.document(newAppointmentId), newAppointment)
+
                 val slotData = mapOf(
                     "physiotherapistId" to appointment.physiotherapistId,
                     "userId" to appointment.userId,
@@ -211,9 +225,6 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
                 )
                 batch.set(timeSlotDocRef, slotData)
             }.await()
-
-            // Firestore'un yeni veriyi indekslemesi için kısa bir gecikme ekleyelim
-            kotlinx.coroutines.delay(300)
 
             emit(Resource.Success(newAppointment))
         } catch (e: Exception) {

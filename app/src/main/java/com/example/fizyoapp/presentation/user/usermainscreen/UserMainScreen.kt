@@ -79,7 +79,6 @@ import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBanne
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -116,31 +115,10 @@ fun UserMainScreen(
     LaunchedEffect(key1 = Unit) {
         try {
             val currentUser = FirebaseAuth.getInstance().currentUser
-            if (currentUser != null) {
-                // Rehabilitasyon verisini de güncelleyelim
-                FirebaseFirestore.getInstance()
-                    .collection("appointments")
-                    .whereEqualTo("userId", currentUser.uid)
-                    .limit(1)
-                    .get()
-                    .addOnSuccessListener { documents ->
-                        // Veri çekildi, ancak burada doğrudan bir şey yapmamıza gerek yok
-                        // Bu, Firestore'a bir istek göndererek verilerin önbelleğe alınmasını sağlar
-                    }
-
-                // Ayrıca periyodik olarak randevuları kontrol edelim
-                while (true) {
-                    delay(60000) // 1 dakikada bir kontrol et
-                    FirebaseFirestore.getInstance()
-                        .collection("appointments")
-                        .whereEqualTo("userId", currentUser.uid)
-                        .orderBy("date", com.google.firebase.firestore.Query.Direction.ASCENDING)
-                        .limit(5) // En yakın 5 randevuyu çek
-                        .get()
-                }
+            if (currentUser != null && (state.userProfile == null || state.userProfile.userId != currentUser.uid)) {
+                viewModel.onEvent(UserEvent.LoadUserProfile)
             }
         } catch (e: Exception) {
-            // Hata işleme gerekirse
         }
     }
 
