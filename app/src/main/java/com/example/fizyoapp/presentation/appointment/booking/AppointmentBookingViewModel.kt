@@ -145,6 +145,8 @@ class AppointmentBookingViewModel @Inject constructor(
         }
     }
 
+
+
     private fun loadAvailableTimeSlots(date: Date) {
         viewModelScope.launch {
             try {
@@ -158,6 +160,7 @@ class AppointmentBookingViewModel @Inject constructor(
                     return@launch
                 }
 
+
                 getAvailableTimeSlotsUseCase(physiotherapistId, date)
                     .catch { e ->
                         _state.value = _state.value.copy(
@@ -168,8 +171,20 @@ class AppointmentBookingViewModel @Inject constructor(
                     .collect { result ->
                         when (result) {
                             is Resource.Success -> {
+
+                                val availableSlots = result.data
+
+
+                                val allTimeSlots = listOf(
+                                    "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"
+                                )
+
+
+                                val bookedSlots = allTimeSlots.filter { it !in availableSlots }
+
                                 _state.value = _state.value.copy(
-                                    availableTimeSlots = result.data,
+                                    availableTimeSlots = availableSlots,
+                                    bookedTimeSlots = bookedSlots,
                                     isLoading = false
                                 )
                             }

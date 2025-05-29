@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,27 +49,27 @@ fun EvaluationFormsScreen(
     var selectedResponse by remember { mutableStateOf<FormResponse?>(null) }
     var showShareDialog by remember { mutableStateOf(false) }
 
-    // İlk yükleme için
+
     LaunchedEffect(Unit) {
-        // Sayfa açıldığında verileri yükle
+
         viewModel.onEvent(EvaluationFormsEvent.RefreshData)
     }
 
-    // Periyodik yenileme için
+
     LaunchedEffect(Unit) {
         while(true) {
-            // 60 saniyede bir otomatik yenileme
+
             delay(60000)
             viewModel.refreshUserResponses()
         }
     }
 
-    // NavController'dan dönüş için yenileme
+
     LaunchedEffect(Unit) {
         val navBackStackEntry = navController.currentBackStackEntry
         navBackStackEntry?.lifecycle?.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
             override fun onResume(owner: androidx.lifecycle.LifecycleOwner) {
-                // Ekrana geri dönüldüğünde verileri yenile
+
                 viewModel.refreshUserResponses()
             }
         })
@@ -160,7 +161,7 @@ fun EvaluationFormsScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Tüm değerlendirme formları
+
                     item {
                         Text(
                             text = "Tüm Değerlendirme Formları",
@@ -212,7 +213,7 @@ fun EvaluationFormsScreen(
                             )
                         }
                     }
-                    // Tamamlanan formlar
+
                     item {
                         Row(
                             modifier = Modifier
@@ -356,7 +357,7 @@ fun EvaluationFormsScreen(
                 }
             }
 
-            // Pull-to-Refresh efekti gösterildiğinde yenileme göstergesi
+
             AnimatedVisibility(
                 visible = state.isLoading,
                 enter = fadeIn(),
@@ -757,3 +758,4 @@ fun ShareDialog(
         }
     }
 }
+

@@ -13,4 +13,6 @@ interface EvaluationFormRepository {
     fun getFormResponseById(responseId: String): Flow<Resource<FormResponse>>
     fun shareFormResponse(responseId: String, receiverId: String): Flow<Resource<Boolean>>
     fun deleteFormResponse(responseId: String): Flow<Resource<Boolean>>
+    fun initializeDefaultForms(): Flow<Resource<Boolean>>
+
 }
