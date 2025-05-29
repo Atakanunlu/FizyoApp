@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -159,7 +160,6 @@ fun AppointmentBookingScreen(
                             }
                         }
                     }
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -213,7 +213,6 @@ fun AppointmentBookingScreen(
                             }
                         }
                     }
-
                     CalendarView(
                         currentMonth = selectedMonth,
                         onDateSelected = { date ->
@@ -221,9 +220,7 @@ fun AppointmentBookingScreen(
                         },
                         selectedDate = state.selectedDate
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Text(
                         text = "Randevu Tipi",
                         style = LocalTextStyle.current.copy(
@@ -233,7 +230,6 @@ fun AppointmentBookingScreen(
                         ),
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -259,9 +255,7 @@ fun AppointmentBookingScreen(
                             modifier = Modifier.weight(1f)
                         )
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     if (state.selectedDate != null) {
                         Text(
                             text = "Saat Seçin",
@@ -273,7 +267,10 @@ fun AppointmentBookingScreen(
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
 
-                        if (state.availableTimeSlots.isEmpty()) {
+
+                        val allTimeSlots = (state.availableTimeSlots + state.bookedTimeSlots).distinct().sorted()
+
+                        if (allTimeSlots.isEmpty()) {
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -303,11 +300,12 @@ fun AppointmentBookingScreen(
                             }
                         } else {
                             TimeSlotGrid(
-                                timeSlots = state.availableTimeSlots,
+                                timeSlots = allTimeSlots,
                                 selectedTimeSlot = state.selectedTimeSlot,
                                 onTimeSlotSelected = { timeSlot ->
                                     viewModel.onEvent(AppointmentBookingEvent.TimeSlotSelected(timeSlot))
-                                }
+                                },
+                                disabledTimeSlots = state.bookedTimeSlots  // Pass booked slots to disable them
                             )
                         }
                     } else {
@@ -338,9 +336,7 @@ fun AppointmentBookingScreen(
                             }
                         }
                     }
-
                     Spacer(modifier = Modifier.height(24.dp))
-
                     Button(
                         onClick = { viewModel.onEvent(AppointmentBookingEvent.BookAppointment) },
                         modifier = Modifier
@@ -366,11 +362,9 @@ fun AppointmentBookingScreen(
                             )
                         )
                     }
-
                     Spacer(modifier = Modifier.height(60.dp))
                 }
             }
-
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
@@ -427,7 +421,6 @@ fun CalendarView(
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(8.dp))
 
         val totalDays = firstDayOfMonth + daysInMonth
@@ -509,7 +502,8 @@ fun CalendarView(
 fun TimeSlotGrid(
     timeSlots: List<String>,
     selectedTimeSlot: String?,
-    onTimeSlotSelected: (String) -> Unit
+    onTimeSlotSelected: (String) -> Unit,
+    disabledTimeSlots: List<String> = emptyList()
 ) {
     val accentColor = Color(0xFF6D72C3)
     val rows = timeSlots.chunked(4)
@@ -524,19 +518,38 @@ fun TimeSlotGrid(
             ) {
                 rowSlots.forEach { timeSlot ->
                     val isSelected = timeSlot == selectedTimeSlot
+                    val isDisabled = timeSlot in disabledTimeSlots
 
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(if (isSelected) accentColor else Color.White)
+                            .background(
+                                when {
+                                    isDisabled -> Color.LightGray.copy(alpha = 0.5f)
+                                    isSelected -> accentColor
+                                    else -> Color.White
+                                }
+                            )
                             .border(
                                 width = 1.dp,
-                                color = if (isSelected) accentColor else Color.LightGray,
+                                color = when {
+                                    isDisabled -> Color.Gray.copy(alpha = 0.3f)
+                                    isSelected -> accentColor
+                                    else -> Color.LightGray
+                                },
                                 shape = RoundedCornerShape(8.dp)
                             )
-                            .clickable { onTimeSlotSelected(timeSlot) }
+                            .let {
+                                if (isDisabled) {
+
+                                    it
+                                } else {
+
+                                    it.clickable { onTimeSlotSelected(timeSlot) }
+                                }
+                            }
                             .padding(8.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -545,11 +558,33 @@ fun TimeSlotGrid(
                             style = LocalTextStyle.current.copy(
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = if (isSelected) Color.White else Color.DarkGray
+                                color = when {
+                                    isDisabled -> Color.Gray
+                                    isSelected -> Color.White
+                                    else -> Color.DarkGray
+                                }
                             )
                         )
+
+                        if (isDisabled) {
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .padding(4.dp)
+                            ) {
+                                Divider(
+                                    color = Color.Gray.copy(alpha = 0.5f),
+                                    thickness = 2.dp,
+                                    modifier = Modifier
+                                        .rotate(45f)
+                                        .align(Alignment.Center)
+                                        .fillMaxWidth()
+                                )
+                            }
+                        }
                     }
                 }
+
 
                 repeat(4 - rowSlots.size) {
                     Spacer(modifier = Modifier.weight(1f))
@@ -594,9 +629,7 @@ fun AppointmentTypeButton(
                 tint = if (isSelected) accentColor else Color.Gray,
                 modifier = Modifier.size(32.dp)
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Text(
                 text = text,
                 style = LocalTextStyle.current.copy(

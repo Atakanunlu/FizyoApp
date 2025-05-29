@@ -25,7 +25,8 @@ class EvaluationFormRepositoryImpl @Inject constructor(
         trySend(Resource.Loading())
 
         val listener = firestore.collection("evaluationForms")
-            .orderBy("type", Query.Direction.ASCENDING)
+            .whereEqualTo("userId", "")
+            .orderBy("title", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     trySend(Resource.Error(error.localizedMessage ?: "Değerlendirme formları yüklenemedi"))
@@ -427,4 +428,565 @@ class EvaluationFormRepositoryImpl @Inject constructor(
             emit(Resource.Error(e.localizedMessage ?: "Form yanıtı silinemedi"))
         }
     }
+
+
+    override fun initializeDefaultForms(): Flow<Resource<Boolean>> = flow {
+        emit(Resource.Loading())
+        try {
+            // Önce default formların var olup olmadığını kontrol et
+            val existingForms = firestore.collection("evaluationForms")
+                .whereIn("title", listOf(
+                    "VAS - Görsel Analog Ağrı Ölçeği",
+                    "DASH - Kol, Omuz ve El Sorunları Anketi",
+                    "SF-36 Sağlık Anketi"
+                ))
+                .get()
+                .await()
+
+            if (existingForms.documents.isEmpty()) {
+                // Default formlar yoksa oluştur
+                val defaultForms = listOf(
+                    createDefaultVASForm(),
+                    createDefaultDASHForm(),
+                    createDefaultSF36Form()
+                )
+                defaultForms.forEach { form ->
+                    val formId = UUID.randomUUID().toString()
+                    firestore.collection("evaluationForms")
+                        .document(formId)
+                        .set(form.copy(id = formId))
+                        .await()
+                }
+            }
+
+            emit(Resource.Success(true))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Default formlar oluşturulamadı"))
+        }
+    }
+    fun createDefaultVASForm(): EvaluationForm {
+        val questions = listOf(
+            FormQuestion(
+                id = "vas_current_pain",
+                text = "Şu anda hissettiğiniz ağrının şiddetini 0-10 arasında işaretleyiniz.\n(0 = Hiç ağrı yok, 10 = Hayal edilebilecek en kötü ağrı)",
+                type = QuestionType.SCALE,
+                minValue = 0,
+                maxValue = 10,
+                required = true
+            ),
+            FormQuestion(
+                id = "vas_worst_pain_24h",
+                text = "Son 24 saatte yaşadığınız en şiddetli ağrıyı 0-10 arasında işaretleyiniz.",
+                type = QuestionType.SCALE,
+                minValue = 0,
+                maxValue = 10,
+                required = true
+            ),
+            FormQuestion(
+                id = "vas_least_pain_24h",
+                text = "Son 24 saatte yaşadığınız en az ağrıyı 0-10 arasında işaretleyiniz.",
+                type = QuestionType.SCALE,
+                minValue = 0,
+                maxValue = 10,
+                required = true
+            ),
+            FormQuestion(
+                id = "vas_average_pain_24h",
+                text = "Son 24 saatteki ortalama ağrınızı 0-10 arasında işaretleyiniz.",
+                type = QuestionType.SCALE,
+                minValue = 0,
+                maxValue = 10,
+                required = true
+            ),
+            FormQuestion(
+                id = "vas_pain_relief",
+                text = "Aldığınız tedaviden ne kadar fayda gördüğünüzü yüzde olarak belirtiniz.\n(0% = Hiç fayda görmedim, 100% = Tamamen iyileştim)",
+                type = QuestionType.SCALE,
+                minValue = 0,
+                maxValue = 100,
+                required = false
+            )
+        )
+
+        return EvaluationForm(
+            title = "VAS - Görsel Analog Ağrı Ölçeği",
+            description = "Ağrı şiddetinizi değerlendirmek için kullanılan ölçek",
+            type = EvaluationFormType.PAIN_ASSESSMENT,
+            questions = questions,
+            maxScore = 40
+        )
+    }
+    fun createDefaultDASHForm(): EvaluationForm {
+        val questions = listOf(
+            // İlk 30 soru - Fonksiyonel aktiviteler
+            FormQuestion(
+                id = "dash_1",
+                text = "Sıkı bir kavanozu açmak.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_2",
+                text = "Yazı yazmak.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_3",
+                text = "Anahtar çevirmek.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_4",
+                text = "Yemek hazırlamak.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_5",
+                text = "Ağır bir kapıyı itmek.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_6",
+                text = "Bir rafın üzerine bir şey koymak.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_7",
+                text = "Ağır ev işleri (duvar boyamak, yer silmek).",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_8",
+                text = "Bahçe işleri veya avlu işleri.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_9",
+                text = "Yatak toplama.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_10",
+                text = "Alışveriş torbası veya evrak çantası taşımak.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_11",
+                text = "Ağır bir nesne taşımak (4.5 kg'dan fazla).",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_12",
+                text = "Ampul değiştirmek.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_13",
+                text = "Saç yıkamak veya föenlemek.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_14",
+                text = "Sırt yıkamak.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_15",
+                text = "Kazak giymek.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_16",
+                text = "Bıçak kullanmak (yemek kesmek).",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_17",
+                text = "Eğlence aktiviteleri - az güç gerektiren (kart oynamak, örgü örmek vs.).",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_18",
+                text = "Eğlence aktiviteleri - güç gerektiren (golf, çekiç kullanmak, tenis vs.).",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_19",
+                text = "Eğlence aktiviteleri - serbestçe kol hareket ettirme gerektiren (frizbi, badminton vs.).",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_20",
+                text = "Taşımacılık (bir yerden başka yere gitme).",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_21",
+                text = "Cinsel aktiviteler.",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç güçlük çekmem (1)", "Biraz güçlük çekerim (2)", "Orta derecede güçlük çekerim (3)", "Çok güçlük çekerim (4)", "Yapamam (5)"),
+                required = false
+            ),
+
+            // Semptom soruları (22-25)
+            FormQuestion(
+                id = "dash_22",
+                text = "Geçen hafta, kol, omuz veya elinizde hissettiğiniz ağrının şiddeti nasıldı?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç ağrım yoktu (1)", "Hafif (2)", "Orta (3)", "Şiddetli (4)", "Aşırı şiddetli (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_23",
+                text = "Geçen hafta, kol, omuz veya elinizde hissettiğiniz aktivite ağrısının şiddeti nasıldı?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç ağrım yoktu (1)", "Hafif (2)", "Orta (3)", "Şiddetli (4)", "Aşırı şiddetli (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_24",
+                text = "Geçen hafta, kol, omuz veya elinizde karıncalanma hissettiniz mi?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç (1)", "Hafif (2)", "Orta (3)", "Şiddetli (4)", "Aşırı şiddetli (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_25",
+                text = "Geçen hafta, kol, omuz veya elinizde güçsüzlük hissettiniz mi?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç (1)", "Hafif (2)", "Orta (3)", "Şiddetli (4)", "Aşırı şiddetli (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_26",
+                text = "Geçen hafta, kol, omuz veya elinizde sertlik hissettiniz mi?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç (1)", "Hafif (2)", "Orta (3)", "Şiddetli (4)", "Aşırı şiddetli (5)"),
+                required = true
+            ),
+
+            // Sosyal fonksiyon soruları (27-30)
+            FormQuestion(
+                id = "dash_27",
+                text = "Geçen hafta uyurken, kol, omuz veya elinizden kaynaklanan uyku problemi yaşadınız mı?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç zorluk çekmedim (1)", "Biraz zorluk çektim (2)", "Orta derecede zorluk çektim (3)", "Çok zorluk çektim (4)", "O kadar çok zorluk çektim ki uyuyamadım (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "dash_28",
+                text = "Kol, omuz veya el probleminiz nedeniyle kendinizi daha az yetenekli, daha az güvenli veya daha az yararlı hissediyor musunuz?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç (1)", "Biraz (2)", "Orta derecede (3)", "Çok (4)", "Aşırı derecede (5)"),
+                required = true
+            )
+        )
+
+        return EvaluationForm(
+            title = "DASH - Kol, Omuz ve El Sorunları Anketi",
+            description = "Üst ekstremite fonksiyonel değerlendirme anketi",
+            type = EvaluationFormType.FUNCTIONAL_MOBILITY,
+            questions = questions,
+            maxScore = 140
+        )
+    }
+
+    fun createDefaultSF36Form(): EvaluationForm {
+        val questions = listOf(
+            FormQuestion(
+                id = "sf36_1",
+                text = "Genel olarak sağlığınızı nasıl değerlendiriyorsunuz?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Mükemmel (1)", "Çok iyi (2)", "İyi (3)", "Orta (4)", "Kötü (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_2",
+                text = "Sağlığınızı bir yıl öncesi ile karşılaştırdığınızda, şu anda sağlığınız nasıl?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Şimdi bir yıl öncesinden çok daha iyi (1)", "Şimdi bir yıl öncesinden biraz daha iyi (2)", "Hemen hemen bir yıl öncesi ile aynı (3)", "Şimdi bir yıl öncesinden biraz daha kötü (4)", "Şimdi bir yıl öncesinden çok daha kötü (5)"),
+                required = true
+            ),
+
+            // Fiziksel fonksiyon (3a-3j)
+            FormQuestion(
+                id = "sf36_3a",
+                text = "Şu andaki sağlığınız aşağıdaki aktiviteleri ne ölçüde kısıtlıyor? Güçlü aktiviteler, koşma, ağır eşya kaldırma, şiddetli sporlara katılma",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç kısıtlamıyor (1)", "Biraz kısıtlıyor (2)", "Çok kısıtlıyor (3)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_3b",
+                text = "Orta derecede aktiviteler, masa itme, elektrik süpürgesi çekme, bowling oynama veya golf oynama",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç kısıtlamıyor (1)", "Biraz kısıtlıyor (2)", "Çok kısıtlıyor (3)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_3c",
+                text = "Market alışverişi yapmak",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç kısıtlamıyor (1)", "Biraz kısıtlıyor (2)", "Çok kısıtlıyor (3)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_3d",
+                text = "Birkaç kat merdiven çıkmak",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç kısıtlamıyor (1)", "Biraz kısıtlıyor (2)", "Çok kısıtlıyor (3)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_3e",
+                text = "Bir kat merdiven çıkmak",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç kısıtlamıyor (1)", "Biraz kısıtlıyor (2)", "Çok kısıtlıyor (3)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_3f",
+                text = "Eğilmek, diz çökmek veya çömelmek",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç kısıtlamıyor (1)", "Biraz kısıtlıyor (2)", "Çok kısıtlıyor (3)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_3g",
+                text = "1.5 km'den fazla yürümek",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç kısıtlamıyor (1)", "Biraz kısıtlıyor (2)", "Çok kısıtlıyor (3)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_3h",
+                text = "Birkaç yüz metre yürümek",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç kısıtlamıyor (1)", "Biraz kısıtlıyor (2)", "Çok kısıtlıyor (3)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_3i",
+                text = "100 metre yürümek",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç kısıtlamıyor (1)", "Biraz kısıtlıyor (2)", "Çok kısıtlıyor (3)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_3j",
+                text = "Yıkanmak veya giyinmek",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç kısıtlamıyor (1)", "Biraz kısıtlıyor (2)", "Çok kısıtlıyor (3)"),
+                required = true
+            ),
+
+            // Fiziksel sağlık problemleri nedeniyle rol kısıtlılıkları (4a-4d)
+            FormQuestion(
+                id = "sf36_4a",
+                text = "Son 4 hafta içinde fiziksel sağlığınız nedeniyle işinizde veya diğer günlük aktivitelerinizde: İstediğinizden daha az şey yaptınız mı?",
+                type = QuestionType.YES_NO,
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_4b",
+                text = "Yapmak istediğiniz iş türünde veya diğer aktivitelerde kısıtlılık yaşadınız mı?",
+                type = QuestionType.YES_NO,
+                required = true
+            ),
+
+            // Duygusal problemler nedeniyle rol kısıtlılıkları (5a-5c)
+            FormQuestion(
+                id = "sf36_5a",
+                text = "Son 4 hafta içinde duygusal problemleriniz nedeniyle işinizde veya diğer günlük aktivitelerinizde: İstediğinizden daha az şey yaptınız mı?",
+                type = QuestionType.YES_NO,
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_5b",
+                text = "İşinizi veya diğer aktivitelerinizi her zamanki kadar dikkatli yapamadınız mı?",
+                type = QuestionType.YES_NO,
+                required = true
+            ),
+
+            // Sosyal fonksiyon (6)
+            FormQuestion(
+                id = "sf36_6",
+                text = "Son 4 hafta içinde fiziksel sağlığınız veya duygusal problemleriniz, aile, arkadaş, komşu veya gruplarla olan normal sosyal aktivitelerinizi ne ölçüde etkiledi?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç etkilemedi (1)", "Biraz etkiledi (2)", "Orta derecede etkiledi (3)", "Çok etkiledi (4)", "Aşırı derecede etkiledi (5)"),
+                required = true
+            ),
+
+            // Ağrı (7)
+            FormQuestion(
+                id = "sf36_7",
+                text = "Son 4 hafta içinde ne kadar ağrı hissettiniz?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç (1)", "Çok hafif (2)", "Hafif (3)", "Orta (4)", "Şiddetli (5)", "Çok şiddetli (6)"),
+                required = true
+            ),
+
+            // Ağrının normal işlere etkisi (8)
+            FormQuestion(
+                id = "sf36_8",
+                text = "Son 4 hafta içinde ağrı, normal işlerinizi (hem ev dışında hem de ev işleri) ne ölçüde engelledi?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiç engellemedi (1)", "Biraz engelledi (2)", "Orta derecede engelledi (3)", "Çok engelledi (4)", "Aşırı derecede engelledi (5)"),
+                required = true
+            ),
+
+            // Genel sağlık algısı ve vitalite (9a-9i)
+            FormQuestion(
+                id = "sf36_9a",
+                text = "Son 4 hafta içinde ne sıklıkla kendinizi canlı hissettiniz?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Her zaman (1)", "Çoğu zaman (2)", "Oldukça sık (3)", "Bazen (4)", "Nadiren (5)", "Hiçbir zaman (6)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_9b",
+                text = "Son 4 hafta içinde ne sıklıkla çok sinirli bir insan oldunuz?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Her zaman (1)", "Çoğu zaman (2)", "Oldukça sık (3)", "Bazen (4)", "Nadiren (5)", "Hiçbir zaman (6)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_9c",
+                text = "Son 4 hafta içinde ne sıklıkla kendinizi o kadar kötü hissettiniz ki hiçbir şey sizi neşelendiremez hale geldiniz?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Her zaman (1)", "Çoğu zaman (2)", "Oldukça sık (3)", "Bazen (4)", "Nadiren (5)", "Hiçbir zaman (6)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_9d",
+                text = "Son 4 hafta içinde ne sıklıkla kendinizi sakin ve huzurlu hissettiniz?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Her zaman (1)", "Çoğu zaman (2)", "Oldukça sık (3)", "Bazen (4)", "Nadiren (5)", "Hiçbir zaman (6)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_9e",
+                text = "Son 4 hafta içinde ne sıklıkla enerji dolu hissettiniz?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Her zaman (1)", "Çoğu zaman (2)", "Oldukça sık (3)", "Bazen (4)", "Nadiren (5)", "Hiçbir zaman (6)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_9f",
+                text = "Son 4 hafta içinde ne sıklıkla kendinizi kederli ve üzgün hissettiniz?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Her zaman (1)", "Çoğu zaman (2)", "Oldukça sık (3)", "Bazen (4)", "Nadiren (5)", "Hiçbir zaman (6)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_9g",
+                text = "Son 4 hafta içinde ne sıklıkla kendinizi bitkin hissettiniz?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Her zaman (1)", "Çoğu zaman (2)", "Oldukça sık (3)", "Bazen (4)", "Nadiren (5)", "Hiçbir zaman (6)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_9h",
+                text = "Son 4 hafta içinde ne sıklıkla mutlu bir insan oldunuz?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Her zaman (1)", "Çoğu zaman (2)", "Oldukça sık (3)", "Bazen (4)", "Nadiren (5)", "Hiçbir zaman (6)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_9i",
+                text = "Son 4 hafta içinde ne sıklıkla kendinizi yorgun hissettiniz?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Her zaman (1)", "Çoğu zaman (2)", "Oldukça sık (3)", "Bazen (4)", "Nadiren (5)", "Hiçbir zaman (6)"),
+                required = true
+            ),
+
+            // Sosyal aktivitelerin etkilenmesi (10)
+            FormQuestion(
+                id = "sf36_10",
+                text = "Son 4 hafta içinde fiziksel sağlığınız veya duygusal problemleriniz sosyal aktivitelerinizi (arkadaş, akraba ziyaret etmek gibi) ne kadar süre engelledi?",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Hiçbir zaman (1)", "Nadiren (2)", "Bazen (3)", "Çoğu zaman (4)", "Her zaman (5)"),
+                required = true
+            ),
+
+            // Genel sağlık değerlendirmeleri (11a-11d)
+            FormQuestion(
+                id = "sf36_11a",
+                text = "Aşağıdaki ifadeler sizin için ne kadar doğru veya yanlış: Diğer insanlardan biraz daha kolay hastalanıyor gibiyim",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Kesinlikle doğru (1)", "Çoğunlukla doğru (2)", "Emin değilim (3)", "Çoğunlukla yanlış (4)", "Kesinlikle yanlış (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_11b",
+                text = "Tanıdığım herhangi biri kadar sağlıklıyım",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Kesinlikle doğru (1)", "Çoğunlukla doğru (2)", "Emin değilim (3)", "Çoğunlukla yanlış (4)", "Kesinlikle yanlış (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_11c",
+                text = "Sağlığımın kötüleşeceğini düşünüyorum",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Kesinlikle doğru (1)", "Çoğunlukla doğru (2)", "Emin değilim (3)", "Çoğunlukla yanlış (4)", "Kesinlikle yanlış (5)"),
+                required = true
+            ),
+            FormQuestion(
+                id = "sf36_11d",
+                text = "Sağlığım mükemmel",
+                type = QuestionType.MULTIPLE_CHOICE,
+                options = listOf("Kesinlikle doğru (1)", "Çoğunlukla doğru (2)", "Emin değilim (3)", "Çoğunlukla yanlış (4)", "Kesinlikle yanlış (5)"),
+                required = true
+            )
+        )
+
+        return EvaluationForm(
+            title = "SF-36 Sağlık Anketi",
+            description = "Genel sağlık durumunu ve yaşam kalitesini değerlendiren anket",
+            type = EvaluationFormType.FUNCTIONAL_MOBILITY,
+            questions = questions,
+            maxScore = 100
+        )
+    }
+
+
 }

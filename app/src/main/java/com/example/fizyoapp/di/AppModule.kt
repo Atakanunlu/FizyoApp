@@ -918,16 +918,12 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRehabilitationHistoryViewModel(
-        getUserAppointmentsUseCase: GetUserAppointmentsUseCase,
-        getPhysiotherapistByIdUseCase: GetPhysiotherapistByIdUseCase,
-        getCurrentUserUseCase: GetCurrentUseCase,
-        cancelAppointmentWithRoleUseCase: CancelAppointmentWithRoleUseCase
+
+
     ): RehabilitationHistoryViewModel {
         return RehabilitationHistoryViewModel(
-            getUserAppointmentsUseCase,
-            getPhysiotherapistByIdUseCase,
-            getCurrentUserUseCase,
-            cancelAppointmentWithRoleUseCase
+
+
         )
     }
 

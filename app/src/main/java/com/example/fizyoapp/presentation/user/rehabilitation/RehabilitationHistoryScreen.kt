@@ -1,60 +1,19 @@
 package com.example.fizyoapp.presentation.user.rehabilitation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -81,29 +40,20 @@ fun RehabilitationHistoryScreen(
     viewModel: RehabilitationHistoryViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val scope = rememberCoroutineScope()
     var showCancelDialog by remember { mutableStateOf(false) }
     var appointmentToCancel by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) {
-        viewModel.onEvent(RehabilitationHistoryEvent.Refresh)
-    }
+    val primaryColor = Color(0xFF3B3E68)
+    val accentColor = Color(0xFF6D72C3)
+    val refreshed = remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        val navBackStackEntry = navController.currentBackStackEntry
-        navBackStackEntry?.lifecycle?.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
-            override fun onResume(owner: androidx.lifecycle.LifecycleOwner) {
-                viewModel.onEvent(RehabilitationHistoryEvent.Refresh)
-            }
-        })
-    }
-
-    LaunchedEffect(state.successMessage) {
-        if (state.successMessage != null) {
-            delay(3000)
-            viewModel.clearSuccessMessage()
+    LaunchedEffect(key1 = Unit) {
+        if (!refreshed.value) {
+            viewModel.onEvent(RehabilitationHistoryEvent.Refresh)
+            refreshed.value = true
         }
     }
+
 
     if (showCancelDialog && appointmentToCancel != null) {
         AlertDialog(
@@ -151,17 +101,16 @@ fun RehabilitationHistoryScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        viewModel.onEvent(RehabilitationHistoryEvent.Refresh)
-                    }) {
+                    IconButton(onClick = { viewModel.onEvent(RehabilitationHistoryEvent.Refresh) }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Yenile"
+                            contentDescription = "Yenile",
+                            tint = Color.White
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF3B3E68),
+                    containerColor = primaryColor,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White,
                     actionIconContentColor = Color.White
@@ -180,9 +129,41 @@ fun RehabilitationHistoryScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
-                        color = Color(0xFF3B3E68)
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(
+                            color = accentColor
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Randevularınız yükleniyor...",
+                            color = Color.Gray
+                        )
+
+
+                        var showRetry by remember { mutableStateOf(false) }
+                        LaunchedEffect(state.isLoading) {
+                            if (state.isLoading) {
+                                delay(10000)
+                                showRetry = true
+                            } else {
+                                showRetry = false
+                            }
+                        }
+
+                        if (showRetry) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = { viewModel.onEvent(RehabilitationHistoryEvent.Refresh) },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = accentColor
+                                )
+                            ) {
+                                Text("Yükleme Uzun Sürüyor, Tekrar Dene")
+                            }
+                        }
+                    }
                 }
             } else if (state.error != null) {
                 Column(
@@ -196,19 +177,20 @@ fun RehabilitationHistoryScreen(
                         imageVector = Icons.Default.Error,
                         contentDescription = null,
                         tint = Color.Red.copy(alpha = 0.7f),
-                        modifier = Modifier.size(80.dp)
+                        modifier = Modifier.size(70.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = state.error ?: "",
-                        style = MaterialTheme.typography.bodyLarge,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.Center,
-                        color = Color.Gray
+                        color = Color.DarkGray
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
                         onClick = { viewModel.onEvent(RehabilitationHistoryEvent.Refresh) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B3E68))
+                        colors = ButtonDefaults.buttonColors(containerColor = accentColor)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
@@ -235,14 +217,15 @@ fun RehabilitationHistoryScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Henüz bir randevunuz bulunmuyor",
-                        style = MaterialTheme.typography.bodyLarge,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.Center,
-                        color = Color.Gray
+                        color = Color.DarkGray
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Bir fizyoterapist seçerek randevu alabilirsiniz",
-                        style = MaterialTheme.typography.bodyMedium,
+                        fontSize = 14.sp,
                         textAlign = TextAlign.Center,
                         color = Color.Gray
                     )
@@ -251,24 +234,23 @@ fun RehabilitationHistoryScreen(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
                     if (state.upcomingAppointments.isNotEmpty()) {
                         item {
                             Text(
                                 text = "Yaklaşan Randevular",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF3B3E68),
+                                color = primaryColor,
                                 modifier = Modifier.padding(vertical = 8.dp)
                             )
                         }
 
-                        items(state.upcomingAppointments) { appointmentWithPhysiotherapist ->
+                        items(
+                            items = state.upcomingAppointments,
+                            key = { it.appointment.id }
+                        ) { appointmentWithPhysiotherapist ->
                             AppointmentCard(
                                 appointmentWithPhysiotherapist = appointmentWithPhysiotherapist,
                                 isPast = false,
@@ -286,13 +268,17 @@ fun RehabilitationHistoryScreen(
                                 text = "Geçmiş Randevular",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF3B3E68),
-                                modifier = Modifier.padding(vertical = 8.dp)
-                                    .padding(top = 24.dp)
+                                color = primaryColor,
+                                modifier = Modifier
+                                    .padding(vertical = 8.dp)
+                                    .padding(top = if (state.upcomingAppointments.isNotEmpty()) 24.dp else 0.dp)
                             )
                         }
 
-                        items(state.pastAppointments) { appointmentWithPhysiotherapist ->
+                        items(
+                            items = state.pastAppointments,
+                            key = { it.appointment.id }
+                        ) { appointmentWithPhysiotherapist ->
                             AppointmentCard(
                                 appointmentWithPhysiotherapist = appointmentWithPhysiotherapist,
                                 isPast = true,
@@ -307,10 +293,12 @@ fun RehabilitationHistoryScreen(
                 }
             }
 
+
+
             AnimatedVisibility(
                 visible = state.successMessage != null,
                 enter = fadeIn(),
-                exit = fadeOut(),
+                exit = fadeOut(animationSpec = tween(durationMillis = 500)),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(16.dp)
@@ -336,6 +324,17 @@ fun RehabilitationHistoryScreen(
                             text = state.successMessage ?: "",
                             color = Color.White
                         )
+                        Spacer(modifier = Modifier.weight(1f))
+                        IconButton(
+                            onClick = { viewModel.clearSuccessMessage() },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Kapat",
+                                tint = Color.White
+                            )
+                        }
                     }
                 }
             }
@@ -484,6 +483,7 @@ fun AppointmentCard(
                         fontWeight = FontWeight.Bold,
                         color = if (isCancelled) Color.Gray else Color(0xFF3B3E68)
                     )
+
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Row(
@@ -502,6 +502,7 @@ fun AppointmentCard(
                             color = Color.Gray
                         )
                     }
+
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Row(
@@ -520,6 +521,7 @@ fun AppointmentCard(
                             color = Color.Gray
                         )
                     }
+
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Row(

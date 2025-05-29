@@ -13,5 +13,6 @@ data class AppointmentBookingState(
     val selectedAppointmentType: AppointmentType = AppointmentType.IN_PERSON,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val bookedTimeSlots: List<String> = emptyList(),
 )

@@ -33,9 +33,6 @@ class EvaluationFormsViewModel @Inject constructor(
 
     private val auth=FirebaseAuth.getInstance()
 
-    init {
-        loadData()
-    }
 
     fun onEvent(event: EvaluationFormsEvent) {
         when (event) {
@@ -43,6 +40,7 @@ class EvaluationFormsViewModel @Inject constructor(
             is EvaluationFormsEvent.DismissError -> _state.update { it.copy(actionError = null) }
             is EvaluationFormsEvent.ShareFormResponse -> shareFormResponse(event.responseId, event.userId)
             is EvaluationFormsEvent.DeleteFormResponse -> deleteFormResponse(event.responseId)
+
         }
     }
 
@@ -61,13 +59,26 @@ class EvaluationFormsViewModel @Inject constructor(
             }
             val userId = currentUser.uid
             _state.update { it.copy(currentUserId = userId) }
+            evaluationFormRepository.initializeDefaultForms().collect { result ->
+                when (result) {
+                    is Resource.Success -> {
+                        loadRecentThreads(userId)
+                        loadEvaluationForms(userId)
+                        loadUserResponsesDirectly(userId)
+                    }
+                    is Resource.Error -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                error = result.message ?: "Sistemde bir hata oluştu"
+                            )
+                        }
+                    }
+                    is Resource.Loading -> {
 
-
-            loadRecentThreads(userId)
-
-
-            loadEvaluationForms(userId)
-            loadUserResponsesDirectly(userId)
+                    }
+                }
+            }
         }
     }
 
@@ -327,4 +338,5 @@ class EvaluationFormsViewModel @Inject constructor(
             }
         }
     }
+
 }

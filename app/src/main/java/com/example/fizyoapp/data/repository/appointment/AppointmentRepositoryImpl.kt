@@ -1,5 +1,8 @@
 package com.example.fizyoapp.data.repository.appointment
 
+import androidx.annotation.OptIn
+import androidx.media3.common.util.Log
+import androidx.media3.common.util.UnstableApi
 import com.example.fizyoapp.data.util.Resource
 import com.example.fizyoapp.domain.model.appointment.Appointment
 import com.example.fizyoapp.domain.model.appointment.AppointmentStatus
@@ -7,11 +10,13 @@ import com.example.fizyoapp.domain.model.appointment.BlockedTimeSlot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeout
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -30,24 +35,39 @@ class AppointmentRepositoryImpl @Inject constructor() : AppointmentRepository {
         "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"
     )
 
+    @OptIn(androidx.media3.common.util.UnstableApi::class)
     override fun getAppointmentsForUser(userId: String): Flow<Resource<List<Appointment>>> = flow {
-        try {
-            emit(Resource.Loading())
-            val querySnapshot = appointmentsCollection
-                .whereEqualTo("userId", userId)
-                .orderBy("date", Query.Direction.ASCENDING)
-                .get()
-                .await()
+        emit(Resource.Loading())
 
-            val appointments = querySnapshot.documents.mapNotNull { doc ->
-                doc.toObject(Appointment::class.java)?.copy(id = doc.id)
+
+        val timeoutMillis = 10000L
+
+        try {
+            withTimeout(timeoutMillis) {
+                val querySnapshot = appointmentsCollection
+                    .whereEqualTo("userId", userId)
+                    .orderBy("date", Query.Direction.ASCENDING)
+                    .get()
+                    .await()
+
+                val appointments = querySnapshot.documents.mapNotNull { doc ->
+                    try {
+                        doc.toObject(Appointment::class.java)?.copy(id = doc.id)
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
+
+                emit(Resource.Success(appointments))
             }
-            emit(Resource.Success(appointments))
+        } catch (e: TimeoutCancellationException) {
+            Log.e("AppointmentRepo", "Zaman aşımı oluştu", e)
+            emit(Resource.Error("Veri yükleme zaman aşımına uğradı. Lütfen tekrar deneyin."))
         } catch (e: Exception) {
+            Log.e("AppointmentRepo", "Hata: ${e.message}", e)
             emit(Resource.Error("Randevularınız alınamadı: ${e.message}"))
         }
     }
-
     override fun observeAppointmentsForUser(userId: String): Flow<Resource<List<Appointment>>> = callbackFlow {
         var listenerRegistration: ListenerRegistration? = null
 
