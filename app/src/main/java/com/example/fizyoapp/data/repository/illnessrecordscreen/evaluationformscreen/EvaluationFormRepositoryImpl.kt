@@ -433,7 +433,6 @@ class EvaluationFormRepositoryImpl @Inject constructor(
     override fun initializeDefaultForms(): Flow<Resource<Boolean>> = flow {
         emit(Resource.Loading())
         try {
-            // Önce default formların var olup olmadığını kontrol et
             val existingForms = firestore.collection("evaluationForms")
                 .whereIn("title", listOf(
                     "VAS - Görsel Analog Ağrı Ölçeği",
@@ -444,7 +443,6 @@ class EvaluationFormRepositoryImpl @Inject constructor(
                 .await()
 
             if (existingForms.documents.isEmpty()) {
-                // Default formlar yoksa oluştur
                 val defaultForms = listOf(
                     createDefaultVASForm(),
                     createDefaultDASHForm(),
@@ -468,44 +466,14 @@ class EvaluationFormRepositoryImpl @Inject constructor(
         val questions = listOf(
             FormQuestion(
                 id = "vas_current_pain",
-                text = "Şu anda hissettiğiniz ağrının şiddetini 0-10 arasında işaretleyiniz.\n(0 = Hiç ağrı yok, 10 = Hayal edilebilecek en kötü ağrı)",
+                text = "Hissettiğiniz ağrının şiddetini 0-10 arasında işaretleyiniz.\n(0 = Hiç ağrı yok, 10 = Hayal edilebilecek en kötü ağrı)",
                 type = QuestionType.SCALE,
                 minValue = 0,
                 maxValue = 10,
                 required = true
-            ),
-            FormQuestion(
-                id = "vas_worst_pain_24h",
-                text = "Son 24 saatte yaşadığınız en şiddetli ağrıyı 0-10 arasında işaretleyiniz.",
-                type = QuestionType.SCALE,
-                minValue = 0,
-                maxValue = 10,
-                required = true
-            ),
-            FormQuestion(
-                id = "vas_least_pain_24h",
-                text = "Son 24 saatte yaşadığınız en az ağrıyı 0-10 arasında işaretleyiniz.",
-                type = QuestionType.SCALE,
-                minValue = 0,
-                maxValue = 10,
-                required = true
-            ),
-            FormQuestion(
-                id = "vas_average_pain_24h",
-                text = "Son 24 saatteki ortalama ağrınızı 0-10 arasında işaretleyiniz.",
-                type = QuestionType.SCALE,
-                minValue = 0,
-                maxValue = 10,
-                required = true
-            ),
-            FormQuestion(
-                id = "vas_pain_relief",
-                text = "Aldığınız tedaviden ne kadar fayda gördüğünüzü yüzde olarak belirtiniz.\n(0% = Hiç fayda görmedim, 100% = Tamamen iyileştim)",
-                type = QuestionType.SCALE,
-                minValue = 0,
-                maxValue = 100,
-                required = false
             )
+
+
         )
 
         return EvaluationForm(
@@ -513,12 +481,11 @@ class EvaluationFormRepositoryImpl @Inject constructor(
             description = "Ağrı şiddetinizi değerlendirmek için kullanılan ölçek",
             type = EvaluationFormType.PAIN_ASSESSMENT,
             questions = questions,
-            maxScore = 40
+            maxScore = 10
         )
     }
     fun createDefaultDASHForm(): EvaluationForm {
         val questions = listOf(
-            // İlk 30 soru - Fonksiyonel aktiviteler
             FormQuestion(
                 id = "dash_1",
                 text = "Sıkı bir kavanozu açmak.",
@@ -667,7 +634,7 @@ class EvaluationFormRepositoryImpl @Inject constructor(
                 required = false
             ),
 
-            // Semptom soruları (22-25)
+
             FormQuestion(
                 id = "dash_22",
                 text = "Geçen hafta, kol, omuz veya elinizde hissettiğiniz ağrının şiddeti nasıldı?",
@@ -704,7 +671,7 @@ class EvaluationFormRepositoryImpl @Inject constructor(
                 required = true
             ),
 
-            // Sosyal fonksiyon soruları (27-30)
+
             FormQuestion(
                 id = "dash_27",
                 text = "Geçen hafta uyurken, kol, omuz veya elinizden kaynaklanan uyku problemi yaşadınız mı?",
@@ -726,7 +693,7 @@ class EvaluationFormRepositoryImpl @Inject constructor(
             description = "Üst ekstremite fonksiyonel değerlendirme anketi",
             type = EvaluationFormType.FUNCTIONAL_MOBILITY,
             questions = questions,
-            maxScore = 140
+            maxScore = 100
         )
     }
 
@@ -747,7 +714,7 @@ class EvaluationFormRepositoryImpl @Inject constructor(
                 required = true
             ),
 
-            // Fiziksel fonksiyon (3a-3j)
+
             FormQuestion(
                 id = "sf36_3a",
                 text = "Şu andaki sağlığınız aşağıdaki aktiviteleri ne ölçüde kısıtlıyor? Güçlü aktiviteler, koşma, ağır eşya kaldırma, şiddetli sporlara katılma",
@@ -819,7 +786,7 @@ class EvaluationFormRepositoryImpl @Inject constructor(
                 required = true
             ),
 
-            // Fiziksel sağlık problemleri nedeniyle rol kısıtlılıkları (4a-4d)
+
             FormQuestion(
                 id = "sf36_4a",
                 text = "Son 4 hafta içinde fiziksel sağlığınız nedeniyle işinizde veya diğer günlük aktivitelerinizde: İstediğinizden daha az şey yaptınız mı?",
@@ -833,7 +800,7 @@ class EvaluationFormRepositoryImpl @Inject constructor(
                 required = true
             ),
 
-            // Duygusal problemler nedeniyle rol kısıtlılıkları (5a-5c)
+
             FormQuestion(
                 id = "sf36_5a",
                 text = "Son 4 hafta içinde duygusal problemleriniz nedeniyle işinizde veya diğer günlük aktivitelerinizde: İstediğinizden daha az şey yaptınız mı?",
@@ -847,7 +814,6 @@ class EvaluationFormRepositoryImpl @Inject constructor(
                 required = true
             ),
 
-            // Sosyal fonksiyon (6)
             FormQuestion(
                 id = "sf36_6",
                 text = "Son 4 hafta içinde fiziksel sağlığınız veya duygusal problemleriniz, aile, arkadaş, komşu veya gruplarla olan normal sosyal aktivitelerinizi ne ölçüde etkiledi?",
@@ -856,7 +822,7 @@ class EvaluationFormRepositoryImpl @Inject constructor(
                 required = true
             ),
 
-            // Ağrı (7)
+
             FormQuestion(
                 id = "sf36_7",
                 text = "Son 4 hafta içinde ne kadar ağrı hissettiniz?",
@@ -865,7 +831,7 @@ class EvaluationFormRepositoryImpl @Inject constructor(
                 required = true
             ),
 
-            // Ağrının normal işlere etkisi (8)
+
             FormQuestion(
                 id = "sf36_8",
                 text = "Son 4 hafta içinde ağrı, normal işlerinizi (hem ev dışında hem de ev işleri) ne ölçüde engelledi?",
@@ -874,7 +840,7 @@ class EvaluationFormRepositoryImpl @Inject constructor(
                 required = true
             ),
 
-            // Genel sağlık algısı ve vitalite (9a-9i)
+
             FormQuestion(
                 id = "sf36_9a",
                 text = "Son 4 hafta içinde ne sıklıkla kendinizi canlı hissettiniz?",
@@ -939,7 +905,6 @@ class EvaluationFormRepositoryImpl @Inject constructor(
                 required = true
             ),
 
-            // Sosyal aktivitelerin etkilenmesi (10)
             FormQuestion(
                 id = "sf36_10",
                 text = "Son 4 hafta içinde fiziksel sağlığınız veya duygusal problemleriniz sosyal aktivitelerinizi (arkadaş, akraba ziyaret etmek gibi) ne kadar süre engelledi?",
@@ -948,7 +913,7 @@ class EvaluationFormRepositoryImpl @Inject constructor(
                 required = true
             ),
 
-            // Genel sağlık değerlendirmeleri (11a-11d)
+
             FormQuestion(
                 id = "sf36_11a",
                 text = "Aşağıdaki ifadeler sizin için ne kadar doğru veya yanlış: Diğer insanlardan biraz daha kolay hastalanıyor gibiyim",
