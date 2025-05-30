@@ -50,14 +50,9 @@ import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexercise.EditExerciseEvent
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexercise.EditExerciseViewModel
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val accentColor = Color(59, 62, 104)
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -186,7 +181,7 @@ fun EditExerciseScreen(
                     ) {
                         Text(
                             text = state.errorMessage,
-                            color = Color.Red,
+                            color = errorColor,
                             style = MaterialTheme.typography.titleMedium
                         )
                         Spacer(modifier = Modifier.height(16.dp))
@@ -209,7 +204,6 @@ fun EditExerciseScreen(
                         .verticalScroll(scrollState)
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -296,9 +290,7 @@ fun EditExerciseScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -370,9 +362,7 @@ fun EditExerciseScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -431,9 +421,7 @@ fun EditExerciseScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -505,18 +493,12 @@ fun EditExerciseScreen(
                                                 onRemove = { viewModel.onEvent(EditExerciseEvent.RemoveMedia(uri)) },
                                                 onClick = {
                                                     selectedMediaUrl = uri
-
-                                                    // Video kontrolü
                                                     val isVideo = state.mediaTypes[uri] == ExerciseType.VIDEO ||
                                                             uri.contains("video") ||
                                                             uri.contains(".mp4") ||
                                                             uri.contains(".mov") ||
                                                             uri.contains(".avi") ||
                                                             uri.contains(".webm")
-
-                                                    // Debug log
-                                                    println("Opening MediaViewer: URI=$uri, Type=${state.mediaTypes[uri]}, isVideo=$isVideo")
-
                                                     selectedMediaType = if (isVideo) "video" else "image"
                                                     showMediaViewer = true
                                                 }
@@ -527,9 +509,7 @@ fun EditExerciseScreen(
                             }
                         }
                     }
-
                     Spacer(modifier = Modifier.height(24.dp))
-
                     Button(
                         onClick = { viewModel.onEvent(EditExerciseEvent.UpdateExercise) },
                         modifier = Modifier
@@ -569,7 +549,6 @@ fun EditExerciseScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(32.dp))
                 }
 
@@ -672,7 +651,7 @@ fun EditExerciseScreen(
                                     onClick = {
                                         viewModel.onEvent(
                                             EditExerciseEvent.DifficultyChanged(
-                                            ExerciseDifficulty.EASY))
+                                                ExerciseDifficulty.EASY))
                                         showDifficultyDialog = false
                                     }
                                 )
@@ -684,7 +663,7 @@ fun EditExerciseScreen(
                                     onClick = {
                                         viewModel.onEvent(
                                             EditExerciseEvent.DifficultyChanged(
-                                            ExerciseDifficulty.MEDIUM))
+                                                ExerciseDifficulty.MEDIUM))
                                         showDifficultyDialog = false
                                     }
                                 )
@@ -696,7 +675,7 @@ fun EditExerciseScreen(
                                     onClick = {
                                         viewModel.onEvent(
                                             EditExerciseEvent.DifficultyChanged(
-                                            ExerciseDifficulty.HARD))
+                                                ExerciseDifficulty.HARD))
                                         showDifficultyDialog = false
                                     }
                                 )
@@ -771,6 +750,7 @@ fun MediaButton(
         )
     }
 }
+
 @Composable
 fun MediaPreviewItem(
     uri: String,
@@ -778,12 +758,6 @@ fun MediaPreviewItem(
     onRemove: () -> Unit,
     onClick: () -> Unit
 ) {
-    // Debug için medya türünü yazdır
-    LaunchedEffect(uri) {
-        println("PREVIEW: URI=$uri, Type from mediaTypes=${mediaTypes[uri]}")
-    }
-
-    // Video kontrolü
     val isVideo = mediaTypes[uri] == ExerciseType.VIDEO ||
             uri.contains("video") ||
             uri.contains(".mp4") ||
@@ -806,7 +780,6 @@ fun MediaPreviewItem(
             )
             .clickable(onClick = onClick)
     ) {
-        // Video veya görsel
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(uri)
@@ -817,7 +790,6 @@ fun MediaPreviewItem(
             modifier = Modifier.fillMaxSize()
         )
 
-        // Gradyan arka plan
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -833,7 +805,6 @@ fun MediaPreviewItem(
                 )
         )
 
-        // Kaldır butonu
         IconButton(
             onClick = onRemove,
             modifier = Modifier
@@ -841,7 +812,7 @@ fun MediaPreviewItem(
                 .padding(4.dp)
                 .size(28.dp)
                 .background(
-                    color = Color.Red.copy(alpha = 0.7f),
+                    color = errorColor.copy(alpha = 0.7f),
                     shape = CircleShape
                 )
         ) {
@@ -853,9 +824,7 @@ fun MediaPreviewItem(
             )
         }
 
-        // Video göstergesi
         if (isVideo) {
-            // Orta noktada oynat simgesi
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -874,8 +843,7 @@ fun MediaPreviewItem(
                 )
             }
 
-            // Sol alt köşede video etiketi
-            Box(
+            Box (
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(4.dp)

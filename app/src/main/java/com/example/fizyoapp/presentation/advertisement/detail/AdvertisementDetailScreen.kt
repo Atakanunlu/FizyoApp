@@ -25,13 +25,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,7 +82,6 @@ fun AdvertisementDetailScreen(
                         .verticalScroll(scrollState)
                         .padding(16.dp)
                 ) {
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -271,14 +266,14 @@ fun AdvertisementDetailScreen(
                         imageVector = Icons.Default.Error,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = Color(0xFFB71C1C)
+                        tint = errorColor
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
                         text = state.error,
-                        color = Color(0xFFB71C1C),
+                        color = errorColor,
                         textAlign = TextAlign.Center
                     )
 

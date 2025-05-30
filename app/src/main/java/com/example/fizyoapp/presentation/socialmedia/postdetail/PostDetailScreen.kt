@@ -35,13 +35,9 @@ import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.socialmedia.Comment
+import com.example.fizyoapp.presentation.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,13 +131,13 @@ fun PostDetailScreen(
                     Icon(
                         imageVector = Icons.Default.Error,
                         contentDescription = null,
-                        tint = Color(0xFFB71C1C),
+                        tint = errorColor,
                         modifier = Modifier.size(48.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = state.error ?: "",
-                        color = Color(0xFFB71C1C)
+                        color = errorColor
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
@@ -302,7 +298,6 @@ fun PostDetailScreen(
                                     }
                                 }
                             }
-
                             item {
                                 Text(
                                     text = "Yorumlar",
@@ -316,7 +311,6 @@ fun PostDetailScreen(
                                     color = primaryColor.copy(alpha = 0.2f)
                                 )
                             }
-
                             if (state.comments.isEmpty()) {
                                 item {
                                     Box(
@@ -348,7 +342,6 @@ fun PostDetailScreen(
                                 }
                             }
                         }
-
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -388,7 +381,6 @@ fun PostDetailScreen(
                                         )
                                     }
                                 }
-
                                 OutlinedTextField(
                                     value = commentText,
                                     onValueChange = { viewModel.updateCommentText(it) },
@@ -404,7 +396,6 @@ fun PostDetailScreen(
                                     ),
                                     maxLines = 3
                                 )
-
                                 IconButton(
                                     onClick = { viewModel.addComment() },
                                     enabled = commentText.isNotBlank() && !state.isCommentLoading
@@ -445,7 +436,7 @@ fun PostDetailScreen(
                         showDeleteConfirmDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFB71C1C)
+                        containerColor = errorColor
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -495,13 +486,11 @@ fun MediaGallery(
                             prepare()
                         }
                     }
-
                     DisposableEffect(key1 = videoUri.toString()) {
                         onDispose {
                             exoPlayer.release()
                         }
                     }
-
                     AndroidView(
                         factory = { ctx ->
                             PlayerView(ctx).apply {
@@ -511,14 +500,13 @@ fun MediaGallery(
                         },
                         modifier = Modifier.fillMaxSize()
                     )
-
                     if (!videoControlsVisible) {
                         Box(
                             modifier = Modifier
                                 .size(60.dp)
                                 .align(Alignment.Center)
                                 .background(
-                                    color = Color.Black.copy(alpha = 0.5f),
+                                    color = overlayColor,
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
@@ -541,7 +529,6 @@ fun MediaGallery(
                 }
             }
         }
-
         mediaUrls.size in 2..4 -> {
             val rows = (mediaUrls.size + 1) / 2
             Column(
@@ -578,7 +565,7 @@ fun MediaGallery(
                                             .size(40.dp)
                                             .align(Alignment.Center)
                                             .background(
-                                                color = Color.Black.copy(alpha = 0.5f),
+                                                color = overlayColor,
                                                 shape = CircleShape
                                             ),
                                         contentAlignment = Alignment.Center
@@ -600,7 +587,6 @@ fun MediaGallery(
                 }
             }
         }
-
         else -> {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -633,7 +619,7 @@ fun MediaGallery(
                                         .size(40.dp)
                                         .align(Alignment.Center)
                                         .background(
-                                            color = Color.Black.copy(alpha = 0.5f),
+                                            color = overlayColor,
                                             shape = CircleShape
                                         ),
                                     contentAlignment = Alignment.Center
@@ -649,7 +635,6 @@ fun MediaGallery(
                         }
                     }
                 }
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -676,7 +661,7 @@ fun MediaGallery(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.6f)),
+                                            .background(overlayColor),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
@@ -692,7 +677,7 @@ fun MediaGallery(
                                             .size(30.dp)
                                             .align(Alignment.Center)
                                             .background(
-                                                color = Color.Black.copy(alpha = 0.5f),
+                                                color = overlayColor,
                                                 shape = CircleShape
                                             ),
                                         contentAlignment = Alignment.Center
@@ -711,7 +696,6 @@ fun MediaGallery(
                         }
                     }
                 }
-
                 if (mediaUrls.size > 5) {
                     Button(
                         onClick = { /* Tüm medyaları görüntüleme ekranı açılabilir */ },
@@ -772,9 +756,7 @@ fun CommentItem(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.width(8.dp))
-
                 Column {
                     Text(
                         text = comment.userName,
@@ -788,18 +770,14 @@ fun CommentItem(
                         color = primaryColor
                     )
                 }
-
                 Spacer(modifier = Modifier.weight(1f))
-
                 Text(
                     text = dateFormatter.format(comment.timestamp),
                     fontSize = 10.sp,
                     color = textColor.copy(alpha = 0.6f)
                 )
             }
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Text(
                 text = comment.content,
                 fontSize = 14.sp,

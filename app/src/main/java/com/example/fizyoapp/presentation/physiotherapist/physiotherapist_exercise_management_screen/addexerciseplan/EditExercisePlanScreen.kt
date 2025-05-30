@@ -39,14 +39,9 @@ import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanStatus
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.DatePickerField
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val accentColor = Color(59, 62, 104)
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -213,7 +208,7 @@ fun EditExercisePlanScreen(
                     ) {
                         Text(
                             text = state.errorMessage,
-                            color = Color.Red,
+                            color = errorColor,
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.titleMedium
                         )
@@ -396,9 +391,9 @@ fun EditExercisePlanScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 val statusColor = when(state.selectedStatus) {
-                                    ExercisePlanStatus.ACTIVE -> Color(0, 150, 136)
-                                    ExercisePlanStatus.COMPLETED -> Color(76, 175, 80)
-                                    ExercisePlanStatus.CANCELLED -> Color(244, 67, 54)
+                                    ExercisePlanStatus.ACTIVE -> easyColor
+                                    ExercisePlanStatus.COMPLETED -> greenColor
+                                    ExercisePlanStatus.CANCELLED -> hardColor
                                 }
                                 Surface(
                                     color = statusColor.copy(alpha = 0.1f),
@@ -732,7 +727,7 @@ fun ExerciseItemCard(
                                             tint = Color.White,
                                             modifier = Modifier
                                                 .size(48.dp)
-                                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                                .background(overlayColor, CircleShape)
                                                 .padding(8.dp)
                                         )
                                     }
@@ -742,7 +737,7 @@ fun ExerciseItemCard(
                                             .align(Alignment.BottomStart)
                                             .padding(16.dp)
                                             .background(
-                                                color = Color.Black.copy(alpha = 0.6f),
+                                                color = overlayColor,
                                                 shape = RoundedCornerShape(4.dp)
                                             )
                                             .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -887,7 +882,7 @@ fun EditScreenMediaPreviewItem(
             .clip(RoundedCornerShape(8.dp))
             .border(
                 width = 1.dp,
-                color = textColor.copy(alpha = 0.2f),
+                color = cardBorderColor,
                 shape = RoundedCornerShape(8.dp)
             )
             .clickable(onClick = onClick)
@@ -908,8 +903,8 @@ fun EditScreenMediaPreviewItem(
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.1f),
-                            Color.Black.copy(alpha = 0.3f)
+                            overlayColor.copy(alpha = 0.1f),
+                            overlayColor.copy(alpha = 0.3f)
                         ),
                         startY = 0f,
                         endY = size.value
@@ -925,7 +920,7 @@ fun EditScreenMediaPreviewItem(
                     .padding(4.dp)
                     .size(24.dp)
                     .background(
-                        color = Color.Red.copy(alpha = 0.7f),
+                        color = errorColor.copy(alpha = 0.7f),
                         shape = CircleShape
                     )
             ) {
@@ -944,7 +939,7 @@ fun EditScreenMediaPreviewItem(
                     .align(Alignment.Center)
                     .size(size / 3)
                     .background(
-                        color = Color.Black.copy(alpha = 0.6f),
+                        color = overlayColor,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -962,7 +957,7 @@ fun EditScreenMediaPreviewItem(
                         .align(Alignment.BottomStart)
                         .padding(4.dp)
                         .background(
-                            color = Color.Black.copy(alpha = 0.6f),
+                            color = overlayColor,
                             shape = RoundedCornerShape(4.dp)
                         )
                         .padding(horizontal = 6.dp, vertical = 2.dp)

@@ -44,14 +44,10 @@ import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.note.NoteColor
 import com.example.fizyoapp.domain.model.note.NoteUpdate
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_note_screen.NoteFullScreenImageViewer
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.Locale
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -141,7 +137,7 @@ fun NoteDetailScreen(
                         showDeleteDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFB71C1C)
+                        containerColor = errorColor
                     )
                 ) {
                     Icon(Icons.Default.Delete, null, Modifier.padding(end = 8.dp))
@@ -153,7 +149,7 @@ fun NoteDetailScreen(
                     Text("İptal")
                 }
             },
-            icon = { Icon(Icons.Default.Warning, null, tint = Color(0xFFB71C1C)) },
+            icon = { Icon(Icons.Default.Warning, null, tint = errorColor) },
             shape = RoundedCornerShape(16.dp)
         )
     }
@@ -170,7 +166,7 @@ fun NoteDetailScreen(
                         showDeleteUpdateDialog = null
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFB71C1C)
+                        containerColor = errorColor
                     )
                 ) {
                     Text("Sil")
@@ -274,7 +270,7 @@ fun NoteDetailScreen(
                                                     .align(Alignment.TopEnd)
                                                     .size(24.dp)
                                                     .background(
-                                                        Color(0xFFB71C1C).copy(alpha = 0.7f),
+                                                        errorColor.copy(alpha = 0.7f),
                                                         CircleShape
                                                     )
                                             ) {
@@ -336,7 +332,7 @@ fun NoteDetailScreen(
                                                 Icon(
                                                     Icons.Default.Close,
                                                     contentDescription = "Kaldır",
-                                                    tint = Color(0xFFB71C1C),
+                                                    tint = errorColor,
                                                     modifier = Modifier.size(16.dp)
                                                 )
                                             }
@@ -538,9 +534,9 @@ fun NoteDetailScreen(
             } else {
                 state.note?.let { note ->
                     val noteBackgroundColor = when (note.color) {
-                        NoteColor.WHITE -> surfaceColor
-                        NoteColor.LIGHT_YELLOW -> Color(0xFFFFF9C4)
-                        NoteColor.ORANGE -> Color(0xFFFFE0B2)
+                        NoteColor.WHITE -> noteWhiteColor
+                        NoteColor.LIGHT_YELLOW -> noteLightYellowColor
+                        NoteColor.ORANGE -> noteOrangeColor
                     }
                     Column(
                         modifier = Modifier
@@ -607,7 +603,7 @@ fun NoteDetailScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
-                    containerColor = Color(0xFFB71C1C),
+                    containerColor = errorColor,
                     contentColor = Color.White,
                     shape = RoundedCornerShape(8.dp)
                 ) {
@@ -1135,7 +1131,7 @@ fun NoteUpdateCard(
                         Icon(
                             Icons.Default.Delete,
                             "Sil",
-                            tint = Color(0xFFB71C1C)
+                            tint = errorColor
                         )
                     }
                 }
@@ -1298,7 +1294,7 @@ fun NoteFullScreenImageViewer(
     Surface(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.9f)),
+            .background(overlayColor),
         color = Color.Transparent
     ) {
         Box(

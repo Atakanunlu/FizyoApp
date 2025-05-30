@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.exercisemanagement
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -46,16 +45,11 @@ import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanStatus
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val accentColor = Color(59, 62, 104)
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,7 +108,7 @@ fun ExerciseManagementScreen(
     showDeletePlanDialog.value?.let { plan ->
         AlertDialog(
             onDismissRequest = { showDeletePlanDialog.value = null },
-            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = primaryColor) },
+            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = warningColor) },
             title = {
                 Text(
                     "Egzersiz Planını Sil",
@@ -135,7 +129,7 @@ fun ExerciseManagementScreen(
                         showDeletePlanDialog.value = null
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Red,
+                        containerColor = errorColor,
                         contentColor = Color.White
                     )
                 ) {
@@ -303,7 +297,7 @@ fun ExerciseManagementScreen(
                     ) {
                         Text(
                             text = it,
-                            color = Color.Red,
+                            color = errorColor,
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Spacer(modifier = Modifier.height(16.dp))
@@ -479,11 +473,11 @@ fun CategoryChipsRow(
                             imageVector = Icons.Default.Star,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = if (selectedDifficulty == ExerciseDifficulty.EASY) Color.White else Color(0, 150, 136)
+                            tint = if (selectedDifficulty == ExerciseDifficulty.EASY) Color.White else easyColor
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(0, 150, 136),
+                        selectedContainerColor = easyColor,
                         selectedLabelColor = Color.White
                     )
                 )
@@ -497,11 +491,11 @@ fun CategoryChipsRow(
                             imageVector = Icons.Default.Star,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = if (selectedDifficulty == ExerciseDifficulty.MEDIUM) Color.White else Color(255, 152, 0)
+                            tint = if (selectedDifficulty == ExerciseDifficulty.MEDIUM) Color.White else mediumColor
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(255, 152, 0),
+                        selectedContainerColor = mediumColor,
                         selectedLabelColor = Color.White
                     )
                 )
@@ -515,11 +509,11 @@ fun CategoryChipsRow(
                             imageVector = Icons.Default.Star,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = if (selectedDifficulty == ExerciseDifficulty.HARD) Color.White else Color.Red
+                            tint = if (selectedDifficulty == ExerciseDifficulty.HARD) Color.White else hardColor
                         )
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color.Red,
+                        selectedContainerColor = hardColor,
                         selectedLabelColor = Color.White
                     )
                 )
@@ -598,6 +592,7 @@ fun ExerciseCard(
                             firstMediaUrl.contains(".mov") ||
                             firstMediaUrl.contains(".avi") ||
                             firstMediaUrl.contains(".webm")
+
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(exercise.mediaUrls.first())
@@ -615,11 +610,12 @@ fun ExerciseCard(
                                 brush = androidx.compose.ui.graphics.Brush.verticalGradient(
                                     colors = listOf(
                                         Color.Transparent,
-                                        Color.Black.copy(alpha = 0.3f)
+                                        overlayColor.copy(alpha = 0.3f)
                                     )
                                 )
                             )
                     )
+
                     if (isVideo) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -632,22 +628,23 @@ fun ExerciseCard(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .background(
-                                        color = Color.Black.copy(alpha = 0.5f),
+                                        color = overlayColor.copy(alpha = 0.5f),
                                         shape = CircleShape
                                     )
                                     .padding(4.dp)
                             )
                         }
+
                         Box (
-                                modifier = Modifier
-                                    .align(Alignment.BottomStart)
-                                    .padding(4.dp)
-                                    .background(
-                                        color = Color.Black.copy(alpha = 0.6f),
-                                        shape = RoundedCornerShape(4.dp)
-                                    )
-                                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                                ) {
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(4.dp)
+                                .background(
+                                    color = overlayColor.copy(alpha = 0.6f),
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        ) {
                             Text(
                                 text = "Video",
                                 style = MaterialTheme.typography.labelSmall,
@@ -720,9 +717,9 @@ fun ExerciseCard(
                         ExerciseDifficulty.HARD -> "Zor"
                     }
                     val difficultyColor = when (exercise.difficulty) {
-                        ExerciseDifficulty.EASY -> Color(0, 150, 136)
-                        ExerciseDifficulty.MEDIUM -> Color(255, 152, 0)
-                        ExerciseDifficulty.HARD -> Color.Red
+                        ExerciseDifficulty.EASY -> easyColor
+                        ExerciseDifficulty.MEDIUM -> mediumColor
+                        ExerciseDifficulty.HARD -> hardColor
                     }
 
                     ExerciseDetailChip(
@@ -740,12 +737,12 @@ fun ExerciseCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(Color.Red.copy(alpha = 0.1f))
+                    .background(errorColor.copy(alpha = 0.1f))
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Sil",
-                    tint = Color.Red
+                    tint = errorColor
                 )
             }
         }
@@ -754,7 +751,7 @@ fun ExerciseCard(
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = primaryColor) },
+            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = warningColor) },
             title = {
                 Text(
                     "Egzersizi Sil",
@@ -777,7 +774,7 @@ fun ExerciseCard(
                         onDeleteClick(exercise)
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Red,
+                        containerColor = errorColor,
                         contentColor = Color.White
                     )
                 ) {
@@ -873,10 +870,10 @@ fun ExercisePlanCard(
     val isExpired = plan.endDate?.before(currentDate) ?: false
 
     val (statusColor, statusText) = when {
-        isExpired -> Pair(Color.Red, "Pasif")
+        isExpired -> Pair(errorColor, "Pasif")
         plan.status == ExercisePlanStatus.ACTIVE -> Pair(primaryColor, "Aktif")
-        plan.status == ExercisePlanStatus.COMPLETED -> Pair(Color(0, 150, 136), "Tamamlandı")
-        plan.status == ExercisePlanStatus.CANCELLED -> Pair(Color.Red, "İptal Edildi")
+        plan.status == ExercisePlanStatus.COMPLETED -> Pair(easyColor, "Tamamlandı")
+        plan.status == ExercisePlanStatus.CANCELLED -> Pair(errorColor, "İptal Edildi")
         else -> Pair(Color.Gray, plan.status.name)
     }
 
@@ -934,7 +931,7 @@ fun ExercisePlanCard(
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Sil",
-                        tint = Color.Red,
+                        tint = errorColor,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1007,7 +1004,6 @@ fun ExercisePlanCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = textColor
                 )
-
                 if (plan.frequency.isNotBlank()) {
                     Spacer(modifier = Modifier.width(16.dp))
                     Icon(
@@ -1061,9 +1057,7 @@ fun EmptyState(
                     tint = primaryColor.copy(alpha = 0.8f)
                 )
             }
-
             Spacer(modifier = Modifier.height(24.dp))
-
             Text(
                 text = message,
                 style = MaterialTheme.typography.titleMedium,
@@ -1071,9 +1065,7 @@ fun EmptyState(
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Medium
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Text(
                 text = "Egzersizlerinizi buradan yönetebilirsiniz",
                 style = MaterialTheme.typography.bodyMedium,

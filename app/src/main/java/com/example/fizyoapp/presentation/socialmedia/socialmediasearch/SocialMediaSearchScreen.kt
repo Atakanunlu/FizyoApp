@@ -31,11 +31,7 @@ import com.example.fizyoapp.domain.model.physiotherapist_profile.Physiotherapist
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.PhysiotherapistSocialMediaNavbar
 import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.UserSocialMediaNavbar
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
+import com.example.fizyoapp.presentation.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -156,7 +152,6 @@ fun SocialMediaSearchScreen(
                     cursorColor = primaryColor
                 )
             )
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -198,7 +193,6 @@ fun SocialMediaSearchScreen(
                                     )
                                 }
                             }
-
                             items(state.searchResults) { physiotherapist ->
                                 PhysiotherapistItem(
                                     physiotherapist = physiotherapist,
@@ -238,7 +232,6 @@ fun SocialMediaSearchScreen(
                                 }
                             }
                         }
-
                         if (state.searchHistory.isNotEmpty() && !state.hasSearched) {
                             item {
                                 Row(
@@ -262,7 +255,6 @@ fun SocialMediaSearchScreen(
                                     )
                                 }
                             }
-
                             items(state.searchHistory) { physiotherapist ->
                                 PhysiotherapistItem(
                                     physiotherapist = physiotherapist,
@@ -276,19 +268,17 @@ fun SocialMediaSearchScreen(
                                 )
                             }
                         }
-
                         item {
                             Spacer(modifier = Modifier.height(50.dp))
                         }
                     }
                 }
-
                 if (state.error != null) {
                     Snackbar(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .padding(16.dp),
-                        containerColor = Color(0xFFB71C1C),
+                        containerColor = errorColor,
                         contentColor = Color.White,
                         shape = RoundedCornerShape(8.dp)
                     ) {
@@ -345,9 +335,7 @@ fun PhysiotherapistItem(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.width(16.dp))
-
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -370,7 +358,6 @@ fun PhysiotherapistItem(
                     )
                 }
             }
-
             Icon(
                 imageVector = if (showHistoryIcon)
                     Icons.Default.History

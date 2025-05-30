@@ -29,13 +29,9 @@ import com.example.fizyoapp.domain.model.notification.NotificationType
 import com.example.fizyoapp.domain.model.notification.SocialMediaNotification
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.PhysiotherapistSocialMediaNavbar
+import com.example.fizyoapp.presentation.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,13 +140,12 @@ fun NotificationScreen(
                     }
                 }
             }
-
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
-                    containerColor = Color(0xFFB71C1C),
+                    containerColor = errorColor,
                     contentColor = Color.White,
                     shape = RoundedCornerShape(8.dp)
                 ) {
@@ -218,9 +213,7 @@ fun NotificationItem(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.width(16.dp))
-
             Column(modifier = Modifier.weight(1f)) {
                 val senderName = senderProfile?.name ?: "Bir kullanıcı"
                 val message = when (notification.type) {
@@ -228,16 +221,13 @@ fun NotificationItem(
                     NotificationType.COMMENT -> "paylaşımınıza yorum yaptı"
                     NotificationType.FOLLOW -> "sizi takip etmeye başladı"
                 }
-
                 Text(
                     text = "$senderName $message",
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     color = textColor
                 )
-
                 Spacer(modifier = Modifier.height(4.dp))
-
                 if (notification.type != NotificationType.FOLLOW && notification.contentText.isNotEmpty()) {
                     Text(
                         text = notification.contentText,
@@ -248,14 +238,12 @@ fun NotificationItem(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                 }
-
                 Text(
                     text = dateFormat.format(notification.timestamp),
                     fontSize = 12.sp,
                     color = textColor.copy(alpha = 0.5f)
                 )
             }
-
             Icon(
                 imageVector = when (notification.type) {
                     NotificationType.LIKE -> Icons.Default.Favorite
@@ -264,7 +252,7 @@ fun NotificationItem(
                 },
                 contentDescription = null,
                 tint = when (notification.type) {
-                    NotificationType.LIKE -> Color.Red
+                    NotificationType.LIKE -> errorColor
                     NotificationType.COMMENT -> primaryColor
                     NotificationType.FOLLOW -> primaryColor
                 },

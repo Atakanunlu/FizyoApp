@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,11 +26,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.fizyoapp.presentation.navigation.AppScreens
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
+import com.example.fizyoapp.presentation.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -241,7 +236,7 @@ fun CreateAdvertisementScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = state.error,
-                        color = Color(0xFFB71C1C),
+                        color = errorColor,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }

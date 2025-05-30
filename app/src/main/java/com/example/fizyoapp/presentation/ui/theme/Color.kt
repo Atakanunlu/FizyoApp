@@ -1,65 +1,31 @@
-package com.example.fizyoapp.ui.theme
+package com.example.fizyoapp.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Light Theme Colors
-val primaryLight = Color(0xFF006C4F)
-val onPrimaryLight = Color(0xFFFFFFFF)
-val primaryContainerLight = Color(0xFF85F8CE)
-val onPrimaryContainerLight = Color(0xFF002116)
-val secondaryLight = Color(0xFF4C6358)
-val onSecondaryLight = Color(0xFFFFFFFF)
-val secondaryContainerLight = Color(0xFFCFE9D9)
-val onSecondaryContainerLight = Color(0xFF082017)
-val tertiaryLight = Color(0xFF3D6373)
-val onTertiaryLight = Color(0xFFFFFFFF)
-val tertiaryContainerLight = Color(0xFFC1E8FB)
-val onTertiaryContainerLight = Color(0xFF001F29)
-val errorLight = Color(0xFFBA1A1A)
-val errorContainerLight = Color(0xFFFFDAD6)
-val onErrorLight = Color(0xFFFFFFFF)
-val onErrorContainerLight = Color(0xFF410002)
-val backgroundLight = Color(0xFFFBFDF9)
-val onBackgroundLight = Color(0xFF191C1A)
-val surfaceLight = Color(0xFFFBFDF9)
-val onSurfaceLight = Color(0xFF191C1A)
-val surfaceVariantLight = Color(0xFFDCE5DD)
-val onSurfaceVariantLight = Color(0xFF404943)
-val outlineLight = Color(0xFF707973)
-val inverseOnSurfaceLight = Color(0xFFF0F1EC)
-val inverseSurfaceLight = Color(0xFF2E312F)
-val inversePrimaryLight = Color(0xFF67DBB2)
-val surfaceTintLight = Color(0xFF006C4F)
-val outlineVariantLight = Color(0xFFC0C9C1)
-val scrimLight = Color(0xFF000000)
+// Ana Tema Renkleri
+val primaryColor = Color(59, 62, 104) // 0xFF3B3E68
+val accentColor = Color(109, 114, 195) // 0xFF6D72C3
+val backgroundColor = Color(245, 245, 250) // 0xFFF5F5FA
+val surfaceColor = Color.White
+val textColor = Color.DarkGray
+val errorColor = Color(183, 28, 28) // 0xFFB71C1C
+val successColor = Color(67, 160, 71) // 0xFF43A047
+val warningColor = Color(255, 152, 0) // 0xFFFF9800
+val infoColor = Color(33, 150, 243) // 0xFF2196F3
 
-// Dark Theme Colors
-val primaryDark = Color(0xFF67DBB2)
-val onPrimaryDark = Color(0xFF003828)
-val primaryContainerDark = Color(0xFF00513B)
-val onPrimaryContainerDark = Color(0xFF85F8CE)
-val secondaryDark = Color(0xFFB3CCBE)
-val onSecondaryDark = Color(0xFF1E352B)
-val secondaryContainerDark = Color(0xFF354B41)
-val onSecondaryContainerDark = Color(0xFFCFE9D9)
-val tertiaryDark = Color(0xFFA5CCDF)
-val onTertiaryDark = Color(0xFF07344E)
-val tertiaryContainerDark = Color(0xFF254C60)
-val onTertiaryContainerDark = Color(0xFFC1E8FB)
-val errorDark = Color(0xFFFFB4AB)
-val errorContainerDark = Color(0xFF93000A)
-val onErrorDark = Color(0xFF690005)
-val onErrorContainerDark = Color(0xFFFFDAD6)
-val backgroundDark = Color(0xFF191C1A)
-val onBackgroundDark = Color(0xFFE1E3DE)
-val surfaceDark = Color(0xFF191C1A)
-val onSurfaceDark = Color(0xFFE1E3DE)
-val surfaceVariantDark = Color(0xFF404943)
-val onSurfaceVariantDark = Color(0xFFC0C9C1)
-val outlineDark = Color(0xFF8A938C)
-val inverseOnSurfaceDark = Color(0xFF191C1A)
-val inverseSurfaceDark = Color(0xFFE1E3DE)
-val inversePrimaryDark = Color(0xFF006C4F)
-val surfaceTintDark = Color(0xFF67DBB2)
-val outlineVariantDark = Color(0xFF404943)
-val scrimDark = Color(0xFF000000)
+// Zorluk Seviyeleri
+val easyColor = Color(0, 150, 136) // 0xFF009688
+val mediumColor = Color(255, 152, 0) // 0xFFFF9800
+val hardColor = Color(244, 67, 54) // 0xFFF44336
+
+// Not Renkleri
+val noteWhiteColor = Color.White
+val noteLightYellowColor = Color(0xFFFFF9C4)
+val noteOrangeColor = Color(0xFFFFE0B2)
+
+// Yardımcı Renkler
+val greenColor = Color(76, 175, 80) // 0xFF4CAF50
+val videoCallColor = Color(52, 199, 89) // 0xFF34C759
+val missedCallColor = Color(255, 59, 48) // 0xFFFF3B30
+val cardBorderColor = Color.LightGray.copy(alpha = 0.5f)
+val overlayColor = Color.Black.copy(alpha = 0.5f)

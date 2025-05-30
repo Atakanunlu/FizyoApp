@@ -23,12 +23,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.domain.model.auth.UserRole
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -225,6 +221,7 @@ fun RegisterScreen(
                             color = textColor,
                             modifier = Modifier.padding(start = 8.dp, end = 16.dp)
                         )
+
                         RadioButton(
                             selected = state.selectedRole == UserRole.PHYSIOTHERAPIST,
                             onClick = { viewModel.onEvent(RegisterEvent.RoleChanged(UserRole.PHYSIOTHERAPIST)) },
@@ -308,9 +305,9 @@ fun RegisterScreen(
                             focusedBorderColor = primaryColor,
                             focusedLabelColor = primaryColor,
                             cursorColor = primaryColor,
-                            errorBorderColor = Color.Red,
-                            errorLabelColor = Color.Red,
-                            errorCursorColor = Color.Red
+                            errorBorderColor = errorColor,
+                            errorLabelColor = errorColor,
+                            errorCursorColor = errorColor
                         ),
                         shape = RoundedCornerShape(8.dp)
                     )
@@ -318,7 +315,7 @@ fun RegisterScreen(
                     if (state.passwordError) {
                         Text(
                             text = "Şifreler eşleşmiyor!",
-                            color = Color.Red,
+                            color = errorColor,
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -330,7 +327,7 @@ fun RegisterScreen(
                     if (state.errorMessage != null) {
                         Text(
                             text = state.errorMessage,
-                            color = Color.Red,
+                            color = errorColor,
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
                                 .fillMaxWidth()

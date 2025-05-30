@@ -43,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -62,11 +63,6 @@ fun PhysiotherapistProfileSetupScreen(
     var showPhotoOptionsDialog by remember { mutableStateOf(false) }
     var certificatesText by remember { mutableStateOf(state.certificates.joinToString("\n")) }
     val scrollState = rememberScrollState()
-    val primaryColor = Color(0xFF3B3E68)
-    val accentColor = Color(0xFF6D72C3)
-    val backgroundColor = Color(0xFFF8F9FC)
-    val cardColor = Color.White
-    val errorColor = Color(0xFFE57373)
     val dateFormatter = remember { SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()) }
 
     val photoFile = remember {
@@ -104,20 +100,16 @@ fun PhysiotherapistProfileSetupScreen(
                 val contentResolver = context.contentResolver
                 val mimeType = contentResolver.getType(it) ?: "image/jpeg"
                 val inputStream = contentResolver.openInputStream(it)
-
                 val fileName = "temp_profile_${System.currentTimeMillis()}.${mimeType.substringAfter('/')}"
                 val cacheFile = File(context.cacheDir, fileName)
-
                 inputStream?.use { input ->
                     cacheFile.outputStream().use { output ->
                         input.copyTo(output)
                     }
                 }
-
                 // Dosya yolunu loglayalım
                 Log.d("ProfileSetup", "Dosya kopyalandı: ${cacheFile.absolutePath}")
                 Log.d("ProfileSetup", "Dosya mevcut: ${cacheFile.exists()}, Boyut: ${cacheFile.length()}")
-
                 selectedImageUri = Uri.fromFile(cacheFile)
                 viewModel.onEvent(PhysiotherapistProfileEvent.PhotoChanged(cacheFile.absolutePath))
             } catch (e: Exception) {
@@ -172,7 +164,7 @@ fun PhysiotherapistProfileSetupScreen(
                     .padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = cardColor
+                    containerColor = surfaceColor
                 ),
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 6.dp
@@ -271,11 +263,11 @@ fun PhysiotherapistProfileSetupScreen(
                 }
             },
             colors = DatePickerDefaults.colors(
-                containerColor = cardColor,
+                containerColor = surfaceColor,
                 titleContentColor = primaryColor,
                 headlineContentColor = primaryColor,
                 weekdayContentColor = accentColor,
-                subheadContentColor = Color.Gray,
+                subheadContentColor = textColor.copy(alpha = 0.7f),
                 yearContentColor = accentColor,
                 currentYearContentColor = primaryColor,
                 selectedYearContainerColor = accentColor,
@@ -294,7 +286,7 @@ fun PhysiotherapistProfileSetupScreen(
                     .padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = cardColor
+                    containerColor = surfaceColor
                 ),
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 6.dp
@@ -432,7 +424,7 @@ fun PhysiotherapistProfileSetupScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Black.copy(alpha = 0.3f))
+                                    .background(overlayColor)
                                     .clip(CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -456,7 +448,7 @@ fun PhysiotherapistProfileSetupScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Black.copy(alpha = 0.3f))
+                                    .background(overlayColor)
                                     .clip(CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -511,7 +503,7 @@ fun PhysiotherapistProfileSetupScreen(
                     .padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = cardColor
+                    containerColor = surfaceColor
                 ),
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 4.dp
@@ -529,7 +521,6 @@ fun PhysiotherapistProfileSetupScreen(
                         color = primaryColor,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-
                     ProfileTextField(
                         value = state.firstName,
                         onValueChange = { viewModel.onEvent(PhysiotherapistProfileEvent.FirstNameChanged(it)) },
@@ -541,7 +532,6 @@ fun PhysiotherapistProfileSetupScreen(
                         errorColor = errorColor
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
                     ProfileTextField(
                         value = state.lastName,
                         onValueChange = { viewModel.onEvent(PhysiotherapistProfileEvent.LastNameChanged(it)) },
@@ -553,7 +543,6 @@ fun PhysiotherapistProfileSetupScreen(
                         errorColor = errorColor
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
                     ProfileClickableField(
                         value = state.birthDate?.let { dateFormatter.format(it) } ?: "",
                         onClick = { showDatePicker = true },
@@ -566,7 +555,6 @@ fun PhysiotherapistProfileSetupScreen(
                         errorColor = errorColor
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
                     ProfileClickableField(
                         value = state.gender,
                         onClick = { showGenderDialog = true },
@@ -587,7 +575,7 @@ fun PhysiotherapistProfileSetupScreen(
                     .padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = cardColor
+                    containerColor = surfaceColor
                 ),
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 4.dp
@@ -605,7 +593,6 @@ fun PhysiotherapistProfileSetupScreen(
                         color = primaryColor,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-
                     ProfileTextField(
                         value = state.city,
                         onValueChange = { viewModel.onEvent(PhysiotherapistProfileEvent.CityChanged(it)) },
@@ -617,7 +604,6 @@ fun PhysiotherapistProfileSetupScreen(
                         errorColor = errorColor
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
                     ProfileTextField(
                         value = state.district,
                         onValueChange = { viewModel.onEvent(PhysiotherapistProfileEvent.DistrictChanged(it)) },
@@ -629,7 +615,6 @@ fun PhysiotherapistProfileSetupScreen(
                         errorColor = errorColor
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
                     ProfileTextField(
                         value = state.fullAddress,
                         onValueChange = { viewModel.onEvent(PhysiotherapistProfileEvent.FullAddressChanged(it)) },
@@ -643,7 +628,6 @@ fun PhysiotherapistProfileSetupScreen(
                         minLines = 3
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
                     ProfileTextField(
                         value = state.phoneNumber,
                         onValueChange = { viewModel.onEvent(PhysiotherapistProfileEvent.PhoneNumberChanged(it)) },
@@ -664,7 +648,7 @@ fun PhysiotherapistProfileSetupScreen(
                     .padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = cardColor
+                    containerColor = surfaceColor
                 ),
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 4.dp
@@ -682,7 +666,6 @@ fun PhysiotherapistProfileSetupScreen(
                         color = primaryColor,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-
                     ProfileTextField(
                         value = certificatesText,
                         onValueChange = {
@@ -702,7 +685,6 @@ fun PhysiotherapistProfileSetupScreen(
                         placeholder = "Her satıra bir sertifika yazın (Opsiyonel)"
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
                     ProfileTextField(
                         value = state.priceInfo,
                         onValueChange = { viewModel.onEvent(PhysiotherapistProfileEvent.PriceInfoChanged(it)) },
@@ -822,7 +804,7 @@ fun ProfileTextField(
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = primaryColor,
-                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                unfocusedBorderColor = cardBorderColor,
                 focusedLabelColor = primaryColor,
                 cursorColor = primaryColor,
                 errorBorderColor = errorColor,
@@ -897,7 +879,7 @@ fun ProfileClickableField(
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = primaryColor,
-                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                unfocusedBorderColor = cardBorderColor,
                 focusedLabelColor = primaryColor,
                 cursorColor = primaryColor,
                 errorBorderColor = errorColor,
@@ -958,7 +940,7 @@ fun PhotoOptionItem(
             Text(
                 text = text,
                 fontSize = 16.sp,
-                color = if (icon == Icons.Default.Delete) iconTint else Color.DarkGray
+                color = if (icon == Icons.Default.Delete) iconTint else textColor
             )
         }
     }
@@ -995,7 +977,7 @@ fun GenderOptionItem(
             Text(
                 text = text,
                 fontSize = 16.sp,
-                color = if (selected) accentColor else Color.DarkGray,
+                color = if (selected) accentColor else textColor,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
             )
         }

@@ -36,13 +36,9 @@ import com.example.fizyoapp.domain.model.socialmedia.Post
 import com.example.fizyoapp.domain.model.user_profile.UserProfile
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.PhysiotherapistSocialMediaNavbar
+import com.example.fizyoapp.presentation.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,7 +159,6 @@ fun PhysiotherapistSocialProfileScreen(
                                     fontSize = 16.sp,
                                     color = primaryColor
                                 )
-
                                 if (physiotherapistId != null && physiotherapistId != currentUser?.id) {
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Row(
@@ -188,7 +183,6 @@ fun PhysiotherapistSocialProfileScreen(
                                         )
                                     }
                                 }
-
                                 Spacer(modifier = Modifier.height(16.dp))
                                 ProfileStats(
                                     postCount = state.posts.size,
@@ -200,7 +194,6 @@ fun PhysiotherapistSocialProfileScreen(
                             }
                         }
                     }
-
                     item {
                         Text(
                             text = "Paylaşımlar",
@@ -210,7 +203,6 @@ fun PhysiotherapistSocialProfileScreen(
                             modifier = Modifier.padding(bottom = 16.dp, top = 8.dp)
                         )
                     }
-
                     if (state.posts.isEmpty()) {
                         item {
                             Card(
@@ -253,26 +245,23 @@ fun PhysiotherapistSocialProfileScreen(
                             )
                         }
                     }
-
                     item {
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
-
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
-                    containerColor = Color(0xFFB71C1C),
+                    containerColor = errorColor,
                     contentColor = Color.White,
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(state.error!!)
                 }
             }
-
             if (state.showFollowers) {
                 FollowersDialog(
                     followers = state.followers,
@@ -286,7 +275,6 @@ fun PhysiotherapistSocialProfileScreen(
                     }
                 )
             }
-
             if (state.showFollowing) {
                 FollowingDialog(
                     following = state.following,
@@ -435,7 +423,7 @@ fun ProfilePostItem(
                     Icon(
                         imageVector = Icons.Default.Favorite,
                         contentDescription = null,
-                        tint = Color.Red,
+                        tint = errorColor,
                         modifier = Modifier.size(18.dp)
                     )
                     Text(

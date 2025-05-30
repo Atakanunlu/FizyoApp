@@ -25,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,9 +36,6 @@ fun PhysiotherapistDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
-
-    val primaryColor = Color(59, 62, 104)
-    val backgroundColor = Color(245, 245, 250)
 
     Scaffold(
         topBar = {
@@ -87,7 +85,7 @@ fun PhysiotherapistDetailScreen(
                     Icon(
                         imageVector = Icons.Default.Error,
                         contentDescription = null,
-                        tint = Color.Red.copy(alpha = 0.7f),
+                        tint = errorColor.copy(alpha = 0.7f),
                         modifier = Modifier.size(80.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -95,7 +93,7 @@ fun PhysiotherapistDetailScreen(
                         text = state.error ?: "Bir hata oluştu",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color.DarkGray,
+                        color = textColor,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(24.dp))
@@ -127,7 +125,7 @@ fun PhysiotherapistDetailScreen(
                             modifier = Modifier
                                 .size(120.dp)
                                 .clip(CircleShape)
-                                .background(Color(59, 62, 104, 0x20)),
+                                .background(primaryColor.copy(alpha = 0.2f)),
                             contentAlignment = Alignment.Center
                         ) {
                             if (physiotherapist.profilePhotoUrl.isNotEmpty()) {
@@ -146,9 +144,7 @@ fun PhysiotherapistDetailScreen(
                                 )
                             }
                         }
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         Text(
                             text = "FZT. ${physiotherapist.firstName} ${physiotherapist.lastName}",
                             fontSize = 24.sp,
@@ -156,16 +152,13 @@ fun PhysiotherapistDetailScreen(
                             color = primaryColor,
                             textAlign = TextAlign.Center
                         )
-
                         Text(
                             text = "${physiotherapist.city} / ${physiotherapist.district}",
                             fontSize = 16.sp,
-                            color = Color.Gray,
+                            color = textColor,
                             textAlign = TextAlign.Center
                         )
-
                         Spacer(modifier = Modifier.height(24.dp))
-
                         PhysiotherapistInfoCard(
                             title = "İletişim Bilgileri",
                             icon = Icons.Default.ContactPhone,
@@ -183,9 +176,7 @@ fun PhysiotherapistDetailScreen(
                                 }
                             }
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         if (physiotherapist.certificates.isNotEmpty()) {
                             PhysiotherapistInfoCard(
                                 title = "Sertifikalar ve Uzmanlıklar",
@@ -202,10 +193,8 @@ fun PhysiotherapistDetailScreen(
                                     }
                                 }
                             )
-
                             Spacer(modifier = Modifier.height(16.dp))
                         }
-
                         PhysiotherapistInfoCard(
                             title = "Fiyat Bilgisi",
                             icon = Icons.Default.Payments,
@@ -213,17 +202,15 @@ fun PhysiotherapistDetailScreen(
                                 Text(
                                     text = physiotherapist.priceInfo,
                                     fontSize = 16.sp,
-                                    color = Color.DarkGray
+                                    color = textColor
                                 )
                             }
                         )
-
                         Spacer(modifier = Modifier.height(24.dp))
-
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(230, 230, 250)
+                                containerColor = accentColor.copy(alpha = 0.2f)
                             ),
                             elevation = CardDefaults.cardElevation(
                                 defaultElevation = 0.dp
@@ -245,13 +232,11 @@ fun PhysiotherapistDetailScreen(
                                 Text(
                                     text = "Randevu oluşturarak fizyoterapist ile görüşme planlayabilirsiniz.",
                                     fontSize = 14.sp,
-                                    color = Color.DarkGray
+                                    color = textColor
                                 )
                             }
                         }
-
                         Spacer(modifier = Modifier.height(24.dp))
-
                         Button(
                             onClick = {
                                 val physiotherapistId = state.physiotherapist?.userId ?: ""
@@ -280,9 +265,7 @@ fun PhysiotherapistDetailScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-
                         Spacer(modifier = Modifier.height(8.dp))
-
                         OutlinedButton(
                             onClick = {
                                 val physiotherapistId = state.physiotherapist?.userId ?: ""
@@ -312,7 +295,6 @@ fun PhysiotherapistDetailScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-
                         Spacer(modifier = Modifier.height(24.dp))
                     }
                 }
@@ -330,7 +312,7 @@ fun PhysiotherapistInfoCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = surfaceColor
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
@@ -349,13 +331,13 @@ fun PhysiotherapistInfoCard(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(59, 62, 104, 20)),
+                        .background(primaryColor.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = Color(59, 62, 104),
+                        tint = primaryColor,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -364,12 +346,10 @@ fun PhysiotherapistInfoCard(
                     text = title,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(59, 62, 104)
+                    color = primaryColor
                 )
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             content()
         }
     }
@@ -386,14 +366,14 @@ fun DetailRow(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color(59, 62, 104),
+            tint = primaryColor,
             modifier = Modifier.size(18.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = text,
             fontSize = 16.sp,
-            color = Color.DarkGray
+            color = textColor
         )
     }
 }

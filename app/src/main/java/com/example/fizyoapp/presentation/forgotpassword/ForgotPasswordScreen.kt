@@ -20,12 +20,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,7 +140,6 @@ fun ForgotPasswordScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-
                     Text(
                         text = "Hesabınıza kayıtlı e-posta adresinizi girin. Size şifre sıfırlama bağlantısı göndereceğiz.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -152,7 +147,6 @@ fun ForgotPasswordScreen(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
-
                     OutlinedTextField(
                         value = state.email,
                         onValueChange = { viewModel.onEvent(ForgotPasswordEvent.EmailChanged(it)) },
@@ -175,11 +169,10 @@ fun ForgotPasswordScreen(
                         ),
                         shape = RoundedCornerShape(8.dp)
                     )
-
                     if (state.errorMessage != null) {
                         Text(
                             text = state.errorMessage,
-                            color = Color.Red,
+                            color = errorColor,
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -187,7 +180,6 @@ fun ForgotPasswordScreen(
                             textAlign = TextAlign.Center
                         )
                     }
-
                     Button(
                         onClick = { viewModel.onEvent(ForgotPasswordEvent.SendResetEmail) },
                         modifier = Modifier
@@ -212,7 +204,6 @@ fun ForgotPasswordScreen(
                             )
                         }
                     }
-
                     TextButton(
                         onClick = { viewModel.onEvent(ForgotPasswordEvent.NavigateBack) },
                         modifier = Modifier.padding(top = 16.dp)

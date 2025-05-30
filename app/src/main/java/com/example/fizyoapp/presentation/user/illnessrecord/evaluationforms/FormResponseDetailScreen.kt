@@ -1,6 +1,5 @@
 package com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms
 
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -25,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.fizyoapp.presentation.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -37,11 +37,9 @@ fun FormResponseDetailScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var showShareDialog by remember { mutableStateOf(false) }
-
     LaunchedEffect(key1 = responseId) {
         viewModel.loadResponse(responseId)
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -63,7 +61,7 @@ fun FormResponseDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(59, 62, 104),
+                    containerColor = primaryColor,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White,
                     actionIconContentColor = Color.White
@@ -74,7 +72,7 @@ fun FormResponseDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(245, 245, 250))
+                .background(backgroundColor)
                 .padding(paddingValues)
         ) {
             if (state.isLoading) {
@@ -83,7 +81,7 @@ fun FormResponseDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
-                        color = Color(59, 62, 104)
+                        color = primaryColor
                     )
                 }
             } else if (state.error != null) {
@@ -97,7 +95,7 @@ fun FormResponseDetailScreen(
                     Icon(
                         imageVector = Icons.Default.Error,
                         contentDescription = null,
-                        tint = Color.Red.copy(alpha = 0.7f),
+                        tint = errorColor.copy(alpha = 0.7f),
                         modifier = Modifier.size(80.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -105,13 +103,13 @@ fun FormResponseDetailScreen(
                         text = state.error!!,
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        color = Color.DarkGray
+                        color = textColor
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
                         onClick = { viewModel.loadResponse(responseId) },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(59, 62, 104)
+                            containerColor = primaryColor
                         )
                     ) {
                         Icon(
@@ -129,13 +127,12 @@ fun FormResponseDetailScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp)
                 ) {
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 16.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = Color.White
+                            containerColor = surfaceColor
                         ),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
@@ -148,11 +145,9 @@ fun FormResponseDetailScreen(
                                 text = state.response!!.title ?: "Form Yanıtı",
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(59, 62, 104)
+                                color = primaryColor
                             )
-
                             Spacer(modifier = Modifier.height(8.dp))
-
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
@@ -160,7 +155,7 @@ fun FormResponseDetailScreen(
                                 Icon(
                                     imageVector = Icons.Default.Score,
                                     contentDescription = null,
-                                    tint = Color(59, 62, 104),
+                                    tint = primaryColor,
                                     modifier = Modifier.size(24.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -168,12 +163,10 @@ fun FormResponseDetailScreen(
                                     text = "Puan: ${state.response!!.score}/${state.response!!.maxScore}",
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color(59, 62, 104)
+                                    color = primaryColor
                                 )
                             }
-
                             Spacer(modifier = Modifier.height(8.dp))
-
                             Text(
                                 text = "Tamamlama Tarihi: ${
                                     SimpleDateFormat(
@@ -187,15 +180,13 @@ fun FormResponseDetailScreen(
                         }
                     }
 
-
                     Text(
                         text = "Yanıtlar",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(59, 62, 104),
+                        color = primaryColor,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
-
                     state.questionMap.entries.forEach { (questionId, questionText) ->
                         val answer = state.response!!.answers[questionId] ?: ""
                         if (answer.isNotEmpty()) {
@@ -206,22 +197,20 @@ fun FormResponseDetailScreen(
                         }
                     }
 
-
                     if (state.response!!.notes.isNotEmpty()) {
                         Text(
                             text = "Notlar",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(59, 62, 104),
+                            color = primaryColor,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
-
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color.White
+                                containerColor = surfaceColor
                             ),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
@@ -230,15 +219,13 @@ fun FormResponseDetailScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(16.dp),
-                                color = Color.DarkGray
+                                color = textColor
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(40.dp))
                 }
             }
-
 
             if (state.actionError != null) {
                 Snackbar(
@@ -250,13 +237,12 @@ fun FormResponseDetailScreen(
                             Text("TAMAM", color = Color.White)
                         }
                     },
-                    containerColor = Color(0xFFB71C1C),
+                    containerColor = errorColor,
                     contentColor = Color.White
                 ) {
                     Text(state.actionError!!)
                 }
             }
-
             AnimatedVisibility(
                 visible = state.successMessage != null,
                 enter = fadeIn() + slideInVertically(
@@ -273,7 +259,7 @@ fun FormResponseDetailScreen(
             ) {
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF4CAF50)
+                        containerColor = successColor
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
@@ -298,7 +284,6 @@ fun FormResponseDetailScreen(
             }
         }
     }
-
     if (showShareDialog && state.response != null) {
         ShareDialog(
             threads = state.recentThreads,
@@ -322,7 +307,7 @@ fun AnswerCard(
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = surfaceColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -335,15 +320,13 @@ fun AnswerCard(
                 text = question,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(59, 62, 104)
+                color = primaryColor
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Text(
                 text = answer,
                 fontSize = 16.sp,
-                color = Color.DarkGray
+                color = textColor
             )
         }
     }

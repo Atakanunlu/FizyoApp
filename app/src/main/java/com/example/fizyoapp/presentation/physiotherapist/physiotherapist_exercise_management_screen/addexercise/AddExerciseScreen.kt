@@ -1,4 +1,5 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.addexercise
+
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -47,14 +48,9 @@ import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseDifficulty
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val accentColor = Color(59, 62, 104)
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -154,7 +150,6 @@ fun AddExerciseScreen(
                     .verticalScroll(scrollState)
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -177,9 +172,7 @@ fun AddExerciseScreen(
                                 color = primaryColor
                             )
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.title,
                             onValueChange = { viewModel.onEvent(AddExerciseEvent.TitleChanged(it)) },
@@ -211,9 +204,7 @@ fun AddExerciseScreen(
                                 cursorColor = primaryColor
                             )
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.category,
                             onValueChange = { },
@@ -245,9 +236,7 @@ fun AddExerciseScreen(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -270,9 +259,7 @@ fun AddExerciseScreen(
                                 color = primaryColor
                             )
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.description,
                             onValueChange = { viewModel.onEvent(AddExerciseEvent.DescriptionChanged(it)) },
@@ -297,9 +284,7 @@ fun AddExerciseScreen(
                                 cursorColor = primaryColor
                             )
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.instructions,
                             onValueChange = { viewModel.onEvent(AddExerciseEvent.InstructionsChanged(it)) },
@@ -323,9 +308,7 @@ fun AddExerciseScreen(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -348,9 +331,7 @@ fun AddExerciseScreen(
                                 color = primaryColor
                             )
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = when (state.difficulty) {
                                 ExerciseDifficulty.EASY -> "Kolay"
@@ -386,9 +367,7 @@ fun AddExerciseScreen(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -411,17 +390,13 @@ fun AddExerciseScreen(
                                 color = primaryColor
                             )
                         )
-
                         Spacer(modifier = Modifier.height(8.dp))
-
                         Text(
                             text = "Egzersiz için görsel veya video ekleyin",
                             style = MaterialTheme.typography.bodyMedium,
                             color = textColor.copy(alpha = 0.7f)
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
@@ -431,14 +406,12 @@ fun AddExerciseScreen(
                                 text = "Fotoğraf",
                                 onClick = { imagePickerLauncher.launch("image/*") }
                             )
-
                             MediaButton(
                                 icon = Icons.Outlined.Videocam,
                                 text = "Video",
                                 onClick = { videoPickerLauncher.launch("video/*") }
                             )
                         }
-
                         AnimatedVisibility(
                             visible = state.mediaUris.isNotEmpty(),
                             enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
@@ -448,16 +421,13 @@ fun AddExerciseScreen(
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Divider(color = textColor.copy(alpha = 0.1f))
                                 Spacer(modifier = Modifier.height(16.dp))
-
                                 Text(
                                     text = "Seçilen Medyalar (${state.mediaUris.size})",
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Medium,
                                     color = primaryColor
                                 )
-
                                 Spacer(modifier = Modifier.height(8.dp))
-
                                 LazyRow(
                                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                                     contentPadding = PaddingValues(vertical = 8.dp)
@@ -479,9 +449,7 @@ fun AddExerciseScreen(
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(24.dp))
-
                 Button(
                     onClick = { viewModel.onEvent(AddExerciseEvent.SaveExercise) },
                     modifier = Modifier
@@ -521,7 +489,6 @@ fun AddExerciseScreen(
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(32.dp))
             }
 
@@ -627,9 +594,7 @@ fun AddExerciseScreen(
                                     showDifficultyDialog = false
                                 }
                             )
-
                             Spacer(modifier = Modifier.height(8.dp))
-
                             DifficultyOption(
                                 title = "Orta",
                                 description = "Orta seviye egzersizler",
@@ -640,9 +605,7 @@ fun AddExerciseScreen(
                                     showDifficultyDialog = false
                                 }
                             )
-
                             Spacer(modifier = Modifier.height(8.dp))
-
                             DifficultyOption(
                                 title = "Zor",
                                 description = "İleri seviye egzersizler",
@@ -714,9 +677,7 @@ fun MediaButton(
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(
             text = text,
             style = MaterialTheme.typography.labelMedium,
@@ -782,7 +743,7 @@ fun MediaPreviewItem(
                 .padding(4.dp)
                 .size(28.dp)
                 .background(
-                    color = Color.Red.copy(alpha = 0.7f),
+                    color = errorColor.copy(alpha = 0.7f),
                     shape = CircleShape
                 )
         ) {
@@ -847,9 +808,7 @@ fun DifficultyOption(
                     selectedColor = primaryColor
                 )
             )
-
             Spacer(modifier = Modifier.width(8.dp))
-
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -871,7 +830,6 @@ fun DifficultyOption(
                         textColor.copy(alpha = 0.7f)
                 )
             }
-
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
