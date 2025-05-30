@@ -10,18 +10,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.fizyoapp.presentation.navigation.AppScreens
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
+import com.example.fizyoapp.presentation.ui.theme.*
 
 @Composable
 fun AdvertisementSuccessScreen(
@@ -53,7 +49,7 @@ fun AdvertisementSuccessScreen(
                     painter = rememberVectorPainter(Icons.Default.CheckCircle),
                     contentDescription = null,
                     modifier = Modifier.size(120.dp),
-                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFF4CAF50))
+                    colorFilter = ColorFilter.tint(successColor)
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(

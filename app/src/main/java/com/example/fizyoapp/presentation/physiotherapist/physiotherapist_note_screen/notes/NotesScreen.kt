@@ -28,14 +28,10 @@ import androidx.navigation.NavController
 import com.example.fizyoapp.domain.model.note.Note
 import com.example.fizyoapp.domain.model.note.NoteColor
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.*
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,13 +140,12 @@ fun NotesScreen(
                     }
                 }
             }
-
             state.error?.let {
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
-                    containerColor = Color(0xFFB71C1C),
+                    containerColor = errorColor,
                     contentColor = Color.White,
                     shape = RoundedCornerShape(8.dp)
                 ) {
@@ -209,7 +204,6 @@ fun EmptyNotesContent(onAddClick: () -> Unit) {
     }
 }
 
-// Fonksiyon adını değiştirdim: NoteCard -> NotesScreenNoteCard
 @Composable
 fun NotesScreenNoteCard(
     note: Note,
@@ -217,17 +211,15 @@ fun NotesScreenNoteCard(
     onClick: () -> Unit
 ) {
     val backgroundColor = when (note.color) {
-        NoteColor.WHITE -> surfaceColor
-        NoteColor.LIGHT_YELLOW -> Color(0xFFFFF9C4)
-        NoteColor.ORANGE -> Color(0xFFFFE0B2)
+        NoteColor.WHITE -> noteWhiteColor
+        NoteColor.LIGHT_YELLOW -> noteLightYellowColor
+        NoteColor.ORANGE -> noteOrangeColor
     }
-
     val borderColor = when (note.color) {
-        NoteColor.WHITE -> Color.LightGray
-        NoteColor.LIGHT_YELLOW -> Color(0xFFFFEB3B).copy(alpha = 0.5f)
-        NoteColor.ORANGE -> Color(0xFFFF9800).copy(alpha = 0.5f)
+        NoteColor.WHITE -> cardBorderColor
+        NoteColor.LIGHT_YELLOW -> noteLightYellowColor.copy(alpha = 0.5f)
+        NoteColor.ORANGE -> noteOrangeColor.copy(alpha = 0.5f)
     }
-
     Card(
         modifier = Modifier
             .fillMaxWidth()

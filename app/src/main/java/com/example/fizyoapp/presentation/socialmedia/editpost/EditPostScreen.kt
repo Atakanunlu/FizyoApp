@@ -32,12 +32,8 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,19 +44,16 @@ fun EditPostScreen(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
     var showMediaOptions by remember { mutableStateOf(false) }
-
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->
         viewModel.onEvent(EditPostEvent.MediaAdded(uris.map { it.toString() }))
     }
-
     val videoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->
         viewModel.onEvent(EditPostEvent.MediaAdded(uris.map { it.toString() }))
     }
-
     val storagePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -68,7 +61,6 @@ fun EditPostScreen(
             photoPickerLauncher.launch("image/*")
         }
     }
-
     val videoPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -76,7 +68,6 @@ fun EditPostScreen(
             videoPickerLauncher.launch("video/*")
         }
     }
-
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
@@ -88,7 +79,6 @@ fun EditPostScreen(
             }
         }
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -191,9 +181,7 @@ fun EditPostScreen(
                                 )
                             }
                         }
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.content,
                             onValueChange = { viewModel.onEvent(EditPostEvent.ContentChanged(it)) },
@@ -209,9 +197,7 @@ fun EditPostScreen(
                             ),
                             maxLines = 10
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         val allMediaUris = state.existingMediaUrls + state.newMediaUris
                         if (allMediaUris.isNotEmpty()) {
                             Text(
@@ -250,7 +236,7 @@ fun EditPostScreen(
                                                 .align(Alignment.TopEnd)
                                                 .size(24.dp)
                                                 .clip(CircleShape)
-                                                .background(Color.Black.copy(alpha = 0.5f))
+                                                .background(overlayColor)
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Close,
@@ -264,7 +250,6 @@ fun EditPostScreen(
                             }
                             Spacer(modifier = Modifier.height(16.dp))
                         }
-
                         Button(
                             onClick = { showMediaOptions = true },
                             colors = ButtonDefaults.buttonColors(
@@ -283,7 +268,6 @@ fun EditPostScreen(
                         }
                     }
                 }
-
                 if (state.isLoading) {
                     Box(
                         modifier = Modifier
@@ -294,12 +278,11 @@ fun EditPostScreen(
                         CircularProgressIndicator(color = primaryColor)
                     }
                 }
-
                 state.error?.let { errorMessage ->
                     Spacer(modifier = Modifier.height(16.dp))
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                        colors = CardDefaults.cardColors(containerColor = errorColor.copy(alpha = 0.1f)),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
@@ -311,12 +294,12 @@ fun EditPostScreen(
                             Icon(
                                 imageVector = Icons.Default.Error,
                                 contentDescription = null,
-                                tint = Color(0xFFB71C1C)
+                                tint = errorColor
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = errorMessage,
-                                color = Color(0xFFB71C1C)
+                                color = errorColor
                             )
                         }
                     }
@@ -324,7 +307,6 @@ fun EditPostScreen(
             }
         }
     }
-
     if (showMediaOptions) {
         AlertDialog(
             onDismissRequest = { showMediaOptions = false },
@@ -358,7 +340,6 @@ fun EditPostScreen(
                             showMediaOptions = false
                         }
                     )
-
                     DropdownMenuItem(
                         text = { Text("Video Ekle") },
                         leadingIcon = {

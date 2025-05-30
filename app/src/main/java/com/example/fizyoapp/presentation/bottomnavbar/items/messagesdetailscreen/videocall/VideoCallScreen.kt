@@ -2,17 +2,8 @@ package com.example.fizyoapp.presentation.bottomnavbar.items.messagesdetailscree
 
 import android.Manifest
 import android.widget.FrameLayout
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -21,24 +12,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.example.fizyoapp.domain.model.messagesscreen.Message
-import com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen.DateFormatter
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.delay
-import java.text.SimpleDateFormat
-import java.util.Locale
 import java.util.UUID
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -48,7 +33,7 @@ fun VideoCallScreen(
     otherUserName: String,
     onCallEnded: (Boolean, Map<String, Any>) -> Unit
 ) {
-    // Aramanın sonlandırıldığını takip etmek için
+
     var isCallEndingHandled by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -75,31 +60,25 @@ fun VideoCallScreen(
     var callDuration by remember { mutableStateOf(0L) }
     var callStartTime by remember { mutableStateOf(0L) }
 
-    // Arama başladığında zamanı kaydet
     LaunchedEffect(Unit) {
         callStartTime = System.currentTimeMillis()
     }
 
-    // İzinler verildiğinde aramayı başlat
     LaunchedEffect(key1 = permissionsState.allPermissionsGranted) {
         if (permissionsState.allPermissionsGranted) {
             agoraCall.initialize()
             agoraCall.joinChannel()
         }
     }
-
-    // Uzak kullanıcı katıldığında aramanın cevaplanmış olduğunu işaretle
     LaunchedEffect(callState.isRemoteUserJoined) {
         if (callState.isRemoteUserJoined) {
             callAnswered = true
         }
     }
-
-    // Arama süresi hesaplayıcı
     LaunchedEffect(callAnswered) {
         if (callAnswered) {
             while (true) {
-                delay(1000) // Her saniye güncelle
+                delay(1000)
                 callDuration = (System.currentTimeMillis() - callStartTime) / 1000
             }
         }
@@ -110,7 +89,7 @@ fun VideoCallScreen(
             if (event == Lifecycle.Event.ON_DESTROY && !isCallEndingHandled) {
                 isCallEndingHandled = true
                 agoraCall.release()
-                // Ekrana çıkışta uyarı gönderilmesini önlemek için boş işlev
+
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -118,7 +97,6 @@ fun VideoCallScreen(
             lifecycleOwner.lifecycle.removeObserver(observer)
             agoraCall.release()
 
-            // Buradaki koşul çok önemli - yalnızca kullanıcı butona basarak çıktıysa mesaj gönderilsin
             if (!isCallEndingHandled) {
                 isCallEndingHandled = true
                 val metadata = if (callAnswered) {
@@ -134,7 +112,6 @@ fun VideoCallScreen(
 
     var callEndedByUser by remember { mutableStateOf(false) }
 
-    // Arama sonlandırma fonksiyonu
     val endCall = {
         if (!isCallEndingHandled) {
             isCallEndingHandled = true
@@ -258,7 +235,6 @@ fun VideoCallScreen(
                             )
                         }
 
-                        // Aramayı sonlandırma butonu
                         FloatingActionButton(
                             onClick = endCall,
                             containerColor = Color.Red,

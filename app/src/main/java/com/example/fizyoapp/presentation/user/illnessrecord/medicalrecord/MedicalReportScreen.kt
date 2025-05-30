@@ -38,6 +38,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.illnesrecordscreen.medicalrecord.MedicalReport
 import com.example.fizyoapp.domain.model.messagesscreen.ChatThread
+import com.example.fizyoapp.presentation.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -54,7 +55,6 @@ fun MedicalReportScreen(
     var showFileTypeDialog by remember { mutableStateOf(false) }
     var showAddPdfDialog by remember { mutableStateOf(false) }
     var showAddImageDialog by remember { mutableStateOf(false) }
-
     val pdfPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -63,7 +63,6 @@ fun MedicalReportScreen(
             showAddPdfDialog = true
         }
     }
-
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -72,7 +71,6 @@ fun MedicalReportScreen(
             showAddImageDialog = true
         }
     }
-
     val openPdf = { pdfUrl: String ->
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -89,7 +87,6 @@ fun MedicalReportScreen(
             ).show()
         }
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -103,7 +100,7 @@ fun MedicalReportScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(59, 62, 104),
+                    containerColor = primaryColor,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White,
                     actionIconContentColor = Color.White
@@ -113,7 +110,7 @@ fun MedicalReportScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showFileTypeDialog = true },
-                containerColor = Color(59, 62, 104),
+                containerColor = primaryColor,
                 contentColor = Color.White
             ) {
                 Icon(
@@ -126,7 +123,7 @@ fun MedicalReportScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(245, 245, 250))
+                .background(backgroundColor)
                 .padding(paddingValues)
         ) {
             if (state.isLoading) {
@@ -135,7 +132,7 @@ fun MedicalReportScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
-                        color = Color(59, 62, 104)
+                        color = primaryColor
                     )
                 }
             } else if (state.error != null) {
@@ -149,7 +146,7 @@ fun MedicalReportScreen(
                     Icon(
                         imageVector = Icons.Default.Error,
                         contentDescription = null,
-                        tint = Color.Red.copy(alpha = 0.7f),
+                        tint = errorColor.copy(alpha = 0.7f),
                         modifier = Modifier.size(80.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -157,13 +154,13 @@ fun MedicalReportScreen(
                         text = state.error!!,
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        color = Color.DarkGray
+                        color = textColor
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
                         onClick = { viewModel.onEvent(MedicalReportEvent.RefreshData) },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(59, 62, 104)
+                            containerColor = primaryColor
                         )
                     ) {
                         Icon(
@@ -185,7 +182,7 @@ fun MedicalReportScreen(
                     Icon(
                         imageVector = Icons.Outlined.Description,
                         contentDescription = null,
-                        tint = Color(59, 62, 104).copy(alpha = 0.5f),
+                        tint = primaryColor.copy(alpha = 0.5f),
                         modifier = Modifier.size(100.dp)
                     )
                     Spacer(modifier = Modifier.height(24.dp))
@@ -193,21 +190,20 @@ fun MedicalReportScreen(
                         text = "Henüz bir tıbbi raporunuz bulunmuyor",
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        color = Color.DarkGray
+                        color = textColor
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Sağ alttaki + butonuna tıklayarak rapor ekleyebilirsiniz",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
-                        color = Color.Gray
+                        color = textColor.copy(alpha = 0.7f)
                     )
                     Spacer(modifier = Modifier.height(32.dp))
-
                     Button(
                         onClick = { showFileTypeDialog = true },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(59, 62, 104)
+                            containerColor = primaryColor
                         )
                     ) {
                         Icon(
@@ -248,7 +244,6 @@ fun MedicalReportScreen(
                     }
                 }
             }
-
             if (state.actionError != null) {
                 Snackbar(
                     modifier = Modifier
@@ -259,13 +254,12 @@ fun MedicalReportScreen(
                             Text("TAMAM", color = Color.White)
                         }
                     },
-                    containerColor = Color(0xFFB71C1C),
+                    containerColor = errorColor,
                     contentColor = Color.White
                 ) {
                     Text(state.actionError!!)
                 }
             }
-
             AnimatedVisibility(
                 visible = state.successMessage != null,
                 enter = fadeIn() + slideInVertically(
@@ -282,7 +276,7 @@ fun MedicalReportScreen(
             ) {
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF4CAF50)
+                        containerColor = successColor
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
@@ -307,7 +301,6 @@ fun MedicalReportScreen(
             }
         }
     }
-
     if (showFileTypeDialog) {
         AlertDialog(
             onDismissRequest = { showFileTypeDialog = false },
@@ -324,7 +317,7 @@ fun MedicalReportScreen(
                             showFileTypeDialog = false
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(59, 62, 104))
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                     ) {
                         Icon(
                             imageVector = Icons.Default.PictureAsPdf,
@@ -333,16 +326,14 @@ fun MedicalReportScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("PDF Yükle")
                     }
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Button(
                         onClick = {
                             imagePickerLauncher.launch("image/*")
                             showFileTypeDialog = false
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(59, 62, 104))
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Image,
@@ -351,9 +342,7 @@ fun MedicalReportScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Görüntü Yükle")
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     TextButton(
                         onClick = { showFileTypeDialog = false },
                         modifier = Modifier.align(Alignment.End)
@@ -365,7 +354,6 @@ fun MedicalReportScreen(
             dismissButton = null
         )
     }
-
     if (selectedReport != null && selectedReport!!.fileType == "image" && !showShareDialog) {
         Dialog(onDismissRequest = { selectedReport = null }) {
             Card(
@@ -374,7 +362,7 @@ fun MedicalReportScreen(
                     .fillMaxHeight(0.8f),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
+                    containerColor = surfaceColor
                 )
             ) {
                 Column(
@@ -402,27 +390,27 @@ fun MedicalReportScreen(
                     Text(
                         text = selectedReport!!.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
+                        color = textColor.copy(alpha = 0.7f)
                     )
                     if (selectedReport!!.doctorName.isNotBlank()) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Doktor: ${selectedReport!!.doctorName}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.DarkGray
+                            color = textColor
                         )
                     }
                     if (selectedReport!!.hospitalName.isNotBlank()) {
                         Text(
                             text = "Hastane: ${selectedReport!!.hospitalName}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.DarkGray
+                            color = textColor
                         )
                     }
                     Text(
                         text = "Tarih: ${SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(selectedReport!!.timestamp)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = textColor.copy(alpha = 0.7f)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Box(
@@ -430,7 +418,7 @@ fun MedicalReportScreen(
                             .weight(1f)
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFFF5F5F5))
+                            .background(backgroundColor.copy(alpha = 0.6f))
                     ) {
                         AsyncImage(
                             model = selectedReport!!.fileUrl,
@@ -439,8 +427,8 @@ fun MedicalReportScreen(
                                 .fillMaxSize()
                                 .padding(4.dp),
                             contentScale = ContentScale.Fit,
-                            error = ColorPainter(Color(0xFFEEEEEE)),
-                            fallback = ColorPainter(Color(0xFFEEEEEE))
+                            error = ColorPainter(backgroundColor.copy(alpha = 0.8f)),
+                            fallback = ColorPainter(backgroundColor.copy(alpha = 0.8f))
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
@@ -459,7 +447,7 @@ fun MedicalReportScreen(
                                 showShareDialog = true
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(59, 62, 104)
+                                containerColor = primaryColor
                             )
                         ) {
                             Icon(
@@ -474,7 +462,6 @@ fun MedicalReportScreen(
             }
         }
     }
-
     if (selectedReport != null && selectedReport!!.fileType == "pdf" && !showShareDialog) {
         Dialog(onDismissRequest = { selectedReport = null }) {
             Card(
@@ -483,7 +470,7 @@ fun MedicalReportScreen(
                     .fillMaxHeight(0.8f),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
+                    containerColor = surfaceColor
                 )
             ) {
                 Column(
@@ -511,27 +498,27 @@ fun MedicalReportScreen(
                     Text(
                         text = selectedReport!!.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
+                        color = textColor.copy(alpha = 0.7f)
                     )
                     if (selectedReport!!.doctorName.isNotBlank()) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Doktor: ${selectedReport!!.doctorName}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.DarkGray
+                            color = textColor
                         )
                     }
                     if (selectedReport!!.hospitalName.isNotBlank()) {
                         Text(
                             text = "Hastane: ${selectedReport!!.hospitalName}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.DarkGray
+                            color = textColor
                         )
                     }
                     Text(
                         text = "Tarih: ${SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(selectedReport!!.timestamp)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        color = textColor.copy(alpha = 0.7f)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Box(
@@ -539,8 +526,8 @@ fun MedicalReportScreen(
                             .weight(1f)
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFFF5F5F5))
-                            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp)),
+                            .background(backgroundColor.copy(alpha = 0.6f))
+                            .border(1.dp, cardBorderColor, RoundedCornerShape(8.dp)),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
@@ -550,14 +537,14 @@ fun MedicalReportScreen(
                             Icon(
                                 imageVector = Icons.Outlined.Description,
                                 contentDescription = null,
-                                tint = Color(59, 62, 104),
+                                tint = primaryColor,
                                 modifier = Modifier.size(64.dp)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "PDF Rapor",
                                 style = MaterialTheme.typography.titleMedium,
-                                color = Color(59, 62, 104)
+                                color = primaryColor
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             OutlinedButton(
@@ -565,7 +552,7 @@ fun MedicalReportScreen(
                                     openPdf(selectedReport!!.fileUrl)
                                 },
                                 colors = ButtonDefaults.outlinedButtonColors(
-                                    contentColor = Color(59, 62, 104)
+                                    contentColor = primaryColor
                                 )
                             ) {
                                 Icon(
@@ -593,7 +580,7 @@ fun MedicalReportScreen(
                                 showShareDialog = true
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(59, 62, 104)
+                                containerColor = primaryColor
                             )
                         ) {
                             Icon(
@@ -608,7 +595,6 @@ fun MedicalReportScreen(
             }
         }
     }
-
     if (showShareDialog && selectedReport != null) {
         ShareDialog(
             threads = state.recentThreads,
@@ -629,7 +615,6 @@ fun MedicalReportScreen(
             }
         )
     }
-
     if (showAddPdfDialog) {
         AddMedicalReportDialog(
             onDismiss = { showAddPdfDialog = false },
@@ -649,7 +634,6 @@ fun MedicalReportScreen(
             icon = Icons.Default.PictureAsPdf
         )
     }
-
     if (showAddImageDialog) {
         AddMedicalReportDialog(
             onDismiss = { showAddImageDialog = false },
@@ -679,13 +663,12 @@ fun MedicalReportCard(
     onDeleteClicked: () -> Unit
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = surfaceColor
         )
     ) {
         Column(
@@ -701,7 +684,7 @@ fun MedicalReportCard(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(59, 62, 104, 0x20)),
+                        .background(primaryColor.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (report.fileType == "image") {
@@ -710,14 +693,14 @@ fun MedicalReportCard(
                             contentDescription = report.title,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
-                            error = ColorPainter(Color(0xFFEEEEEE)),
-                            fallback = ColorPainter(Color(0xFFEEEEEE))
+                            error = ColorPainter(backgroundColor.copy(alpha = 0.8f)),
+                            fallback = ColorPainter(backgroundColor.copy(alpha = 0.8f))
                         )
                     } else {
                         Icon(
                             imageVector = Icons.Outlined.Assignment,
                             contentDescription = "Rapor",
-                            tint = Color(59, 62, 104),
+                            tint = primaryColor,
                             modifier = Modifier
                                 .size(32.dp)
                                 .padding(4.dp)
@@ -738,7 +721,7 @@ fun MedicalReportCard(
                     Text(
                         text = report.description,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray,
+                        color = textColor.copy(alpha = 0.7f),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -757,7 +740,7 @@ fun MedicalReportCard(
                                 }
                             },
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray,
+                            color = textColor.copy(alpha = 0.7f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -768,13 +751,13 @@ fun MedicalReportCard(
                         Text(
                             text = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(report.timestamp),
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
+                            color = textColor.copy(alpha = 0.7f)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = if (report.fileType == "pdf") "PDF" else "Görüntü",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(59, 62, 104),
+                            color = primaryColor,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -783,7 +766,7 @@ fun MedicalReportCard(
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Sil",
-                        tint = Color.Red.copy(alpha = 0.7f)
+                        tint = errorColor.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -795,9 +778,9 @@ fun MedicalReportCard(
                 OutlinedButton(
                     onClick = onViewClicked,
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color(59, 62, 104)
+                        contentColor = primaryColor
                     ),
-                    border = BorderStroke(1.dp, Color(59, 62, 104))
+                    border = BorderStroke(1.dp, primaryColor)
                 ) {
                     Icon(
                         imageVector = if (report.fileType == "pdf") Icons.Default.OpenInNew else Icons.Default.Visibility,
@@ -810,7 +793,7 @@ fun MedicalReportCard(
                 Button(
                     onClick = onShareClicked,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(59, 62, 104)
+                        containerColor = primaryColor
                     )
                 ) {
                     Icon(
@@ -823,7 +806,6 @@ fun MedicalReportCard(
             }
         }
     }
-
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
@@ -836,7 +818,7 @@ fun MedicalReportCard(
                         showDeleteConfirmation = false
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Red
+                        containerColor = errorColor
                     )
                 ) {
                     Text("Sil")
@@ -863,7 +845,6 @@ fun AddMedicalReportDialog(
     var doctorName by remember { mutableStateOf("") }
     var hospitalName by remember { mutableStateOf("") }
     var titleError by remember { mutableStateOf<String?>(null) }
-
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
@@ -871,7 +852,7 @@ fun AddMedicalReportDialog(
                 .padding(horizontal = 16.dp),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color.White
+                containerColor = surfaceColor
             )
         ) {
             Column(
@@ -885,7 +866,7 @@ fun AddMedicalReportDialog(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = Color(59, 62, 104)
+                        tint = primaryColor
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -894,9 +875,7 @@ fun AddMedicalReportDialog(
                         fontWeight = FontWeight.Bold
                     )
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 OutlinedTextField(
                     value = title,
                     onValueChange = {
@@ -912,9 +891,7 @@ fun AddMedicalReportDialog(
                         }
                     }
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
@@ -922,27 +899,21 @@ fun AddMedicalReportDialog(
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 OutlinedTextField(
                     value = doctorName,
                     onValueChange = { doctorName = it },
                     label = { Text("Doktor Adı (İsteğe Bağlı)") },
                     modifier = Modifier.fillMaxWidth()
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 OutlinedTextField(
                     value = hospitalName,
                     onValueChange = { hospitalName = it },
                     label = { Text("Hastane / Klinik Adı (İsteğe Bağlı)") },
                     modifier = Modifier.fillMaxWidth()
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
@@ -952,9 +923,7 @@ fun AddMedicalReportDialog(
                     ) {
                         Text("İptal")
                     }
-
                     Spacer(modifier = Modifier.width(8.dp))
-
                     Button(
                         onClick = {
                             if (title.isBlank()) {
@@ -964,7 +933,7 @@ fun AddMedicalReportDialog(
                             onConfirm(title, description, doctorName, hospitalName)
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(59, 62, 104)
+                            containerColor = primaryColor
                         )
                     ) {
                         Text("Kaydet")
@@ -989,7 +958,7 @@ fun ShareDialog(
                 .heightIn(max = 500.dp),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color.White
+                containerColor = surfaceColor
             )
         ) {
             Column(
@@ -1006,7 +975,7 @@ fun ShareDialog(
                 Text(
                     text = "Bu raporu paylaşmak istediğiniz kişiyi seçin",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = textColor.copy(alpha = 0.7f)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 if (threads.isEmpty()) {
@@ -1019,7 +988,7 @@ fun ShareDialog(
                         Text(
                             text = "Henüz bir konuşmanız bulunmuyor",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray,
+                            color = textColor.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center
                         )
                     }
@@ -1042,7 +1011,7 @@ fun ShareDialog(
                                     },
                                 shape = RoundedCornerShape(8.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = Color(0xFFF5F5F5)
+                                    containerColor = backgroundColor.copy(alpha = 0.6f)
                                 ),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                             ) {
@@ -1056,7 +1025,7 @@ fun ShareDialog(
                                         modifier = Modifier
                                             .size(40.dp)
                                             .clip(CircleShape)
-                                            .background(Color(59, 62, 104, 0x33))
+                                            .background(primaryColor.copy(alpha = 0.2f))
                                     ) {
                                         if (thread.otherParticipantPhotoUrl.isNotEmpty()) {
                                             AsyncImage(
@@ -1069,7 +1038,7 @@ fun ShareDialog(
                                             Icon(
                                                 imageVector = Icons.Default.Person,
                                                 contentDescription = "Profil",
-                                                tint = Color(59, 62, 104),
+                                                tint = primaryColor,
                                                 modifier = Modifier
                                                     .fillMaxSize()
                                                     .padding(8.dp)

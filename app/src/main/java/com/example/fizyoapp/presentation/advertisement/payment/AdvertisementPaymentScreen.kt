@@ -21,12 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +34,6 @@ fun AdvertisementPaymentScreen(
     val scrollState = rememberScrollState()
 
     LaunchedEffect(key1 = true) {
-
         viewModel.onCardHolderNameChanged("")
         viewModel.onCardNumberChanged("")
         viewModel.onExpireMonthChanged("")
@@ -282,7 +277,7 @@ fun AdvertisementPaymentScreen(
                     shape = RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF6200EA).copy(alpha = 0.1f)
+                        containerColor = accentColor.copy(alpha = 0.1f)
                     )
                 ) {
                     Column(
@@ -291,7 +286,7 @@ fun AdvertisementPaymentScreen(
                         Text(
                             text = "Test Kart Bilgileri",
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF6200EA)
+                            color = accentColor
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
@@ -337,7 +332,7 @@ fun AdvertisementPaymentScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = state.error,
-                        color = Color(0xFFB71C1C),
+                        color = errorColor,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }

@@ -44,13 +44,9 @@ import com.example.fizyoapp.domain.model.socialmedia.Post
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.PhysiotherapistSocialMediaNavbar
 import com.example.fizyoapp.presentation.socialmedia.socialmedianavbar.UserSocialMediaNavbar
+import com.example.fizyoapp.presentation.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.Locale
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -201,13 +197,12 @@ fun SocialMediaScreen(
                     }
                 }
             }
-
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
-                    containerColor = Color(0xFFB71C1C),
+                    containerColor = errorColor,
                     contentColor = Color.White,
                     shape = RoundedCornerShape(8.dp)
                 ) {
@@ -307,16 +302,13 @@ fun PostItem(
                     color = textColor.copy(alpha = 0.6f)
                 )
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
             Text(
                 text = post.content,
                 lineHeight = 24.sp,
                 color = textColor,
                 modifier = Modifier.clickable { onClickDetail() }
             )
-
             if (post.mediaUrls.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
                 MultiMediaGallery(
@@ -328,9 +320,7 @@ fun PostItem(
                     }
                 )
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -343,7 +333,7 @@ fun PostItem(
                         imageVector = if (isLikedByCurrentUser)
                             Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Beğen",
-                        tint = if (isLikedByCurrentUser) Color.Red else
+                        tint = if (isLikedByCurrentUser) missedCallColor else
                             textColor.copy(alpha = 0.6f)
                     )
                 }
@@ -393,11 +383,9 @@ fun MultiMediaGallery(
     onMediaClick: (Int) -> Unit
 ) {
     when {
-
         mediaUrls.size == 1 -> {
             val mediaUrl = mediaUrls.first()
             val isVideo = mediaTypes.firstOrNull() == "video"
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -420,7 +408,6 @@ fun MultiMediaGallery(
                 }
             }
         }
-
         mediaUrls.size in 2..3 -> {
             Row(
                 modifier = Modifier
@@ -428,7 +415,6 @@ fun MultiMediaGallery(
                     .height(200.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-
                 Box(
                     modifier = Modifier
                         .weight(1.5f)
@@ -451,7 +437,6 @@ fun MultiMediaGallery(
                         )
                     }
                 }
-
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -480,12 +465,11 @@ fun MultiMediaGallery(
                                     contentScale = ContentScale.Crop
                                 )
                             }
-
                             if (i == 3 && mediaUrls.size > 4) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(Color.Black.copy(alpha = 0.6f)),
+                                        .background(overlayColor),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
@@ -498,20 +482,17 @@ fun MultiMediaGallery(
                             }
                         }
                     }
-
                     if (mediaUrls.size == 2) {
                         Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
         }
-
         else -> {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -543,7 +524,6 @@ fun MultiMediaGallery(
                         }
                     }
                 }
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -573,12 +553,11 @@ fun MultiMediaGallery(
                                         contentScale = ContentScale.Crop
                                     )
                                 }
-
                                 if (i == 4 && mediaUrls.size > 5) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.6f)),
+                                            .background(overlayColor),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
@@ -606,16 +585,12 @@ fun VideoThumbnail(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-
     Box(modifier = modifier) {
-
         var playerPrepared by remember { mutableStateOf(false) }
-
         AndroidView(
             factory = { ctx ->
                 PlayerView(ctx).apply {
                     this.useController = false
-
                     val player = ExoPlayer.Builder(ctx).build().apply {
                         setMediaItem(MediaItem.fromUri(videoUrl))
                         prepare()
@@ -624,7 +599,6 @@ fun VideoThumbnail(
                         addListener(object : Player.Listener {
                             override fun onPlaybackStateChanged(state: Int) {
                                 if (state == Player.STATE_READY) {
-
                                     play()
                                     pause()
                                     playerPrepared = true
@@ -637,13 +611,12 @@ fun VideoThumbnail(
             },
             modifier = Modifier.fillMaxSize()
         )
-
         Box(
             modifier = Modifier
                 .size(40.dp)
                 .align(Alignment.Center)
                 .background(
-                    color = Color.Black.copy(alpha = 0.5f),
+                    color = overlayColor,
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -674,7 +647,6 @@ fun FullScreenMediaDialog(
     DisposableEffect(key1 = currentIndex) {
         exoPlayer?.release()
         exoPlayer = null
-
         if (mediaTypes.getOrNull(currentIndex) == "video") {
             exoPlayer = ExoPlayer.Builder(context).build().apply {
                 setMediaItem(MediaItem.fromUri(Uri.parse(mediaUrls[currentIndex])))
@@ -682,7 +654,6 @@ fun FullScreenMediaDialog(
                 play()
             }
         }
-
         onDispose {
             exoPlayer?.release()
             exoPlayer = null
@@ -703,7 +674,6 @@ fun FullScreenMediaDialog(
                 .background(Color.Black),
             contentAlignment = Alignment.Center
         ) {
-
             val currentMediaUrl = mediaUrls.getOrNull(currentIndex) ?: mediaUrl
             val currentMediaType = mediaTypes.getOrNull(currentIndex) ?: mediaType
 
@@ -736,7 +706,6 @@ fun FullScreenMediaDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-
                     if (currentIndex > 0) {
                         IconButton(
                             onClick = {
@@ -744,7 +713,7 @@ fun FullScreenMediaDialog(
                             },
                             modifier = Modifier
                                 .size(48.dp)
-                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                .background(overlayColor, CircleShape)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ChevronLeft,
@@ -756,7 +725,6 @@ fun FullScreenMediaDialog(
                     } else {
                         Spacer(modifier = Modifier.size(48.dp))
                     }
-
                     if (currentIndex < mediaUrls.size - 1) {
                         IconButton(
                             onClick = {
@@ -764,7 +732,7 @@ fun FullScreenMediaDialog(
                             },
                             modifier = Modifier
                                 .size(48.dp)
-                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                .background(overlayColor, CircleShape)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ChevronRight,
@@ -787,7 +755,7 @@ fun FullScreenMediaDialog(
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 16.dp)
                         .background(
-                            color = Color.Black.copy(alpha = 0.5f),
+                            color = overlayColor,
                             shape = RoundedCornerShape(16.dp)
                         )
                         .padding(horizontal = 12.dp, vertical = 4.dp),
@@ -803,7 +771,7 @@ fun FullScreenMediaDialog(
                     .padding(16.dp)
                     .size(40.dp)
                     .background(
-                        color = Color.Black.copy(alpha = 0.5f),
+                        color = overlayColor,
                         shape = CircleShape
                     )
             ) {

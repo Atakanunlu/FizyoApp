@@ -28,6 +28,7 @@ import com.example.fizyoapp.domain.model.appointment.Appointment
 import com.example.fizyoapp.domain.model.appointment.AppointmentStatus
 import com.example.fizyoapp.presentation.appointment.booking.CalendarView
 import com.example.fizyoapp.presentation.appointment.booking.TimeSlotGrid
+import com.example.fizyoapp.presentation.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -38,8 +39,6 @@ fun PhysiotherapistCalendarScreen(
     viewModel: PhysiotherapistCalendarViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val primaryColor = Color(0xFF3B3E68)
-    val accentColor = Color(0xFF6D72C3)
     var selectedAppointment by remember { mutableStateOf<Appointment?>(null) }
     var showRehabilitationDialog by remember { mutableStateOf(false) }
     var showUserDetailsDialog by remember { mutableStateOf(false) }
@@ -74,7 +73,7 @@ fun PhysiotherapistCalendarScreen(
                         showCancelDialog = false
                         appointmentToCancel = null
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    colors = ButtonDefaults.buttonColors(containerColor = errorColor)
                 ) {
                     Text("Evet, İptal Et", color = Color.White)
                 }
@@ -148,20 +147,20 @@ fun PhysiotherapistCalendarScreen(
                             Icon(
                                 imageVector = Icons.Default.Error,
                                 contentDescription = null,
-                                tint = Color(0xFFB71C1C),
+                                tint = errorColor,
                                 modifier = Modifier.size(48.dp)
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = state.error!!,
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = Color(0xFFB71C1C),
+                                color = errorColor,
                                 textAlign = TextAlign.Center
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(
                                 onClick = { viewModel.onEvent(PhysiotherapistCalendarEvent.Refresh) },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B3E68))
+                                colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Refresh,
@@ -230,7 +229,6 @@ fun PhysiotherapistCalendarScreen(
                             }
                         }
                     }
-
                     CalendarView(
                         currentMonth = selectedMonth,
                         onDateSelected = { date ->
@@ -238,9 +236,7 @@ fun PhysiotherapistCalendarScreen(
                         },
                         selectedDate = state.selectedDate
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Text(
                         text = "Bugünkü Randevularım",
                         style = MaterialTheme.typography.titleMedium,
@@ -250,14 +246,12 @@ fun PhysiotherapistCalendarScreen(
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
                     )
-
                     val selectedDate = state.selectedDate
                     val todayAppointments = if (selectedDate != null) {
                         viewModel.getFilteredAppointmentsForDate(selectedDate)
                     } else {
                         emptyList()
                     }
-
                     if (todayAppointments.isEmpty()) {
                         Card(
                             modifier = Modifier
@@ -304,9 +298,7 @@ fun PhysiotherapistCalendarScreen(
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Text(
                         text = "Müsait Saatler",
                         style = MaterialTheme.typography.titleMedium,
@@ -316,7 +308,6 @@ fun PhysiotherapistCalendarScreen(
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
                     )
-
                     if (state.availableTimeSlots.isEmpty()) {
                         Card(
                             modifier = Modifier
@@ -362,17 +353,15 @@ fun PhysiotherapistCalendarScreen(
                             }
                         )
                     }
-
                     Spacer(modifier = Modifier.height(80.dp))
                 }
             }
-
             if (state.success != null) {
                 Snackbar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
-                    containerColor = Color(0xFF43A047)
+                    containerColor = successColor
                 ) {
                     Text(
                         text = state.success!!,
@@ -425,7 +414,6 @@ fun AppointmentCard(
     onUserDetailsClick: (String) -> Unit,
     onCancelClick: (String) -> Unit
 ) {
-    val primaryColor = Color(0xFF3B3E68)
     val isCancelledByUser = appointment.status == AppointmentStatus.CANCELLED &&
             appointment.cancelledBy == "user"
 
@@ -436,7 +424,7 @@ fun AppointmentCard(
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isCancelledByUser) Color(0xFFFFEBEE) else Color.White
+            containerColor = if (isCancelledByUser) Color(0xFFFFEBEE) else surfaceColor
         )
     ) {
         Column(
@@ -454,18 +442,18 @@ fun AppointmentCard(
                     Icon(
                         imageVector = Icons.Default.Cancel,
                         contentDescription = "İptal",
-                        tint = Color.Red,
+                        tint = errorColor,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Hasta randevusunu iptal etmiştir",
-                        color = Color.Red,
+                        color = errorColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
                 }
-                HorizontalDivider(color = Color.Red.copy(alpha = 0.3f))
+                HorizontalDivider(color = errorColor.copy(alpha = 0.3f))
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
@@ -479,7 +467,7 @@ fun AppointmentCard(
                         .clip(CircleShape)
                         .background(
                             if (isCancelledByUser)
-                                Color.Red.copy(alpha = 0.1f)
+                                errorColor.copy(alpha = 0.1f)
                             else
                                 primaryColor.copy(alpha = 0.1f)
                         ),
@@ -496,7 +484,7 @@ fun AppointmentCard(
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "Profil",
-                            tint = if (isCancelledByUser) Color.Red else Color.White,
+                            tint = if (isCancelledByUser) errorColor else surfaceColor,
                             modifier = Modifier.size(30.dp)
                         )
                     }
@@ -511,7 +499,7 @@ fun AppointmentCard(
                         text = appointment.userName.ifEmpty { "İsimsiz Hasta" },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = if (isCancelledByUser) Color.Red else primaryColor
+                        color = if (isCancelledByUser) errorColor else primaryColor
                     )
                     Text(
                         text = "${SimpleDateFormat("dd MMM yyyy", Locale("tr")).format(appointment.date)}, ${appointment.timeSlot}",
@@ -526,14 +514,14 @@ fun AppointmentCard(
                         text = typeText,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
-                        color = if (isCancelledByUser) Color.Red else primaryColor
+                        color = if (isCancelledByUser) errorColor else primaryColor
                     )
 
                     if (isCancelledByUser && appointment.cancelledAt != null) {
                         Text(
                             text = "İptal tarihi: ${SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("tr")).format(appointment.cancelledAt)}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Red,
+                            color = errorColor,
                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
                         )
                     }
@@ -565,7 +553,7 @@ fun AppointmentCard(
                             Icon(
                                 imageVector = Icons.Default.Cancel,
                                 contentDescription = "İptal Et",
-                                tint = Color.Red
+                                tint = errorColor
                             )
                         }
                     }
@@ -712,7 +700,7 @@ fun UserDetailsDialog(
                 Text(
                     text = "Hata: ${userDetailsState.error}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Red
+                    color = errorColor
                 )
             } else {
                 val profile = userDetailsState.userProfile

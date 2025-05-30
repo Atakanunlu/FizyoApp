@@ -42,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -60,12 +61,6 @@ fun UserProfileSetupScreen(
     var showGenderDialog by remember { mutableStateOf(false) }
     var showPhotoOptionsDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
-
-    val primaryColor = Color(0xFF3B3E68)
-    val accentColor = Color(0xFF6D72C3)
-    val backgroundColor = Color(0xFFF8F9FC)
-    val cardColor = Color.White
-    val errorColor = Color(0xFFE57373)
     val dateFormatter = remember { SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()) }
 
     val photoFile = remember {
@@ -162,7 +157,7 @@ fun UserProfileSetupScreen(
                     .padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = cardColor
+                    containerColor = surfaceColor
                 ),
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 6.dp
@@ -176,7 +171,6 @@ fun UserProfileSetupScreen(
                         color = primaryColor,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-
                     PhotoOptionItem(
                         icon = Icons.Filled.Camera,
                         text = "Kameradan Çek",
@@ -197,9 +191,7 @@ fun UserProfileSetupScreen(
                         }
                         showPhotoOptionsDialog = false
                     }
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     PhotoOptionItem(
                         icon = Icons.Filled.PhotoLibrary,
                         text = "Galeriden Seç",
@@ -217,7 +209,6 @@ fun UserProfileSetupScreen(
                         }
                         showPhotoOptionsDialog = false
                     }
-
                     if (selectedImageUri != null || (state.profilePhotoUrl.isNotEmpty() && state.profilePhotoUrl != "null")) {
                         Spacer(modifier = Modifier.height(8.dp))
                         PhotoOptionItem(
@@ -230,7 +221,6 @@ fun UserProfileSetupScreen(
                             showPhotoOptionsDialog = false
                         }
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = { showPhotoOptionsDialog = false },
@@ -266,11 +256,11 @@ fun UserProfileSetupScreen(
                 }
             },
             colors = DatePickerDefaults.colors(
-                containerColor = cardColor,
+                containerColor = surfaceColor,
                 titleContentColor = primaryColor,
                 headlineContentColor = primaryColor,
                 weekdayContentColor = accentColor,
-                subheadContentColor = Color.Gray,
+                subheadContentColor = textColor,
                 yearContentColor = accentColor,
                 currentYearContentColor = primaryColor,
                 selectedYearContainerColor = accentColor,
@@ -289,7 +279,7 @@ fun UserProfileSetupScreen(
                     .padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = cardColor
+                    containerColor = surfaceColor
                 ),
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 6.dp
@@ -303,7 +293,6 @@ fun UserProfileSetupScreen(
                         color = primaryColor,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-
                     GenderOptionItem(
                         selected = state.gender == "Erkek",
                         text = "Erkek",
@@ -312,7 +301,6 @@ fun UserProfileSetupScreen(
                         viewModel.onEvent(UserProfileEvent.GenderChanged("Erkek"))
                         showGenderDialog = false
                     }
-
                     GenderOptionItem(
                         selected = state.gender == "Kadın",
                         text = "Kadın",
@@ -321,7 +309,6 @@ fun UserProfileSetupScreen(
                         viewModel.onEvent(UserProfileEvent.GenderChanged("Kadın"))
                         showGenderDialog = false
                     }
-
                     GenderOptionItem(
                         selected = state.gender == "Diğer",
                         text = "Diğer",
@@ -330,7 +317,6 @@ fun UserProfileSetupScreen(
                         viewModel.onEvent(UserProfileEvent.GenderChanged("Diğer"))
                         showGenderDialog = false
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = { showGenderDialog = false },
@@ -348,17 +334,14 @@ fun UserProfileSetupScreen(
     LaunchedEffect(key1 = state.isProfileSaved) {
         if (state.isProfileSaved) {
             if (isFirstSetup) {
-
                 navController.navigate(AppScreens.UserMainScreen.route) {
                     popUpTo(AppScreens.UserProfileSetupScreen.route) { inclusive = true }
                 }
             } else {
-
                 navController.popBackStack()
             }
         }
     }
-
 
     Scaffold(
         topBar = {
@@ -431,11 +414,10 @@ fun UserProfileSetupScreen(
                                     .clip(CircleShape),
                                 contentScale = ContentScale.Crop
                             )
-
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Black.copy(alpha = 0.3f))
+                                    .background(overlayColor)
                                     .clip(CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -460,7 +442,7 @@ fun UserProfileSetupScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Black.copy(alpha = 0.3f))
+                                    .background(overlayColor)
                                     .clip(CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -508,17 +490,16 @@ fun UserProfileSetupScreen(
                     }
                 }
             }
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = cardColor
+                    containerColor = surfaceColor
                 ),
                 elevation = CardDefaults.cardElevation(
-                    defaultElevation = 4.dp  // a4 hatası düzeltildi
+                    defaultElevation = 4.dp
                 )
             ) {
                 Column(
@@ -534,7 +515,6 @@ fun UserProfileSetupScreen(
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
-
                     ProfileTextField(
                         value = state.firstName,
                         onValueChange = { viewModel.onEvent(UserProfileEvent.FirstNameChanged(it)) },
@@ -545,9 +525,7 @@ fun UserProfileSetupScreen(
                         primaryColor = primaryColor,
                         errorColor = errorColor
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
 
                     ProfileTextField(
                         value = state.lastName,
@@ -559,9 +537,7 @@ fun UserProfileSetupScreen(
                         primaryColor = primaryColor,
                         errorColor = errorColor
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
 
                     ProfileClickableField(
                         value = state.birthDate?.let { dateFormatter.format(it) } ?: "",
@@ -574,9 +550,7 @@ fun UserProfileSetupScreen(
                         primaryColor = primaryColor,
                         errorColor = errorColor
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
 
                     ProfileClickableField(
                         value = state.gender,
@@ -592,14 +566,13 @@ fun UserProfileSetupScreen(
                 }
             }
 
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = cardColor
+                    containerColor = surfaceColor
                 ),
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 4.dp
@@ -618,7 +591,6 @@ fun UserProfileSetupScreen(
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
-
                     ProfileTextField(
                         value = state.city,
                         onValueChange = { viewModel.onEvent(UserProfileEvent.CityChanged(it)) },
@@ -629,9 +601,7 @@ fun UserProfileSetupScreen(
                         primaryColor = primaryColor,
                         errorColor = errorColor
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
 
                     ProfileTextField(
                         value = state.district,
@@ -643,9 +613,7 @@ fun UserProfileSetupScreen(
                         primaryColor = primaryColor,
                         errorColor = errorColor
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
 
                     ProfileTextField(
                         value = state.phoneNumber,
@@ -660,7 +628,6 @@ fun UserProfileSetupScreen(
                     )
                 }
             }
-
 
             if (state.errorMessage != null) {
                 Card(
@@ -693,7 +660,6 @@ fun UserProfileSetupScreen(
                     }
                 }
             }
-
 
             Button(
                 onClick = { viewModel.onEvent(UserProfileEvent.SaveProfile) },
@@ -728,7 +694,6 @@ fun UserProfileSetupScreen(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -764,7 +729,7 @@ fun PhotoOptionItem(
             Text(
                 text = text,
                 fontSize = 16.sp,
-                color = if (icon == Icons.Default.Delete) iconTint else Color.DarkGray
+                color = if (icon == Icons.Default.Delete) errorColor else textColor
             )
         }
     }
@@ -801,7 +766,7 @@ fun GenderOptionItem(
             Text(
                 text = text,
                 fontSize = 16.sp,
-                color = if (selected) accentColor else Color.DarkGray,
+                color = if (selected) accentColor else textColor,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
             )
         }
@@ -838,7 +803,7 @@ fun ProfileTextField(
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = primaryColor,
-                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                unfocusedBorderColor = cardBorderColor,
                 focusedLabelColor = primaryColor,
                 cursorColor = primaryColor,
                 errorBorderColor = errorColor,
@@ -908,7 +873,7 @@ fun ProfileClickableField(
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = primaryColor,
-                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
+                unfocusedBorderColor = cardBorderColor,
                 focusedLabelColor = primaryColor,
                 cursorColor = primaryColor,
                 errorBorderColor = errorColor,

@@ -32,12 +32,8 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -191,9 +187,7 @@ fun CreatePostScreen(
                                 )
                             }
                         }
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         OutlinedTextField(
                             value = state.content,
                             onValueChange = { viewModel.onEvent(CreatePostEvent.ContentChanged(it)) },
@@ -209,9 +203,7 @@ fun CreatePostScreen(
                             ),
                             maxLines = 10
                         )
-
                         Spacer(modifier = Modifier.height(16.dp))
-
                         if (state.mediaUris.isNotEmpty()) {
                             LazyRow(
                                 modifier = Modifier.fillMaxWidth(),
@@ -236,7 +228,7 @@ fun CreatePostScreen(
                                                 .align(Alignment.TopEnd)
                                                 .size(24.dp)
                                                 .clip(CircleShape)
-                                                .background(Color.Black.copy(alpha = 0.6f))
+                                                .background(overlayColor)
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Close,
@@ -250,7 +242,6 @@ fun CreatePostScreen(
                             }
                             Spacer(modifier = Modifier.height(16.dp))
                         }
-
                         Button(
                             onClick = { showMediaOptions = true },
                             modifier = Modifier.fillMaxWidth(),
@@ -269,12 +260,11 @@ fun CreatePostScreen(
                         }
                     }
                 }
-
                 if (state.error != null) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE)),
+                        colors = CardDefaults.cardColors(containerColor = errorColor.copy(alpha = 0.1f)),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
@@ -286,23 +276,22 @@ fun CreatePostScreen(
                             Icon(
                                 imageVector = Icons.Default.Error,
                                 contentDescription = null,
-                                tint = Color(0xFFB71C1C)
+                                tint = errorColor
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = state.error!!,
-                                color = Color(0xFFB71C1C)
+                                color = errorColor
                             )
                         }
                     }
                 }
             }
-
             if (state.isLoading) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)),
+                        .background(overlayColor),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = primaryColor)

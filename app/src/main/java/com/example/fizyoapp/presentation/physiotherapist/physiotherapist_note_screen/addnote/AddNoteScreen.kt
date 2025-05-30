@@ -32,14 +32,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.note.NoteColor
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.*
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -179,6 +175,7 @@ fun AddNoteScreen(
                             )
                         }
                     }
+
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -240,6 +237,7 @@ fun AddNoteScreen(
                             )
                         }
                     }
+
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -311,7 +309,7 @@ fun AddNoteScreen(
                                                     .align(Alignment.TopEnd)
                                                     .size(32.dp)
                                                     .background(
-                                                        Color(0xFFB71C1C).copy(alpha = 0.7f),
+                                                        errorColor.copy(alpha = 0.7f),
                                                         CircleShape
                                                     )
                                             ) {
@@ -432,6 +430,7 @@ fun AddNoteScreen(
                             }
                         }
                     }
+
                     Button(
                         onClick = { viewModel.onEvent(AddNoteEvent.SaveNote) },
                         modifier = Modifier
@@ -464,7 +463,7 @@ fun AddNoteScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFFFEBEE)
+                                containerColor = errorColor.copy(alpha = 0.1f)
                             ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
@@ -477,12 +476,12 @@ fun AddNoteScreen(
                                 Icon(
                                     Icons.Default.Error,
                                     contentDescription = null,
-                                    tint = Color(0xFFB71C1C)
+                                    tint = errorColor
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = state.error,
-                                    color = Color(0xFFB71C1C)
+                                    color = errorColor
                                 )
                             }
                         }
@@ -496,19 +495,19 @@ fun AddNoteScreen(
 @Composable
 private fun NoteColorOptions(selectedColor: NoteColor, viewModel: AddNoteViewModel) {
     ColorOption(
-        color = Color.White,
+        color = noteWhiteColor,
         selected = selectedColor == NoteColor.WHITE,
         label = "Beyaz",
         onSelect = { viewModel.onEvent(AddNoteEvent.ColorChanged(NoteColor.WHITE)) }
     )
     ColorOption(
-        color = Color(0xFFFFF9C4),
+        color = noteLightYellowColor,
         selected = selectedColor == NoteColor.LIGHT_YELLOW,
         label = "Sarı",
         onSelect = { viewModel.onEvent(AddNoteEvent.ColorChanged(NoteColor.LIGHT_YELLOW)) }
     )
     ColorOption(
-        color = Color(0xFFFFE0B2),
+        color = noteOrangeColor,
         selected = selectedColor == NoteColor.ORANGE,
         label = "Turuncu",
         onSelect = { viewModel.onEvent(AddNoteEvent.ColorChanged(NoteColor.ORANGE)) }
@@ -530,7 +529,7 @@ fun ColorOption(
                 .background(color)
                 .border(
                     width = if (selected) 3.dp else 1.dp,
-                    color = if (selected) primaryColor else Color.LightGray,
+                    color = if (selected) primaryColor else cardBorderColor,
                     shape = CircleShape
                 )
                 .clickable(onClick = onSelect)
@@ -590,7 +589,7 @@ fun DocumentItem(uri: Uri, onRemove: () -> Unit) {
                 Icon(
                     Icons.Default.Close,
                     contentDescription = "Kaldır",
-                    tint = Color(0xFFB71C1C)
+                    tint = errorColor
                 )
             }
         }

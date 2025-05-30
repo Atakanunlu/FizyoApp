@@ -68,7 +68,7 @@ fun HastaliklarimScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // Başlık ve açıklama
+
                 Text(
                     text = "Sağlık Dokümantasyonu",
                     fontSize = 24.sp,
@@ -90,7 +90,6 @@ fun HastaliklarimScreen(
                         .padding(bottom = 16.dp)
                 )
 
-                // Butonlar
                 HealthDocumentButton(
                     title = "Radyolojik Görüntüler",
                     description = "MR, Röntgen, Ultrason ve diğer görüntüleme kayıtlarınız",

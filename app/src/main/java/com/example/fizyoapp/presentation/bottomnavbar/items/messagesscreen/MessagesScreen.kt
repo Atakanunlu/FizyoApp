@@ -1,21 +1,16 @@
 package com.example.fizyoapp.presentation.bottomnavbar.items.messagesscreen
+
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import java.text.SimpleDateFormat
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.ChatBubbleOutline
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,7 +33,9 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.fizyoapp.domain.model.messagesscreen.ChatThread
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -51,10 +48,6 @@ fun MessagesScreen(
     viewModel: MessagesScreenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val primaryColor = Color(0xFF3B3E68)
-    val backgroundColor = Color(0xFFF8F9FC)
-    val accentColor = Color(0xFF6D72C3)
-    val cardColor = Color.White
 
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
@@ -79,7 +72,7 @@ fun MessagesScreen(
                         Icon(
                             imageVector = Icons.Default.Chat,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = surfaceColor,
                             modifier = Modifier.size(26.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -95,13 +88,13 @@ fun MessagesScreen(
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Geri",
-                            tint = Color.White
+                            tint = surfaceColor
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = primaryColor,
-                    titleContentColor = Color.White
+                    titleContentColor = surfaceColor
                 ),
                 actions = {
                     IconButton(onClick = {
@@ -110,7 +103,7 @@ fun MessagesScreen(
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Yenile",
-                            tint = Color.White
+                            tint = surfaceColor
                         )
                     }
                 }
@@ -136,7 +129,7 @@ fun MessagesScreen(
                             Text(
                                 text = "Mesajlar yükleniyor...",
                                 fontSize = 16.sp,
-                                color = Color.Gray
+                                color = textColor
                             )
                         }
                     }
@@ -150,7 +143,7 @@ fun MessagesScreen(
                             Icon(
                                 imageVector = Icons.Default.ErrorOutline,
                                 contentDescription = null,
-                                tint = Color.Red.copy(alpha = 0.7f),
+                                tint = errorColor.copy(alpha = 0.7f),
                                 modifier = Modifier.size(70.dp)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
@@ -159,7 +152,7 @@ fun MessagesScreen(
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Medium,
                                 textAlign = TextAlign.Center,
-                                color = Color.DarkGray
+                                color = textColor
                             )
                             Spacer(modifier = Modifier.height(24.dp))
                             Button(
@@ -189,7 +182,7 @@ fun MessagesScreen(
                             Icon(
                                 imageVector = Icons.Default.ChatBubbleOutline,
                                 contentDescription = null,
-                                tint = Color.Gray.copy(alpha = 0.7f),
+                                tint = textColor.copy(alpha = 0.7f),
                                 modifier = Modifier.size(80.dp)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
@@ -198,14 +191,14 @@ fun MessagesScreen(
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Medium,
                                 textAlign = TextAlign.Center,
-                                color = Color.DarkGray
+                                color = textColor
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Fizyoterapistlerle iletişime geçerek yeni konuşmalar başlatabilirsiniz",
                                 fontSize = 14.sp,
                                 textAlign = TextAlign.Center,
-                                color = Color.Gray
+                                color = textColor
                             )
                         }
                     }
@@ -236,8 +229,6 @@ fun MessagesScreen(
                                         navController.navigate(AppScreens.MessagesDetailScreen.createMessageDetailRoute(otherUserId))
                                     } else if (chatThread.participantIds.isNotEmpty()) {
                                         navController.navigate(AppScreens.MessagesDetailScreen.createMessageDetailRoute(chatThread.participantIds[0]))
-                                    } else {
-                                        android.util.Log.e("IDDebug", "Geçerli katılımcı ID'si bulunamadı!")
                                     }
                                 }
                             )
@@ -255,20 +246,13 @@ fun ModernChatThreadItem(
     onClick: () -> Unit
 ) {
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-
-    val accentColor = Color(0xFF6D72C3)
-
     val iLastSentMessage = chatThread.lastMessageSenderId == currentUserId
-
-
     val hasUnreadMessages = chatThread.unreadCount > 0 && !iLastSentMessage
-
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-
             .then(if (hasUnreadMessages) Modifier.border(
                 width = 2.dp,
                 color = accentColor,
@@ -277,8 +261,7 @@ fun ModernChatThreadItem(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-
-            containerColor = if (hasUnreadMessages) Color(0xFFF0F2FF) else Color.White
+            containerColor = if (hasUnreadMessages) Color(0xFFF0F2FF) else surfaceColor
         )
     ) {
         Row(
@@ -295,8 +278,8 @@ fun ModernChatThreadItem(
                     .background(
                         brush = Brush.linearGradient(
                             colors = listOf(
-                                Color(0xFF3B3E68),
-                                Color(0xFF6D72C3)
+                                primaryColor,
+                                accentColor
                             )
                         )
                     ),
@@ -313,12 +296,10 @@ fun ModernChatThreadItem(
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Profil",
-                        tint = Color.White,
+                        tint = surfaceColor,
                         modifier = Modifier.size(32.dp)
                     )
                 }
-
-
                 if (hasUnreadMessages) {
                     Box(
                         modifier = Modifier
@@ -326,12 +307,12 @@ fun ModernChatThreadItem(
                             .align(Alignment.TopEnd)
                             .offset(x = 6.dp, y = (-6).dp)
                             .clip(CircleShape)
-                            .background(Color.Red),
+                            .background(errorColor),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = if (chatThread.unreadCount > 9) "9+" else chatThread.unreadCount.toString(),
-                            color = Color.White,
+                            color = surfaceColor,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -352,18 +333,16 @@ fun ModernChatThreadItem(
                     Text(
                         text = chatThread.otherParticipantName,
                         fontSize = 17.sp,
-
                         fontWeight = if (hasUnreadMessages) FontWeight.Bold else FontWeight.SemiBold,
-                        color = Color(0xFF3B3E68),
+                        color = primaryColor,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
-
                     Box(
                         modifier = Modifier
                             .background(
-                                color = Color(0xFFF0F0F6),
+                                color = backgroundColor,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -371,8 +350,7 @@ fun ModernChatThreadItem(
                         Text(
                             text = DateFormatter.formatDate(chatThread.lastMessageTimestamp),
                             fontSize = 12.sp,
-
-                            color = if (hasUnreadMessages) Color.DarkGray else Color.Gray,
+                            color = if (hasUnreadMessages) textColor else Color.Gray,
                             fontWeight = if (hasUnreadMessages) FontWeight.Medium else FontWeight.Normal
                         )
                     }
@@ -387,14 +365,12 @@ fun ModernChatThreadItem(
                     Text(
                         text = chatThread.lastMessage,
                         fontSize = 14.sp,
-
-                        color = if (hasUnreadMessages) Color.Black else Color.DarkGray,
+                        color = if (hasUnreadMessages) Color.Black else textColor,
                         fontWeight = if (hasUnreadMessages) FontWeight.Medium else FontWeight.Normal,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
-
                     if (hasUnreadMessages) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Box(
@@ -406,7 +382,7 @@ fun ModernChatThreadItem(
                         ) {
                             Text(
                                 text = chatThread.unreadCount.toString(),
-                                color = Color.White,
+                                color = surfaceColor,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -417,6 +393,7 @@ fun ModernChatThreadItem(
         }
     }
 }
+
 object DateFormatter {
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     private val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale("tr"))
@@ -431,12 +408,10 @@ object DateFormatter {
         val today = Calendar.getInstance()
         calendar.time = date
 
-
         if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
             calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
             return timeFormat.format(date)
         }
-
 
         val yesterday = Calendar.getInstance()
         yesterday.add(Calendar.DAY_OF_YEAR, -1)
@@ -445,11 +420,9 @@ object DateFormatter {
             return "Dün"
         }
 
-
         if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR)) {
             return shortDateFormat.format(date)
         }
-
 
         return dateFormat.format(date)
     }
@@ -459,12 +432,10 @@ object DateFormatter {
         val today = Calendar.getInstance()
         calendar.time = date
 
-
         if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
             calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
             return "Bugün"
         }
-
 
         val yesterday = Calendar.getInstance()
         yesterday.add(Calendar.DAY_OF_YEAR, -1)
@@ -473,7 +444,6 @@ object DateFormatter {
             return "Dün"
         }
 
-
         val currentWeek = Calendar.getInstance()
         currentWeek.add(Calendar.DAY_OF_YEAR, -7)
         if (date.after(currentWeek.time)) {
@@ -481,10 +451,8 @@ object DateFormatter {
             return dayFormat.format(date).capitalize(Locale("tr"))
         }
 
-
         return dateFormat.format(date)
     }
-
 
     fun getMessageDay(date: Date): String {
         return formatMessageDate(date)

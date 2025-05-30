@@ -43,14 +43,9 @@ import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanItem
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.DatePickerField
 import com.example.fizyoapp.presentation.physiotherapist.physiotherapist_exercise_management_screen.MediaViewer
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val accentColor = Color(59, 62, 104)
-private val textColor = Color.DarkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -157,7 +152,7 @@ fun CreateExercisePlanScreen(
                                 state.titleError?.let {
                                     Text(
                                         text = it,
-                                        color = Color.Red
+                                        color = errorColor
                                     )
                                 }
                             },
@@ -210,7 +205,9 @@ fun CreateExercisePlanScreen(
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -258,7 +255,9 @@ fun CreateExercisePlanScreen(
                                 cursorColor = primaryColor
                             )
                         )
+
                         Spacer(modifier = Modifier.height(16.dp))
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -276,7 +275,9 @@ fun CreateExercisePlanScreen(
                                 modifier = Modifier.weight(1f)
                             )
                         }
+
                         Spacer(modifier = Modifier.height(16.dp))
+
                         OutlinedTextField(
                             value = state.frequency,
                             onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.FrequencyChanged(it)) },
@@ -299,7 +300,9 @@ fun CreateExercisePlanScreen(
                                 cursorColor = primaryColor
                             )
                         )
+
                         Spacer(modifier = Modifier.height(16.dp))
+
                         OutlinedTextField(
                             value = state.notes,
                             onValueChange = { viewModel.onEvent(CreateExercisePlanEvent.NotesChanged(it)) },
@@ -323,7 +326,9 @@ fun CreateExercisePlanScreen(
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -367,7 +372,9 @@ fun CreateExercisePlanScreen(
                                 Text("Egzersiz Ekle")
                             }
                         }
+
                         Spacer(modifier = Modifier.height(8.dp))
+
                         AnimatedVisibility(visible = state.exercises.isNotEmpty()) {
                             Column {
                                 state.exercises.forEachIndexed { index, exercise ->
@@ -395,10 +402,11 @@ fun CreateExercisePlanScreen(
                         }
                     }
                 }
+
                 Spacer(modifier = Modifier.height(24.dp))
+
                 Button(
                     onClick = {
-                        Log.d("CreateExercisePlanScreen", "Save button clicked, isLoading: ${state.isLoading}")
                         if (!state.isLoading) {
                             viewModel.onEvent(CreateExercisePlanEvent.SavePlan)
                         }
@@ -445,6 +453,7 @@ fun CreateExercisePlanScreen(
                         }
                     }
                 }
+
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
@@ -663,7 +672,9 @@ fun PatientListItem(
                     )
                 }
             }
+
             Spacer(modifier = Modifier.width(16.dp))
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -674,6 +685,7 @@ fun PatientListItem(
                     color = if (isSelected) primaryColor else textColor
                 )
             }
+
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
@@ -729,7 +741,9 @@ fun ExerciseSelectionItem(
                     )
                 }
             }
+
             Spacer(modifier = Modifier.width(16.dp))
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -745,6 +759,7 @@ fun ExerciseSelectionItem(
                     color = textColor.copy(alpha = 0.7f)
                 )
             }
+
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
@@ -798,6 +813,7 @@ fun ExerciseListItem(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
             }
+
             Text(
                 text = exercise.exerciseTitle,
                 style = MaterialTheme.typography.bodyLarge,
@@ -805,6 +821,7 @@ fun ExerciseListItem(
                 modifier = Modifier.weight(1f),
                 color = textColor
             )
+
             IconButton(onClick = { expanded = !expanded }) {
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
@@ -812,14 +829,16 @@ fun ExerciseListItem(
                     tint = primaryColor
                 )
             }
+
             IconButton(onClick = onRemoveClick) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Kaldır",
-                    tint = Color.Red
+                    tint = errorColor
                 )
             }
         }
+
         AnimatedVisibility(visible = expanded) {
             Column(
                 modifier = Modifier
@@ -849,12 +868,14 @@ fun ExerciseListItem(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
                             )
+
                             if (exercise.mediaTypes[firstMediaUrl] == ExerciseType.VIDEO ||
                                 firstMediaUrl.contains("video") ||
                                 firstMediaUrl.contains(".mp4") ||
                                 firstMediaUrl.contains(".mov") ||
                                 firstMediaUrl.contains(".avi") ||
                                 firstMediaUrl.contains(".webm")) {
+
                                 Box(
                                     modifier = Modifier.fillMaxSize(),
                                     contentAlignment = Alignment.Center
@@ -865,16 +886,17 @@ fun ExerciseListItem(
                                         tint = Color.White,
                                         modifier = Modifier
                                             .size(48.dp)
-                                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                            .background(overlayColor, CircleShape)
                                             .padding(8.dp)
                                     )
                                 }
+
                                 Box(
                                     modifier = Modifier
                                         .align(Alignment.BottomStart)
                                         .padding(16.dp)
                                         .background(
-                                            color = Color.Black.copy(alpha = 0.6f),
+                                            color = overlayColor,
                                             shape = RoundedCornerShape(4.dp)
                                         )
                                         .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -890,6 +912,7 @@ fun ExerciseListItem(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -913,6 +936,7 @@ fun ExerciseListItem(
                             cursorColor = primaryColor
                         )
                     )
+
                     OutlinedTextField(
                         value = repetitions,
                         onValueChange = {
@@ -932,6 +956,7 @@ fun ExerciseListItem(
                             cursorColor = primaryColor
                         )
                     )
+
                     OutlinedTextField(
                         value = duration,
                         onValueChange = {
@@ -952,7 +977,9 @@ fun ExerciseListItem(
                         )
                     )
                 }
+
                 Spacer(modifier = Modifier.height(8.dp))
+
                 OutlinedTextField(
                     value = notes,
                     onValueChange = {
@@ -972,6 +999,7 @@ fun ExerciseListItem(
                 )
             }
         }
+
         if (showMediaViewer && selectedMediaUrl.isNotEmpty()) {
             val mediaType = if (exercise.mediaTypes.containsKey(selectedMediaUrl)) {
                 if (exercise.mediaTypes[selectedMediaUrl] == ExerciseType.VIDEO) "video" else "image"
@@ -1003,6 +1031,7 @@ fun MediaPreviewItem(
             uri.contains("video") || uri.contains(".mp4") ||
             uri.contains(".mov") || uri.contains(".avi") ||
             uri.contains(".webm")
+
     Box(
         modifier = Modifier
             .size(size)
@@ -1013,7 +1042,7 @@ fun MediaPreviewItem(
             .clip(RoundedCornerShape(8.dp))
             .border(
                 width = 1.dp,
-                color = textColor.copy(alpha = 0.2f),
+                color = cardBorderColor,
                 shape = RoundedCornerShape(8.dp)
             )
             .clickable(onClick = onClick)
@@ -1027,6 +1056,7 @@ fun MediaPreviewItem(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -1041,6 +1071,7 @@ fun MediaPreviewItem(
                     )
                 )
         )
+
         onRemove?.let {
             IconButton(
                 onClick = it,
@@ -1049,7 +1080,7 @@ fun MediaPreviewItem(
                     .padding(4.dp)
                     .size(24.dp)
                     .background(
-                        color = Color.Red.copy(alpha = 0.7f),
+                        color = errorColor.copy(alpha = 0.7f),
                         shape = CircleShape
                     )
             ) {
@@ -1061,13 +1092,14 @@ fun MediaPreviewItem(
                 )
             }
         }
+
         if (isVideo) {
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .size(size / 3)
                     .background(
-                        color = Color.Black.copy(alpha = 0.6f),
+                        color = overlayColor,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -1079,13 +1111,14 @@ fun MediaPreviewItem(
                     modifier = Modifier.size(size / 5)
                 )
             }
+
             if (size >= 80.dp) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(4.dp)
                         .background(
-                            color = Color.Black.copy(alpha = 0.6f),
+                            color = overlayColor,
                             shape = RoundedCornerShape(4.dp)
                         )
                         .padding(horizontal = 6.dp, vertical = 2.dp)

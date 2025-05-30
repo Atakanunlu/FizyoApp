@@ -28,6 +28,7 @@ import androidx.navigation.NavController
 import com.example.fizyoapp.data.util.capitalize
 import com.example.fizyoapp.domain.model.appointment.AppointmentType
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,8 +40,6 @@ fun AppointmentBookingScreen(
     viewModel: AppointmentBookingViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val primaryColor = Color(0xFF3B3E68)
-    val accentColor = Color(0xFF6D72C3)
     var selectedMonth by remember { mutableStateOf(0) }
 
     LaunchedEffect(state.selectedDate) {
@@ -130,7 +129,7 @@ fun AppointmentBookingScreen(
                             .fillMaxWidth()
                             .padding(bottom = 16.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(containerColor = surfaceColor)
                     ) {
                         Column(
                             modifier = Modifier
@@ -266,10 +265,7 @@ fun AppointmentBookingScreen(
                             ),
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
-
-
                         val allTimeSlots = (state.availableTimeSlots + state.bookedTimeSlots).distinct().sorted()
-
                         if (allTimeSlots.isEmpty()) {
                             Card(
                                 modifier = Modifier
@@ -286,7 +282,7 @@ fun AppointmentBookingScreen(
                                     Icon(
                                         imageVector = Icons.Default.Info,
                                         contentDescription = null,
-                                        tint = Color(0xFFFF9800)
+                                        tint = warningColor
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
@@ -305,7 +301,7 @@ fun AppointmentBookingScreen(
                                 onTimeSlotSelected = { timeSlot ->
                                     viewModel.onEvent(AppointmentBookingEvent.TimeSlotSelected(timeSlot))
                                 },
-                                disabledTimeSlots = state.bookedTimeSlots  // Pass booked slots to disable them
+                                disabledTimeSlots = state.bookedTimeSlots
                             )
                         }
                     } else {
@@ -324,7 +320,7 @@ fun AppointmentBookingScreen(
                                 Icon(
                                     imageVector = Icons.Default.Info,
                                     contentDescription = null,
-                                    tint = Color(0xFF2196F3)
+                                    tint = infoColor
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
@@ -378,7 +374,7 @@ fun AppointmentBookingScreen(
                             )
                         }
                     },
-                    containerColor = Color(0xFFB71C1C)
+                    containerColor = errorColor
                 ) {
                     Text(
                         text = state.error!!,
@@ -396,7 +392,6 @@ fun CalendarView(
     onDateSelected: (Date) -> Unit,
     selectedDate: Date?
 ) {
-    val accentColor = Color(0xFF6D72C3)
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.MONTH, currentMonth)
     calendar.set(Calendar.DAY_OF_MONTH, 1)
@@ -422,10 +417,8 @@ fun CalendarView(
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
-
         val totalDays = firstDayOfMonth + daysInMonth
         val totalWeeks = (totalDays + 6) / 7
-
         for (week in 0 until totalWeeks) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -437,7 +430,6 @@ fun CalendarView(
                         val dateCalendar = Calendar.getInstance()
                         dateCalendar.add(Calendar.MONTH, currentMonth)
                         dateCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-
                         val isSelected = selectedDate?.let {
                             val selectedCal = Calendar.getInstance()
                             selectedCal.time = it
@@ -445,7 +437,6 @@ fun CalendarView(
                                     selectedCal.get(Calendar.MONTH) == dateCalendar.get(Calendar.MONTH) &&
                                     selectedCal.get(Calendar.DAY_OF_MONTH) == dateCalendar.get(Calendar.DAY_OF_MONTH)
                         } ?: false
-
                         val todayCal = Calendar.getInstance()
                         val isToday = todayCal.get(Calendar.YEAR) == dateCalendar.get(Calendar.YEAR) &&
                                 todayCal.get(Calendar.MONTH) == dateCalendar.get(Calendar.MONTH) &&
@@ -505,7 +496,6 @@ fun TimeSlotGrid(
     onTimeSlotSelected: (String) -> Unit,
     disabledTimeSlots: List<String> = emptyList()
 ) {
-    val accentColor = Color(0xFF6D72C3)
     val rows = timeSlots.chunked(4)
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -529,7 +519,7 @@ fun TimeSlotGrid(
                                 when {
                                     isDisabled -> Color.LightGray.copy(alpha = 0.5f)
                                     isSelected -> accentColor
-                                    else -> Color.White
+                                    else -> surfaceColor
                                 }
                             )
                             .border(
@@ -543,10 +533,8 @@ fun TimeSlotGrid(
                             )
                             .let {
                                 if (isDisabled) {
-
                                     it
                                 } else {
-
                                     it.clickable { onTimeSlotSelected(timeSlot) }
                                 }
                             }
@@ -561,7 +549,7 @@ fun TimeSlotGrid(
                                 color = when {
                                     isDisabled -> Color.Gray
                                     isSelected -> Color.White
-                                    else -> Color.DarkGray
+                                    else -> textColor
                                 }
                             )
                         )
@@ -585,7 +573,6 @@ fun TimeSlotGrid(
                     }
                 }
 
-
                 repeat(4 - rowSlots.size) {
                     Spacer(modifier = Modifier.weight(1f))
                 }
@@ -602,8 +589,6 @@ fun AppointmentTypeButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val accentColor = Color(0xFF6D72C3)
-
     OutlinedCard(
         modifier = modifier
             .height(100.dp)
@@ -613,7 +598,7 @@ fun AppointmentTypeButton(
             color = if (isSelected) accentColor else Color.LightGray
         ),
         colors = CardDefaults.outlinedCardColors(
-            containerColor = if (isSelected) accentColor.copy(alpha = 0.1f) else Color.White
+            containerColor = if (isSelected) accentColor.copy(alpha = 0.1f) else surfaceColor
         )
     ) {
         Column(

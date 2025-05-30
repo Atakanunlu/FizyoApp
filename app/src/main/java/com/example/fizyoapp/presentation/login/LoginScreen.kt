@@ -25,13 +25,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.domain.model.auth.UserRole
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val accentColor = Color(59, 62, 104)
-private val textColor = Color.DarkGray
 
 @Composable
 fun LoginScreen(
@@ -105,7 +100,6 @@ fun LoginScreen(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -134,7 +128,6 @@ fun LoginScreen(
                     )
                 }
             }
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = surfaceColor),
@@ -154,7 +147,6 @@ fun LoginScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
-
                     Text(
                         text = "Rol Seçin",
                         fontWeight = FontWeight.Medium,
@@ -163,7 +155,6 @@ fun LoginScreen(
                             .align(Alignment.Start)
                             .padding(bottom = 8.dp)
                     )
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -219,7 +210,6 @@ fun LoginScreen(
                         ),
                         shape = RoundedCornerShape(8.dp)
                     )
-
                     OutlinedTextField(
                         value = state.password,
                         onValueChange = { viewModel.onEvent(LoginEvent.PasswordChanged(it)) },
@@ -243,11 +233,10 @@ fun LoginScreen(
                         ),
                         shape = RoundedCornerShape(8.dp)
                     )
-
                     if (state.errorMessage != null) {
                         Text(
                             text = state.errorMessage,
-                            color = Color.Red,
+                            color = errorColor,
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -255,7 +244,6 @@ fun LoginScreen(
                             textAlign = TextAlign.Center
                         )
                     }
-
                     Button(
                         onClick = { viewModel.onEvent(LoginEvent.SignIn) },
                         modifier = Modifier
@@ -280,7 +268,6 @@ fun LoginScreen(
                             )
                         }
                     }
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

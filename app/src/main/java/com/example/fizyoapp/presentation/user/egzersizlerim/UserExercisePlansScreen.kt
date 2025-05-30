@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.user.egzersizlerim
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -29,15 +28,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanStatus
+import com.example.fizyoapp.presentation.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val accentColor = Color(59, 62, 104)
-private val textColor = Color.DarkGray
-private val lightGray = Color.Gray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +40,6 @@ fun UserExercisePlansScreen(
 ) {
     val state = viewModel.state.collectAsState().value
     val context = LocalContext.current
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -100,7 +92,6 @@ fun UserExercisePlansScreen(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     Text(
                         text = "Egzersiz Programınız",
                         fontSize = 24.sp,
@@ -111,20 +102,17 @@ fun UserExercisePlansScreen(
                             .padding(bottom = 8.dp),
                         textAlign = TextAlign.Center
                     )
-
                     Text(
                         text = "Fizyoterapistiniz tarafından size özel hazırlanan egzersiz programları",
                         fontSize = 16.sp,
-                        color = lightGray,
+                        color = textColor.copy(alpha = 0.5f),
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 16.dp)
                     )
 
-
                     val groupedPlans = state.exercisePlans.groupBy { it.status }
-
 
                     val activePlans = groupedPlans[ExercisePlanStatus.ACTIVE] ?: emptyList()
                     if (activePlans.isNotEmpty()) {
@@ -136,9 +124,7 @@ fun UserExercisePlansScreen(
                             navController = navController
                         )
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
 
                     val completedPlans = groupedPlans[ExercisePlanStatus.COMPLETED] ?: emptyList()
                     if (completedPlans.isNotEmpty()) {
@@ -150,9 +136,7 @@ fun UserExercisePlansScreen(
                             navController = navController
                         )
                     }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
 
                     val cancelledPlans = groupedPlans[ExercisePlanStatus.CANCELLED] ?: emptyList()
                     if (cancelledPlans.isNotEmpty()) {
@@ -165,13 +149,12 @@ fun UserExercisePlansScreen(
                         )
                     }
 
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 24.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = Color(230, 230, 250)
+                            containerColor = backgroundColor.copy(alpha = 0.7f)
                         ),
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 0.dp
@@ -189,16 +172,14 @@ fun UserExercisePlansScreen(
                                 tint = primaryColor,
                                 modifier = Modifier.size(24.dp)
                             )
-
                             Text(
                                 text = "Egzersiz planlarınızı düzenli olarak takip etmek iyileşme sürecinizi hızlandırır.",
                                 fontSize = 14.sp,
-                                color = Color.DarkGray,
+                                color = textColor,
                                 modifier = Modifier.padding(start = 12.dp)
                             )
                         }
                     }
-
                     Spacer(modifier = Modifier.height(24.dp))
                 }
             }
@@ -217,7 +198,6 @@ fun ExerciseStatusGroup(
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -230,9 +210,7 @@ fun ExerciseStatusGroup(
                 tint = primaryColor,
                 modifier = Modifier.size(28.dp)
             )
-
             Spacer(modifier = Modifier.width(12.dp))
-
             Column {
                 Text(
                     text = title,
@@ -240,17 +218,14 @@ fun ExerciseStatusGroup(
                     fontWeight = FontWeight.Bold,
                     color = primaryColor
                 )
-
                 Text(
                     text = description,
                     fontSize = 14.sp,
-                    color = lightGray
+                    color = textColor.copy(alpha = 0.5f)
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(8.dp))
-
 
         plans.forEach { plan ->
             ExercisePlanCardRedesigned(
@@ -259,7 +234,6 @@ fun ExerciseStatusGroup(
                     navController.navigate("exercise_plan_detail_screen/${plan.id}")
                 }
             )
-
             Spacer(modifier = Modifier.height(12.dp))
         }
     }
@@ -271,7 +245,6 @@ fun ExercisePlanCardRedesigned(
     onClick: () -> Unit
 ) {
     val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-
     Card(
         modifier = Modifier
             .fillMaxWidth(),
@@ -293,12 +266,11 @@ fun ExercisePlanCardRedesigned(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top
             ) {
-
                 Box(
                     modifier = Modifier
                         .size(64.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(59, 62, 104, 20)),
+                        .background(primaryColor.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -308,9 +280,7 @@ fun ExercisePlanCardRedesigned(
                         modifier = Modifier.size(32.dp)
                     )
                 }
-
                 Spacer(modifier = Modifier.width(16.dp))
-
 
                 Column(
                     modifier = Modifier.weight(1f)
@@ -327,13 +297,11 @@ fun ExercisePlanCardRedesigned(
                             color = primaryColor
                         )
 
-
                         val (color, text) = when (plan.status) {
-                            ExercisePlanStatus.ACTIVE -> Pair(Color(0, 150, 136), "Aktif")
-                            ExercisePlanStatus.COMPLETED -> Pair(Color(76, 175, 80), "Tamamlandı")
-                            ExercisePlanStatus.CANCELLED -> Pair(Color(244, 67, 54), "İptal")
+                            ExercisePlanStatus.ACTIVE -> Pair(easyColor, "Aktif")
+                            ExercisePlanStatus.COMPLETED -> Pair(greenColor, "Tamamlandı")
+                            ExercisePlanStatus.CANCELLED -> Pair(hardColor, "İptal")
                         }
-
                         Surface(
                             color = color.copy(alpha = 0.1f),
                             shape = RoundedCornerShape(12.dp)
@@ -347,7 +315,6 @@ fun ExercisePlanCardRedesigned(
                             )
                         }
                     }
-
                     if (plan.description.isNotBlank()) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
@@ -356,9 +323,7 @@ fun ExercisePlanCardRedesigned(
                             color = textColor.copy(alpha = 0.7f)
                         )
                     }
-
                     Spacer(modifier = Modifier.height(12.dp))
-
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -372,17 +337,13 @@ fun ExercisePlanCardRedesigned(
                                 "Tarih belirtilmedi"
                             }
                         )
-
                         Spacer(modifier = Modifier.width(16.dp))
-
                         InfoIcon(
                             icon = Icons.Default.FitnessCenter,
                             text = "${plan.exercises.size} egzersiz"
                         )
                     }
-
                     Spacer(modifier = Modifier.height(4.dp))
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -391,9 +352,7 @@ fun ExercisePlanCardRedesigned(
                             icon = Icons.Default.Repeat,
                             text = plan.frequency
                         )
-
                         Spacer(modifier = Modifier.width(16.dp))
-
                         InfoIcon(
                             icon = Icons.Default.Event,
                             text = "Oluşturulma: ${dateFormat.format(plan.createdAt)}"
@@ -401,9 +360,7 @@ fun ExercisePlanCardRedesigned(
                     }
                 }
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
 
             Button(
                 onClick = onClick,
@@ -466,7 +423,7 @@ fun EmptyPlansViewRedesigned() {
             modifier = Modifier
                 .size(120.dp)
                 .clip(RoundedCornerShape(24.dp))
-                .background(Color(59, 62, 104, 20)),
+                .background(primaryColor.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -476,9 +433,7 @@ fun EmptyPlansViewRedesigned() {
                 modifier = Modifier.size(64.dp)
             )
         }
-
         Spacer(modifier = Modifier.height(24.dp))
-
         Text(
             text = "Egzersiz Planı Bulunamadı",
             fontSize = 22.sp,
@@ -486,23 +441,19 @@ fun EmptyPlansViewRedesigned() {
             color = primaryColor,
             textAlign = TextAlign.Center
         )
-
         Spacer(modifier = Modifier.height(12.dp))
-
         Text(
             text = "Fizyoterapistiniz size egzersiz planı atadığında burada görüntülenecektir.",
             fontSize = 16.sp,
-            color = lightGray,
+            color = textColor.copy(alpha = 0.5f),
             textAlign = TextAlign.Center
         )
-
         Spacer(modifier = Modifier.height(32.dp))
-
 
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = Color(230, 230, 250)
+                containerColor = backgroundColor.copy(alpha = 0.7f)
             ),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 0.dp
@@ -520,11 +471,10 @@ fun EmptyPlansViewRedesigned() {
                     tint = primaryColor,
                     modifier = Modifier.size(24.dp)
                 )
-
                 Text(
                     text = "Fizyoterapistinizden egzersiz planınızı oluşturmasını isteyebilirsiniz.",
                     fontSize = 14.sp,
-                    color = Color.DarkGray,
+                    color = textColor,
                     modifier = Modifier.padding(start = 12.dp)
                 )
             }

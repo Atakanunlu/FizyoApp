@@ -1,6 +1,5 @@
 package com.example.fizyoapp.presentation.user.illnessrecord.evaluationforms
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.domain.model.illnesrecordscreen.evaluationforms.FormQuestion
 import com.example.fizyoapp.domain.model.illnesrecordscreen.evaluationforms.QuestionType
+import com.example.fizyoapp.presentation.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -32,11 +32,9 @@ fun EvaluationFormDetailScreen(
     viewModel: EvaluationFormDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-
     LaunchedEffect(key1 = formId) {
         viewModel.loadForm(formId)
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -50,7 +48,7 @@ fun EvaluationFormDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(59, 62, 104),
+                    containerColor = primaryColor,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
@@ -60,7 +58,7 @@ fun EvaluationFormDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(245, 245, 250))
+                .background(backgroundColor)
                 .padding(paddingValues)
         ) {
             if (state.isLoading) {
@@ -69,7 +67,7 @@ fun EvaluationFormDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
-                        color = Color(59, 62, 104)
+                        color = primaryColor
                     )
                 }
             } else if (state.error != null) {
@@ -83,7 +81,7 @@ fun EvaluationFormDetailScreen(
                     Icon(
                         imageVector = Icons.Default.Error,
                         contentDescription = null,
-                        tint = Color.Red.copy(alpha = 0.7f),
+                        tint = errorColor.copy(alpha = 0.7f),
                         modifier = Modifier.size(80.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -91,13 +89,13 @@ fun EvaluationFormDetailScreen(
                         text = state.error!!,
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        color = Color.DarkGray
+                        color = textColor
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
                         onClick = { viewModel.loadForm(formId) },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(59, 62, 104)
+                            containerColor = primaryColor
                         )
                     ) {
                         Icon(
@@ -121,7 +119,7 @@ fun EvaluationFormDetailScreen(
                             .fillMaxWidth()
                             .padding(bottom = 16.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = Color.White
+                            containerColor = surfaceColor
                         ),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
@@ -134,20 +132,17 @@ fun EvaluationFormDetailScreen(
                                 text = state.form!!.title,
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(59, 62, 104)
+                                color = primaryColor
                             )
-
                             Spacer(modifier = Modifier.height(8.dp))
-
                             if (state.form!!.description.isNotEmpty()) {
                                 Text(
                                     text = state.form!!.description,
                                     fontSize = 16.sp,
-                                    color = Color.DarkGray
+                                    color = textColor
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
-
                             Text(
                                 text = "Oluşturulma Tarihi: ${
                                     SimpleDateFormat(
@@ -156,28 +151,25 @@ fun EvaluationFormDetailScreen(
                                     ).format(state.form!!.dateCreated)
                                 }",
                                 fontSize = 14.sp,
-                                color = Color.Gray
+                                color = textColor.copy(alpha = 0.5f)
                             )
-
                             if (state.form!!.maxScore > 0) {
                                 Text(
                                     text = "Maksimum Puan: ${state.form!!.maxScore}",
                                     fontSize = 14.sp,
-                                    color = Color.Gray
+                                    color = textColor.copy(alpha = 0.5f)
                                 )
                             }
                         }
                     }
-
                     // Sorular
                     Text(
                         text = "Sorular",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(59, 62, 104),
+                        color = primaryColor,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
-
                     state.form!!.questions.forEachIndexed { index, question ->
                         QuestionCard(
                             question = question,
@@ -186,16 +178,14 @@ fun EvaluationFormDetailScreen(
                             onAnswerChanged = { viewModel.updateAnswer(question.id, it) }
                         )
                     }
-
                     // Notlar
                     Text(
                         text = "Notlar",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(59, 62, 104),
+                        color = primaryColor,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
-
                     OutlinedTextField(
                         value = state.notes,
                         onValueChange = { viewModel.updateNotes(it) },
@@ -205,11 +195,10 @@ fun EvaluationFormDetailScreen(
                             .height(120.dp),
                         placeholder = { Text("Notlarınızı buraya yazabilirsiniz...") },
                         colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = Color(59, 62, 104),
-                            cursorColor = Color(59, 62, 104)
+                            focusedBorderColor = primaryColor,
+                            cursorColor = primaryColor
                         )
                     )
-
                     // Gönder butonu
                     Button(
                         onClick = {
@@ -220,7 +209,7 @@ fun EvaluationFormDetailScreen(
                             .padding(vertical = 16.dp)
                             .height(56.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(59, 62, 104)
+                            containerColor = primaryColor
                         ),
                         shape = RoundedCornerShape(28.dp),
                         enabled = !state.isSaving
@@ -240,11 +229,9 @@ fun EvaluationFormDetailScreen(
                             Text("Değerlendirmeyi Tamamla")
                         }
                     }
-
                     Spacer(modifier = Modifier.height(40.dp))
                 }
             }
-
             // Başarı veya hata mesajları
             if (state.actionError != null) {
                 Snackbar(
@@ -256,7 +243,7 @@ fun EvaluationFormDetailScreen(
                             Text("TAMAM", color = Color.White)
                         }
                     },
-                    containerColor = Color(0xFFB71C1C),
+                    containerColor = errorColor,
                     contentColor = Color.White
                 ) {
                     Text(state.actionError!!)
@@ -264,7 +251,6 @@ fun EvaluationFormDetailScreen(
             }
         }
     }
-
     // Form başarıyla gönderildiğinde geriye dön
     LaunchedEffect(key1 = state.isSuccess) {
         if (state.isSuccess) {
@@ -286,7 +272,7 @@ fun QuestionCard(
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = surfaceColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -302,7 +288,7 @@ fun QuestionCard(
                     modifier = Modifier
                         .size(28.dp)
                         .background(
-                            color = Color(59, 62, 104),
+                            color = primaryColor,
                             shape = RoundedCornerShape(14.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -313,29 +299,24 @@ fun QuestionCard(
                         fontWeight = FontWeight.Bold
                     )
                 }
-
                 Spacer(modifier = Modifier.width(12.dp))
-
                 Text(
                     text = question.text,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(59, 62, 104),
+                    color = primaryColor,
                     modifier = Modifier.weight(1f)
                 )
-
                 if (question.required) {
                     Text(
                         text = "*",
-                        color = Color.Red,
+                        color = errorColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
             when (question.type) {
                 QuestionType.TEXT -> {
                     OutlinedTextField(
@@ -344,8 +325,8 @@ fun QuestionCard(
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Yanıtınızı yazın...") },
                         colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = Color(59, 62, 104),
-                            cursorColor = Color(59, 62, 104)
+                            focusedBorderColor = primaryColor,
+                            cursorColor = primaryColor
                         )
                     )
                 }
@@ -360,8 +341,8 @@ fun QuestionCard(
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Sayısal değer girin...") },
                         colors = TextFieldDefaults.outlinedTextFieldColors(
-                            focusedBorderColor = Color(59, 62, 104),
-                            cursorColor = Color(59, 62, 104)
+                            focusedBorderColor = primaryColor,
+                            cursorColor = primaryColor
                         )
                     )
                 }
@@ -369,24 +350,20 @@ fun QuestionCard(
                     val min = question.minValue ?: 0
                     val max = question.maxValue ?: 10
                     val currentValue = answer.toIntOrNull() ?: min
-
                     Text(
                         text = "Ölçek: $min - $max",
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = textColor.copy(alpha = 0.5f)
                     )
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = "$min",
-                            color = Color.Gray
+                            color = textColor.copy(alpha = 0.5f)
                         )
-
                         Slider(
                             value = currentValue.toFloat(),
                             onValueChange = { onAnswerChanged(it.toInt().toString()) },
@@ -396,22 +373,20 @@ fun QuestionCard(
                                 .weight(1f)
                                 .padding(horizontal = 8.dp),
                             colors = SliderDefaults.colors(
-                                thumbColor = Color(59, 62, 104),
-                                activeTrackColor = Color(59, 62, 104)
+                                thumbColor = primaryColor,
+                                activeTrackColor = primaryColor
                             )
                         )
-
                         Text(
                             text = "$max",
-                            color = Color.Gray
+                            color = textColor.copy(alpha = 0.5f)
                         )
                     }
-
                     Text(
                         text = "Seçilen değer: $currentValue",
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        color = Color(59, 62, 104),
+                        color = primaryColor,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -430,7 +405,7 @@ fun QuestionCard(
                                     selected = answer == option,
                                     onClick = { onAnswerChanged(option) },
                                     colors = RadioButtonDefaults.colors(
-                                        selectedColor = Color(59, 62, 104)
+                                        selectedColor = primaryColor
                                     )
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -450,23 +425,21 @@ fun QuestionCard(
                         Button(
                             onClick = { onAnswerChanged("Evet") },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (answer == "Evet") Color(59, 62, 104) else Color.Gray
+                                containerColor = if (answer == "Evet") primaryColor else textColor.copy(alpha = 0.3f)
                             )
                         ) {
                             Text("Evet")
                         }
-
                         Button(
                             onClick = { onAnswerChanged("Hayır") },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (answer == "Hayır") Color(59, 62, 104) else Color.Gray
+                                containerColor = if (answer == "Hayır") primaryColor else textColor.copy(alpha = 0.3f)
                             )
                         ) {
                             Text("Hayır")
                         }
                     }
                 }
-
             }
         }
     }

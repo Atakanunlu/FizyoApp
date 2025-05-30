@@ -3,18 +3,7 @@ package com.example.fizyoapp.presentation.user.usermainscreen
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,38 +11,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.AccessibilityNew
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Healing
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.MonitorHeart
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -78,18 +38,11 @@ import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBanne
 import com.example.fizyoapp.presentation.advertisement.banner.AdvertisementBannerViewModel
 import com.example.fizyoapp.presentation.navigation.AppScreens
 import com.example.fizyoapp.presentation.ui.bottomnavbar.BottomNavbarComponent
+import com.example.fizyoapp.presentation.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val accentColor = Color(59, 62, 104)
-private val textColor = Color.DarkGray
-private val socialMediaColor = Color(76, 175, 80)
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -322,7 +275,7 @@ fun UserMainScreen(
                                     }
                                 },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Red
+                                    containerColor = errorColor
                                 )
                             ) {
                                 Text("Acil Çıkış", color = Color.White)
@@ -365,7 +318,7 @@ fun UserMainScreen(
                                 }
                             }
                         ) {
-                            Text("Çıkış Yap", color = Color.Red)
+                            Text("Çıkış Yap", color = errorColor)
                         }
                     }
                 }
@@ -392,7 +345,6 @@ fun UserMainScreen(
                     }
                 }
             }
-
             if (state.error != null) {
                 Snackbar(
                     modifier = Modifier
@@ -409,7 +361,7 @@ fun UserMainScreen(
                             }
                         }
                     },
-                    containerColor = Color(0xFFB71C1C)
+                    containerColor = errorColor
                 ) {
                     Text(state.error, color = Color.White)
                 }
@@ -563,7 +515,7 @@ fun AdvertisementBanner(
                             .padding(start = 4.dp)
                             .size(36.dp)
                             .background(
-                                color = Color.Black.copy(alpha = 0.3f),
+                                color = overlayColor,
                                 shape = CircleShape
                             )
                     ) {
@@ -579,7 +531,7 @@ fun AdvertisementBanner(
                             .padding(end = 4.dp)
                             .size(36.dp)
                             .background(
-                                color = Color.Black.copy(alpha = 0.3f),
+                                color = overlayColor,
                                 shape = CircleShape
                             )
                     ) {
@@ -644,7 +596,6 @@ fun MainNavigationButtonsRedesigned(navController: NavController, painRecord: Pa
         fontWeight = FontWeight.Bold,
         color = primaryColor
     )
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -700,9 +651,7 @@ fun MainNavigationButtonsRedesigned(navController: NavController, painRecord: Pa
             )
         }
     }
-
     Spacer(modifier = Modifier.height(12.dp))
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -720,9 +669,7 @@ fun MainNavigationButtonsRedesigned(navController: NavController, painRecord: Pa
             modifier = Modifier.weight(1f)
         )
     }
-
     Spacer(modifier = Modifier.height(12.dp))
-
     ServiceCard(
         title = "Rehabilitasyon Geçmişim",
         icon = Icons.Default.History,
@@ -735,19 +682,15 @@ fun MainNavigationButtonsRedesigned(navController: NavController, painRecord: Pa
             }
         }
     )
-
     Spacer(modifier = Modifier.height(12.dp))
-
     ServiceCard(
         title = "Sosyal Medya",
         icon = Icons.Default.Share,
         description = "Paylaşımları görüntüleyin ve fizyoterapistlerle etkileşime geçin",
         onClick = { navController.navigate(AppScreens.SocialMediaScreen.route) },
-        accentColor = socialMediaColor
+        accentColor = greenColor
     )
-
     Spacer(modifier = Modifier.height(12.dp))
-
     PainTrackingCard(painRecord, navController)
 }
 
@@ -816,7 +759,6 @@ fun ServiceCard(
 fun PainTrackingCard(painRecord: PainRecord?, navController: NavController) {
     val intensity = painRecord?.intensity ?: 0
     val location = painRecord?.location ?: "Veri yok"
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -873,9 +815,7 @@ fun PainTrackingCard(painRecord: PainRecord?, navController: NavController) {
                     color = textColor.copy(alpha = 0.7f)
                 )
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -899,9 +839,9 @@ fun PainTrackingCard(painRecord: PainRecord?, navController: NavController) {
                                 .background(
                                     if (index < intensity) {
                                         when (index) {
-                                            0, 1, 2 -> Color(0xFF388E3C)
-                                            3, 4, 5 -> Color(0xFFFFA000)
-                                            else -> Color(0xFFE53935)
+                                            0, 1, 2 -> easyColor
+                                            3, 4, 5 -> warningColor
+                                            else -> hardColor
                                         }
                                     } else {
                                         Color.LightGray
@@ -917,9 +857,7 @@ fun PainTrackingCard(painRecord: PainRecord?, navController: NavController) {
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -938,9 +876,7 @@ fun PainTrackingCard(painRecord: PainRecord?, navController: NavController) {
                     fontWeight = FontWeight.SemiBold
                 )
             }
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Button(
                 onClick = { navController.navigate("pain_tracking") },
                 colors = ButtonDefaults.buttonColors(

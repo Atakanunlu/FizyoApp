@@ -35,6 +35,7 @@ import com.example.fizyoapp.domain.model.illnesrecordscreen.evaluationforms.Eval
 import com.example.fizyoapp.domain.model.illnesrecordscreen.evaluationforms.FormResponse
 import com.example.fizyoapp.domain.model.messagesscreen.ChatThread
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
@@ -49,32 +50,25 @@ fun EvaluationFormsScreen(
     var selectedResponse by remember { mutableStateOf<FormResponse?>(null) }
     var showShareDialog by remember { mutableStateOf(false) }
 
-
     LaunchedEffect(Unit) {
-
         viewModel.onEvent(EvaluationFormsEvent.RefreshData)
     }
 
-
     LaunchedEffect(Unit) {
         while(true) {
-
             delay(60000)
             viewModel.refreshUserResponses()
         }
     }
 
-
     LaunchedEffect(Unit) {
         val navBackStackEntry = navController.currentBackStackEntry
         navBackStackEntry?.lifecycle?.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
             override fun onResume(owner: androidx.lifecycle.LifecycleOwner) {
-
                 viewModel.refreshUserResponses()
             }
         })
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -97,7 +91,7 @@ fun EvaluationFormsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(59, 62, 104),
+                    containerColor = primaryColor,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
@@ -107,7 +101,7 @@ fun EvaluationFormsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(245, 245, 250))
+                .background(backgroundColor)
                 .padding(paddingValues)
         ) {
             if (state.isLoading) {
@@ -116,7 +110,7 @@ fun EvaluationFormsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
-                        color = Color(59, 62, 104)
+                        color = primaryColor
                     )
                 }
             } else if (state.error != null) {
@@ -130,7 +124,7 @@ fun EvaluationFormsScreen(
                     Icon(
                         imageVector = Icons.Outlined.Error,
                         contentDescription = null,
-                        tint = Color.Red.copy(alpha = 0.7f),
+                        tint = errorColor.copy(alpha = 0.7f),
                         modifier = Modifier.size(80.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -138,13 +132,13 @@ fun EvaluationFormsScreen(
                         text = state.error!!,
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
-                        color = Color.DarkGray
+                        color = textColor
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
                         onClick = { viewModel.onEvent(EvaluationFormsEvent.RefreshData) },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(59, 62, 104)
+                            containerColor = primaryColor
                         )
                     ) {
                         Icon(
@@ -161,13 +155,12 @@ fun EvaluationFormsScreen(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-
                     item {
                         Text(
                             text = "Tüm Değerlendirme Formları",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(59, 62, 104),
+                            color = primaryColor,
                             modifier = Modifier.padding(vertical = 16.dp)
                         )
                     }
@@ -178,7 +171,7 @@ fun EvaluationFormsScreen(
                                     .fillMaxWidth()
                                     .padding(bottom = 16.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = Color.White
+                                    containerColor = surfaceColor
                                 ),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                             ) {
@@ -213,7 +206,6 @@ fun EvaluationFormsScreen(
                             )
                         }
                     }
-
                     item {
                         Row(
                             modifier = Modifier
@@ -226,21 +218,20 @@ fun EvaluationFormsScreen(
                                 text = "Tamamlanan Formlarınız (${state.userResponses.size})",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(59, 62, 104)
+                                color = primaryColor
                             )
-
                             // Küçük yenileme butonu
                             IconButton(
                                 onClick = { viewModel.refreshUserResponses() },
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(Color(59, 62, 104).copy(alpha = 0.1f))
+                                    .background(primaryColor.copy(alpha = 0.1f))
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Refresh,
                                     contentDescription = "Yanıtları Yenile",
-                                    tint = Color(59, 62, 104),
+                                    tint = primaryColor,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -253,7 +244,7 @@ fun EvaluationFormsScreen(
                                     .fillMaxWidth()
                                     .padding(bottom = 16.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = Color.White
+                                    containerColor = surfaceColor
                                 ),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                             ) {
@@ -311,7 +302,7 @@ fun EvaluationFormsScreen(
                             Text("TAMAM", color = Color.White)
                         }
                     },
-                    containerColor = Color(0xFFB71C1C),
+                    containerColor = errorColor,
                     contentColor = Color.White
                 ) {
                     Text(state.actionError!!)
@@ -333,7 +324,7 @@ fun EvaluationFormsScreen(
             ) {
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF4CAF50)
+                        containerColor = successColor
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
@@ -357,7 +348,6 @@ fun EvaluationFormsScreen(
                 }
             }
 
-
             AnimatedVisibility(
                 visible = state.isLoading,
                 enter = fadeIn(),
@@ -368,7 +358,7 @@ fun EvaluationFormsScreen(
             ) {
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth(),
-                    color = Color(59, 62, 104)
+                    color = primaryColor
                 )
             }
         }
@@ -406,7 +396,7 @@ fun EvaluationFormItem(
             .padding(bottom = 12.dp)
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = surfaceColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp)
@@ -422,15 +412,15 @@ fun EvaluationFormItem(
                     .size(56.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(
-                        if (form.isCompleted) Color(59, 62, 104, 0x40)
-                        else Color(59, 62, 104, 0x20)
+                        if (form.isCompleted) primaryColor.copy(alpha = 0.4f)
+                        else primaryColor.copy(alpha = 0.2f)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = if (form.isCompleted) Icons.Outlined.AssignmentTurnedIn else Icons.Outlined.Assignment,
                     contentDescription = "Form",
-                    tint = Color(59, 62, 104),
+                    tint = primaryColor,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -442,7 +432,7 @@ fun EvaluationFormItem(
                     text = form.title,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(59, 62, 104)
+                    color = primaryColor
                 )
                 if (form.description.isNotEmpty()) {
                     Text(
@@ -460,7 +450,7 @@ fun EvaluationFormItem(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF4CAF50)),
+                        .background(greenColor),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -477,7 +467,7 @@ fun EvaluationFormItem(
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
                         contentDescription = "Detay",
-                        tint = Color(59, 62, 104)
+                        tint = primaryColor
                     )
                 }
             }
@@ -499,7 +489,7 @@ fun FormResponseItem(
             .padding(bottom = 12.dp)
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = surfaceColor
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp)
@@ -517,13 +507,13 @@ fun FormResponseItem(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(59, 62, 104, 0x40)),
+                        .background(primaryColor.copy(alpha = 0.4f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.AssignmentTurnedIn,
                         contentDescription = "Tamamlanan Form",
-                        tint = Color(59, 62, 104),
+                        tint = primaryColor,
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -535,13 +525,13 @@ fun FormResponseItem(
                         text = response.title ?: "Form Yanıtı",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(59, 62, 104)
+                        color = primaryColor
                     )
                     Text(
                         text = "Puan: ${response.score}/${response.maxScore}",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(59, 62, 104)
+                        color = primaryColor
                     )
                     Text(
                         text = "Tamamlanma: ${
@@ -561,7 +551,7 @@ fun FormResponseItem(
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Sil",
-                        tint = Color.Red.copy(alpha = 0.7f)
+                        tint = errorColor.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -573,9 +563,9 @@ fun FormResponseItem(
                 OutlinedButton(
                     onClick = onClick,
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color(59, 62, 104)
+                        contentColor = primaryColor
                     ),
-                    border = BorderStroke(1.dp, Color(59, 62, 104))
+                    border = BorderStroke(1.dp, primaryColor)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Visibility,
@@ -588,7 +578,7 @@ fun FormResponseItem(
                 Button(
                     onClick = onShareClick,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(59, 62, 104)
+                        containerColor = primaryColor
                     )
                 ) {
                     Icon(
@@ -613,7 +603,7 @@ fun FormResponseItem(
                         showDeleteConfirmation = false
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Red
+                        containerColor = errorColor
                     )
                 ) {
                     Text("Sil")
@@ -636,7 +626,6 @@ fun ShareDialog(
     onShareClicked: (String) -> Unit
 ) {
     println("ShareDialog içinde thread sayısı: ${threads.size}")
-
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
@@ -644,7 +633,7 @@ fun ShareDialog(
                 .heightIn(max = 500.dp),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color.White
+                containerColor = surfaceColor
             )
         ) {
             Column(
@@ -698,7 +687,7 @@ fun ShareDialog(
                                     },
                                 shape = RoundedCornerShape(8.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = Color(0xFFF5F5F5)
+                                    containerColor = backgroundColor
                                 ),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                             ) {
@@ -712,7 +701,7 @@ fun ShareDialog(
                                         modifier = Modifier
                                             .size(40.dp)
                                             .clip(CircleShape)
-                                            .background(Color(59, 62, 104, 0x33))
+                                            .background(primaryColor.copy(alpha = 0.33f))
                                     ) {
                                         if (thread.otherParticipantPhotoUrl.isNotEmpty()) {
                                             AsyncImage(
@@ -725,7 +714,7 @@ fun ShareDialog(
                                             Icon(
                                                 imageVector = Icons.Default.Person,
                                                 contentDescription = "Profil",
-                                                tint = Color(59, 62, 104),
+                                                tint = primaryColor,
                                                 modifier = Modifier
                                                     .fillMaxSize()
                                                     .padding(8.dp)
@@ -758,4 +747,3 @@ fun ShareDialog(
         }
     }
 }
-

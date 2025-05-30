@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.user.egzersizlerim
-
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
@@ -51,18 +50,10 @@ import coil.request.ImageRequest
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlan
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExercisePlanItem
 import com.example.fizyoapp.domain.model.exercisemanagescreen.ExerciseType
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
-
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val accentColor = Color(59, 62, 104)
-private val secondaryAccent = Color(97, 97, 177)
-private val textColor = Color.DarkGray
-private val lightGray = Color.Gray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -86,9 +77,7 @@ fun ExercisePlanDetailScreen(
     var showPlayer by remember { mutableStateOf(false) }
     var isPlaying by remember { mutableStateOf(true) }
     var currentMediaType by remember { mutableStateOf("image") }
-
     var currentMediaUrl by remember { mutableStateOf("") }
-
     val navigateBack = {
         coroutineScope.launch {
             showPlayer = false
@@ -99,9 +88,7 @@ fun ExercisePlanDetailScreen(
             navController.navigateUp()
         }
     }
-
     BackHandler { navigateBack() }
-
     DisposableEffect(Unit) {
         onDispose {
             exoPlayer.stop()
@@ -109,16 +96,13 @@ fun ExercisePlanDetailScreen(
             exoPlayer.release()
         }
     }
-
     LaunchedEffect(planId) {
         viewModel.loadExercisePlan(planId)
     }
-
     // Herhangi bir kaynaktan medya seçimini işlemek için fonksiyon
     val handleMediaSelection = { mediaUrl: String, type: String ->
         currentMediaUrl = mediaUrl
         currentMediaType = type
-
         if (type == "video") {
             showPlayer = true
             val videoUri = Uri.parse(mediaUrl)
@@ -131,14 +115,12 @@ fun ExercisePlanDetailScreen(
             showPlayer = false
         }
     }
-
     LaunchedEffect(currentExerciseIndex, state.plan) {
         if (state.plan != null && state.plan.exercises.isNotEmpty()) {
             val currentExercise = state.plan.exercises[currentExerciseIndex]
             if (currentExercise.mediaUrls.isNotEmpty()) {
                 val mediaUrl = currentExercise.mediaUrls.first()
                 currentMediaUrl = mediaUrl
-
 
                 val isVideoFromType = currentExercise.mediaTypes[mediaUrl]?.name?.equals("VIDEO", ignoreCase = true) ?: false
                 val isVideoFromUrl = mediaUrl.contains("video", ignoreCase = true) ||
@@ -148,10 +130,8 @@ fun ExercisePlanDetailScreen(
                         mediaUrl.endsWith(".avi", ignoreCase = true) ||
                         mediaUrl.endsWith(".3gp", ignoreCase = true) ||
                         mediaUrl.endsWith(".mkv", ignoreCase = true)
-
                 val isVideo = isVideoFromType || isVideoFromUrl
                 val mediaType = if (isVideo) "video" else "image"
-
                 handleMediaSelection(mediaUrl, mediaType)
             } else {
                 showPlayer = false
@@ -160,7 +140,6 @@ fun ExercisePlanDetailScreen(
             }
         }
     }
-
     DisposableEffect(Unit) {
         exoPlayer.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(state: Int) {
@@ -173,19 +152,16 @@ fun ExercisePlanDetailScreen(
                 }
                 Log.d("ExoPlayer", "State: $stateStr")
             }
-
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 Log.e("ExoPlayer", "Error: ${error.message}")
             }
         })
-
         onDispose {
             exoPlayer.stop()
             playerView?.player = null
             exoPlayer.release()
         }
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -248,14 +224,12 @@ fun ExercisePlanDetailScreen(
                     Text(
                         text = "Egzersiz programınızı düzenli takip edin",
                         fontSize = 16.sp,
-                        color = lightGray,
+                        color = textColor.copy(alpha = 0.5f),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-
                     PlanInfoCardRedesigned(state.plan)
                     Spacer(modifier = Modifier.height(24.dp))
-
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -269,7 +243,6 @@ fun ExercisePlanDetailScreen(
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(primaryColor.copy(alpha = 0.1f))
                         )
-
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth(
@@ -279,14 +252,13 @@ fun ExercisePlanDetailScreen(
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(
                                     brush = Brush.horizontalGradient(
-                                        colors = listOf(primaryColor, secondaryAccent)
+                                        colors = listOf(primaryColor, accentColor)
                                     )
                                 )
                                 .align(Alignment.CenterStart)
                         )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-
                     Text(
                         text = "Egzersiz ${currentExerciseIndex + 1} / ${state.plan.exercises.size}",
                         fontSize = 16.sp,
@@ -295,7 +267,6 @@ fun ExercisePlanDetailScreen(
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(24.dp))
-
                     MediaContainerRedesigned(
                         currentExercise = state.plan.exercises[currentExerciseIndex],
                         mediaType = currentMediaType,
@@ -305,12 +276,10 @@ fun ExercisePlanDetailScreen(
                         onMediaSelected = { url, type -> handleMediaSelection(url, type) }
                     )
                     Spacer(modifier = Modifier.height(24.dp))
-
                     ExerciseDetailsCardRedesigned(
                         exercise = state.plan.exercises[currentExerciseIndex]
                     )
                     Spacer(modifier = Modifier.height(24.dp))
-
                     ExerciseControlButtonsRedesigned(
                         currentIndex = currentExerciseIndex,
                         totalExercises = state.plan.exercises.size,
@@ -332,11 +301,10 @@ fun ExercisePlanDetailScreen(
                         mediaType = currentMediaType
                     )
                     Spacer(modifier = Modifier.height(24.dp))
-
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = Color(230, 230, 250)
+                            containerColor = backgroundColor.copy(alpha = 0.7f)
                         ),
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 0.dp
@@ -357,7 +325,7 @@ fun ExercisePlanDetailScreen(
                             Text(
                                 text = "Her egzersizi uygun duruş ve nefes tekniğiyle yaparak en iyi sonuçları alabilirsiniz.",
                                 fontSize = 14.sp,
-                                color = Color.DarkGray,
+                                color = textColor,
                                 modifier = Modifier.padding(start = 12.dp)
                             )
                         }
@@ -383,7 +351,7 @@ fun LoadingViewRedesigned() {
                 modifier = Modifier
                     .size(120.dp)
                     .clip(RoundedCornerShape(24.dp))
-                    .background(Color(59, 62, 104, 20)),
+                    .background(primaryColor.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(
@@ -403,7 +371,7 @@ fun LoadingViewRedesigned() {
             Text(
                 text = "Lütfen bekleyin",
                 fontSize = 14.sp,
-                color = lightGray,
+                color = textColor.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center
             )
         }
@@ -423,13 +391,13 @@ fun ErrorViewRedesigned(message: String, onRetry: () -> Unit) {
             modifier = Modifier
                 .size(120.dp)
                 .clip(RoundedCornerShape(24.dp))
-                .background(Color(244, 67, 54, 20)),
+                .background(errorColor.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Info,
                 contentDescription = null,
-                tint = Color(244, 67, 54),
+                tint = errorColor,
                 modifier = Modifier.size(64.dp)
             )
         }
@@ -486,7 +454,7 @@ fun EmptyExercisesViewRedesigned() {
             modifier = Modifier
                 .size(120.dp)
                 .clip(RoundedCornerShape(24.dp))
-                .background(Color(59, 62, 104, 20)),
+                .background(primaryColor.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -508,14 +476,14 @@ fun EmptyExercisesViewRedesigned() {
         Text(
             text = "Bu planda henüz egzersiz bulunmuyor. Fizyoterapistinizle iletişime geçebilirsiniz.",
             fontSize = 16.sp,
-            color = lightGray,
+            color = textColor.copy(alpha = 0.5f),
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = Color(230, 230, 250)
+                containerColor = backgroundColor.copy(alpha = 0.7f)
             ),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 0.dp
@@ -536,7 +504,7 @@ fun EmptyExercisesViewRedesigned() {
                 Text(
                     text = "Fizyoterapistinizden egzersiz planınıza egzersiz eklemesini isteyebilirsiniz.",
                     fontSize = 14.sp,
-                    color = Color.DarkGray,
+                    color = textColor,
                     modifier = Modifier.padding(start = 12.dp)
                 )
             }
@@ -570,7 +538,7 @@ fun PlanInfoCardRedesigned(plan: ExercisePlan) {
                     modifier = Modifier
                         .size(56.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(59, 62, 104, 20)),
+                        .background(primaryColor.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -598,9 +566,8 @@ fun PlanInfoCardRedesigned(plan: ExercisePlan) {
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = Color(230, 230, 250))
+            Divider(color = backgroundColor)
             Spacer(modifier = Modifier.height(16.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -620,10 +587,9 @@ fun PlanInfoCardRedesigned(plan: ExercisePlan) {
                     value = plan.frequency
                 )
             }
-
             if (!plan.notes.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(16.dp))
-                Divider(color = Color(230, 230, 250))
+                Divider(color = backgroundColor)
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Fizyoterapist Notları",
@@ -711,14 +677,13 @@ fun MediaContainerRedesigned(
                 color = primaryColor,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(240.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(
-                        color = Color(230, 230, 250)
+                        color = backgroundColor.copy(alpha = 0.7f)
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -779,9 +744,7 @@ fun MediaContainerRedesigned(
                     }
                 }
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -832,12 +795,10 @@ fun MediaContainerRedesigned(
                     }
                 }
             }
-
             if (currentExercise.mediaUrls.size > 1) {
                 Spacer(modifier = Modifier.height(16.dp))
-                Divider(color = Color(230, 230, 250))
+                Divider(color = backgroundColor)
                 Spacer(modifier = Modifier.height(8.dp))
-
                 MediaGallery(
                     mediaUrls = currentExercise.mediaUrls,
                     mediaTypes = currentExercise.mediaTypes,
@@ -863,7 +824,6 @@ fun MediaGallery(
                 color = primaryColor,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
-
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
@@ -875,9 +835,7 @@ fun MediaGallery(
                             mediaUrl.endsWith(".mov") ||
                             mediaUrl.endsWith(".webm") ||
                             mediaUrl.endsWith(".avi")
-
                     val mediaType = if (isVideo) "video" else "image"
-
                     MediaGalleryItem(
                         mediaUrl = mediaUrl,
                         mediaType = mediaType,
@@ -905,7 +863,7 @@ fun MediaGalleryItem(
             .clip(RoundedCornerShape(8.dp))
             .border(
                 width = 1.dp,
-                color = textColor.copy(alpha = 0.2f),
+                color = cardBorderColor,
                 shape = RoundedCornerShape(8.dp)
             )
             .clickable(onClick = onClick)
@@ -919,29 +877,27 @@ fun MediaGalleryItem(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.1f),
-                            Color.Black.copy(alpha = 0.3f)
+                            overlayColor.copy(alpha = 0.1f),
+                            overlayColor.copy(alpha = 0.3f)
                         ),
                         startY = 0f,
                         endY = 80f
                     )
                 )
         )
-
         if (mediaType == "video") {
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .size(30.dp)
                     .background(
-                        color = Color.Black.copy(alpha = 0.6f),
+                        color = overlayColor,
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -993,25 +949,24 @@ fun ExerciseDetailsCardRedesigned(
                     label = "Set",
                     value = exercise.sets.toString(),
                     icon = Icons.Rounded.Repeat,
-                    color = Color(59, 62, 104)
+                    color = primaryColor
                 )
                 ExerciseParameterRedesigned(
                     label = "Tekrar",
                     value = exercise.repetitions.toString(),
                     icon = Icons.Rounded.Numbers,
-                    color = Color(76, 175, 80)
+                    color = greenColor
                 )
                 ExerciseParameterRedesigned(
                     label = "Süre (sn)",
                     value = exercise.duration.toString(),
                     icon = Icons.Rounded.Timer,
-                    color = Color(255, 152, 0)
+                    color = warningColor
                 )
             }
-
             if (exercise.notes.isNotBlank()) {
                 Spacer(modifier = Modifier.height(16.dp))
-                Divider(color = Color(230, 230, 250))
+                Divider(color = backgroundColor)
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Egzersiz Açıklaması",
@@ -1106,7 +1061,7 @@ fun ExerciseControlButtonsRedesigned(
             ) {
                 FloatingActionButton(
                     onClick = onPrevious,
-                    containerColor = Color(230, 230, 250),
+                    containerColor = backgroundColor.copy(alpha = 0.7f),
                     contentColor = primaryColor,
                     shape = CircleShape,
                     modifier = Modifier.size(56.dp),
@@ -1122,7 +1077,6 @@ fun ExerciseControlButtonsRedesigned(
                     )
                 }
             }
-
             AnimatedVisibility(
                 visible = showPlayPause,
                 enter = fadeIn() + scaleIn(),
@@ -1151,7 +1105,6 @@ fun ExerciseControlButtonsRedesigned(
                     }
                 }
             }
-
             FloatingActionButton(
                 onClick = onNext,
                 containerColor = primaryColor,

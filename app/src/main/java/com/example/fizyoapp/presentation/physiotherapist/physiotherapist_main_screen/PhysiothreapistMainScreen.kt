@@ -1,5 +1,4 @@
 package com.example.fizyoapp.presentation.physiotherapist.physiotherapist_main_screen
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -31,14 +30,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fizyoapp.presentation.navigation.AppScreens
+import com.example.fizyoapp.presentation.ui.theme.*
 import kotlinx.coroutines.flow.collectLatest
-
-private val primaryColor = Color(59, 62, 104)
-private val backgroundColor = Color(245, 245, 250)
-private val surfaceColor = Color.White
-private val accentColor = Color(59, 62, 104)
-private val textColor = Color.DarkGray
-private val greenColor = Color(76, 175, 80)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -178,7 +171,7 @@ fun PhysiotherapistMainScreen(
                             Text("Tamam", color = Color.White)
                         }
                     },
-                    containerColor = Color(0xFFB71C1C)
+                    containerColor = errorColor
                 ) {
                     Text(it, color = Color.White)
                 }
@@ -258,6 +251,7 @@ fun MainNavigationButtonsRedesigned(navController: NavController) {
         fontWeight = FontWeight.Bold,
         color = primaryColor
     )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -313,7 +307,9 @@ fun MainNavigationButtonsRedesigned(navController: NavController) {
             )
         }
     }
+
     Spacer(modifier = Modifier.height(12.dp))
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -369,7 +365,9 @@ fun MainNavigationButtonsRedesigned(navController: NavController) {
             )
         }
     }
+
     Spacer(modifier = Modifier.height(12.dp))
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -387,14 +385,18 @@ fun MainNavigationButtonsRedesigned(navController: NavController) {
             modifier = Modifier.weight(1f)
         )
     }
+
     Spacer(modifier = Modifier.height(12.dp))
+
     ServiceCard(
         title = "Sosyal Medya",
         icon = Icons.Default.Share,
         description = "Gönderilerinizi paylaşın ve diğer içerikleri görüntüleyin",
         onClick = { navController.navigate(AppScreens.SocialMediaScreen.route) }
     )
+
     Spacer(modifier = Modifier.height(12.dp))
+
     ServiceCard(
         title = "Reklam Ver",
         icon = Icons.Default.Campaign,
